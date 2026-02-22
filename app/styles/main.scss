@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./colors.scss";
+@import "./animations.scss";
 
 body {
   background: var(--background);
@@ -8,6 +9,14 @@ body {
 }
 
 .auth {
+  &__title {
+    color: #e17100;
+
+    svg {
+      animation: rotate 20s linear infinite;
+    }
+  }
+
   &__container {
     background-color: var(--auth-background);
     color: var(--auth-color);

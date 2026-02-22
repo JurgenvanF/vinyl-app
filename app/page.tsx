@@ -13,6 +13,8 @@ import { useLanguage } from "../lib/LanguageContext";
 import { t } from "../lib/translations";
 import LanguageToggle from "./components/language/LanguageToggle";
 
+import { Disc3 } from "lucide-react";
+
 type FormType = "login" | "register";
 
 export default function AuthPage() {
@@ -92,6 +94,13 @@ export default function AuthPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="mb-6 flex flex-col items-center text-center">
+        <div className="auth__title flex items-center gap-4 mb-2">
+          <Disc3 size={50} />
+          <h1 className="text-4xl">Vinyl Vault</h1>
+        </div>
+        <p>{t(locale, "welcomeDescription")}</p>
+      </div>
       <div className="auth__container p-8 rounded-lg shadow-md max-w-lg w-full">
         {/* Header */}
         <div className="flex items-center justify-between gap-6 mb-6">

@@ -3,6 +3,7 @@ type Locale = "en" | "nl";
 type Translations = {
   [key in Locale]: {
     welcome: string;
+    welcomeDescription: string;
     login: string;
     register: string;
     email: string;
@@ -22,6 +23,7 @@ type Translations = {
 export const translations: Translations = {
   en: {
     welcome: "Welcome",
+    welcomeDescription: "Organize, track, and share your vinyl collection",
     login: "Login",
     register: "Register",
     email: "Email",
@@ -38,6 +40,7 @@ export const translations: Translations = {
   },
   nl: {
     welcome: "Welkom",
+    welcomeDescription: "Organiseer, volg en deel je vinyl-collectie",
     login: "Inloggen",
     register: "Registreren",
     email: "E-mail",
