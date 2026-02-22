@@ -35,7 +35,7 @@ export default function Dashboard() {
         setUser(null);
         setProfile(null);
         setLoading(false);
-        router.replace("/login");
+        router.replace("/");
         return;
       }
 
@@ -69,7 +69,7 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     await signOut(auth);
-    router.replace("/login");
+    router.replace("/");
   };
 
   if (loading)
