@@ -93,7 +93,7 @@ export default function AuthPage() {
     return <p className="text-center mt-20">{t(locale, "loading")}</p>;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
+    <div className="flex flex-col items-center justify-center min-h-screen p-6">
       <div className="mb-6 flex flex-col items-center text-center">
         <div className="auth__title flex items-center gap-4 mb-2">
           <Disc3 size={50} />
