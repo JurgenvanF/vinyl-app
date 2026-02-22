@@ -5,6 +5,9 @@ import { auth, db } from "../../lib/firebase";
 import { signOut, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "../../lib/LanguageContext";
+import { t } from "../../lib/translations";
+import LanguageToggle from "../components/language/LanguageToggle";
 
 type UserProfile = {
   firstName: string;
@@ -13,17 +16,18 @@ type UserProfile = {
   email: string;
 };
 
-const getErrorMessage = (error: unknown): string => {
-  if (error instanceof Error) return error.message;
-  return "Could not load your profile. Please try again.";
-};
-
 export default function Dashboard() {
+  const { locale } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const router = useRouter();
+
+  const getErrorMessage = (error: unknown): string => {
+    if (error instanceof Error) return error.message;
+    return t(locale, "profileLoadError");
+  };
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
@@ -61,14 +65,15 @@ export default function Dashboard() {
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, [router, locale]);
 
   const handleLogout = async () => {
     await signOut(auth);
     router.replace("/login");
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading)
+    return <p className="text-center mt-20">{t(locale, "loading")}</p>;
 
   if (errorMessage) {
     return (
@@ -78,27 +83,30 @@ export default function Dashboard() {
           onClick={handleLogout}
           className="px-6 py-3 rounded-full bg-black text-white hover:bg-zinc-800 transition-colors"
         >
-          Logout
+          {t(locale, "logout")}
         </button>
       </div>
     );
   }
 
-  if (!user || !profile) return <p>Loading...</p>;
+  if (!user || !profile)
+    return <p className="text-center mt-20">{t(locale, "loading")}</p>;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+      <LanguageToggle />
+
       <h1 className="text-2xl font-semibold text-black dark:text-zinc-50">
-        Hello {profile.firstName} {profile.lastName}!
+        {t(locale, "helloName", `${profile.firstName} ${profile.lastName}`)}
       </h1>
       <p className="text-lg text-zinc-600 dark:text-zinc-400">
-        Your username: {profile.username}
+        {t(locale, "yourUsername")}: {profile.username}
       </p>
       <button
         onClick={handleLogout}
         className="px-6 py-3 rounded-full bg-black text-white hover:bg-zinc-800 transition-colors"
       >
-        Logout
+        {t(locale, "logout")}
       </button>
     </div>
   );
