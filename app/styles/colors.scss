@@ -1,0 +1,51 @@
+/* Fonts */
+:root {
+  /* Fonts */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Base colors */
+  --muted-black: #717182;
+
+  --background: linear-gradient(to bottom right, #fffae9, #fff7ed, #fef3c7);
+  --foreground: #171717;
+
+  /* Auth */
+  --auth-background: #ffffff;
+  --auth-color: #171717;
+
+  --auth-buttons-background: #ececf0;
+  --auth-button-background: white;
+
+  --auth-input-background: #fffbeb;
+  --auth-input-focus-outline: #ecbb82;
+  --auth-input-focus-border: #de8723;
+  --auth-input-focus-shadow: #ecbb82;
+
+  --auth-submit-background: #e17100;
+  --auth-submit-hover-background: #bb4d00;
+}
+
+.dark {
+  --background: linear-gradient(
+    to bottom right,
+    #000000,
+    rgb(18, 12, 0),
+    #000000
+  );
+  --foreground: #ededed;
+
+  --auth-background: #121212;
+  --auth-color: #f4f4f5;
+
+  --auth-buttons-background: #1f1f23;
+  --auth-button-background: #424245;
+
+  --auth-input-background: #1a1a1a;
+  --auth-input-focus-outline: #ecbb82;
+  --auth-input-focus-border: #de8723;
+  --auth-input-focus-shadow: rgba(236, 187, 130, 0.4);
+
+  --auth-submit-background: #ff8c1a;
+  --auth-submit-hover-background: #e17100;
+}

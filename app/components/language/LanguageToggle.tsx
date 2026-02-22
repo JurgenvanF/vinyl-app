@@ -8,9 +8,9 @@ export default function LanguageToggle() {
   return (
     <button
       onClick={toggleLocale}
-      className="px-4 py-2 rounded-full border border-black dark:border-white text-black dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
+      className="toggle px-3 py-1 rounded-xl border transition-colors cursor-pointer"
     >
-      {locale === "en" ? "NL" : "EN"}
+      {locale === "en" ? "🇳🇱" : "🇬🇧"}
     </button>
   );
 }

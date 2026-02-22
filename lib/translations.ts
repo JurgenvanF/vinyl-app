@@ -9,12 +9,11 @@ type Translations = {
     password: string;
     firstName: string;
     lastName: string;
-    username: string;
     signUp: string;
+    signInInstructions: string;
     signInError: string;
     logout: string;
     helloName: (name: string) => string;
-    yourUsername: string;
     loading: string;
     profileLoadError: string;
   };
@@ -29,12 +28,11 @@ export const translations: Translations = {
     password: "Password",
     firstName: "First Name",
     lastName: "Last Name",
-    username: "Username",
     signUp: "Sign Up",
+    signInInstructions: "Sign in to your account or create a new one",
     signInError: "Something went wrong during login.",
     logout: "Logout",
     helloName: (name) => `Hello ${name}!`,
-    yourUsername: "Your username",
     loading: "Loading...",
     profileLoadError: "Could not load your profile. Please try again.",
   },
@@ -46,12 +44,11 @@ export const translations: Translations = {
     password: "Wachtwoord",
     firstName: "Voornaam",
     lastName: "Achternaam",
-    username: "Gebruikersnaam",
     signUp: "Registreren",
+    signInInstructions: "Log in op uw account of maak een nieuwe aan",
     signInError: "Er is iets misgegaan bij het inloggen.",
     logout: "Uitloggen",
     helloName: (name) => `Hallo ${name}!`,
-    yourUsername: "Je gebruikersnaam",
     loading: "Laden...",
     profileLoadError: "Kan je profiel niet laden. Probeer het opnieuw.",
   },

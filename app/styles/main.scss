@@ -1,0 +1,54 @@
+@import "tailwindcss";
+@import "./colors.scss";
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+.auth {
+  &__container {
+    background-color: var(--auth-background);
+    color: var(--auth-color);
+
+    &__buttons {
+      background-color: var(--auth-buttons-background);
+
+      &__active {
+        background: var(--auth-button-background);
+      }
+    }
+
+    input {
+      color: var(--muted-black);
+      background: var(--auth-input-background);
+
+      &:focus {
+        outline: var(--auth-input-focus-outline);
+        border: 1px solid var(--auth-input-focus-border);
+      }
+
+      &:focus-visible {
+        box-shadow: 0 0 0 3px var(--auth-input-focus-shadow);
+      }
+    }
+
+    &__submit {
+      background-color: var(--auth-submit-background);
+
+      &:hover {
+        background-color: var(--auth-submit-hover-background);
+      }
+    }
+  }
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--auth-input-background) inset !important;
+  -webkit-text-fill-color: var(--auth-color) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}

@@ -27,17 +27,16 @@ export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Register only
+  // Register-only states
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [username, setUsername] = useState("");
 
   // Check if user is already logged in
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        router.replace("/dashboard"); // redirect to dashboard immediately
+        router.replace("/dashboard");
       } else {
         setLoading(false);
       }
@@ -45,6 +44,15 @@ export default function AuthPage() {
 
     return () => unsubscribe();
   }, [router]);
+
+  // Reset all form fields when switching forms
+  const switchForm = (type: FormType) => {
+    setFormType(type);
+    setEmail("");
+    setPassword("");
+    setFirstName("");
+    setLastName("");
+  };
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -69,7 +77,6 @@ export default function AuthPage() {
       await setDoc(doc(db, "users", newUser.uid), {
         firstName,
         lastName,
-        username,
         email,
         createdAt: new Date(),
       });
@@ -84,96 +91,127 @@ export default function AuthPage() {
     return <p className="text-center mt-20">{t(locale, "loading")}</p>;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-50 dark:bg-black">
-      <LanguageToggle />
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="auth__container p-8 rounded-lg shadow-md max-w-lg w-full">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-6 mb-6">
+          <div>
+            <p className="font-semibold">{t(locale, "welcome")}</p>
+            <p>{t(locale, "signInInstructions")}</p>
+          </div>
 
-      <div className="bg-white dark:bg-black p-8 rounded-lg shadow-md max-w-md w-full mt-10">
+          <div className="flex items-center">
+            <LanguageToggle />
+          </div>
+        </div>
+
         {/* Toggle Buttons */}
-        <div className="flex justify-center gap-4 mb-6">
+        <div className="auth__container__buttons flex justify-center gap-4 mx-auto mb-6 p-2 rounded-full">
           <button
-            onClick={() => setFormType("login")}
-            className={`px-6 py-2 rounded-full ${formType === "login" ? "bg-black text-white" : "border border-black dark:border-white dark:text-zinc-50"}`}
+            onClick={() => switchForm("login")}
+            className={`px-6 py-2 rounded-full ${
+              formType === "login"
+                ? "auth__container__buttons__active w-1/2"
+                : "w-1/2 cursor-pointer"
+            }`}
           >
             {t(locale, "login")}
           </button>
           <button
-            onClick={() => setFormType("register")}
-            className={`px-6 py-2 rounded-full ${formType === "register" ? "bg-black text-white" : "border border-black dark:border-white dark:text-zinc-50"}`}
+            onClick={() => switchForm("register")}
+            className={`px-6 py-2 rounded-full ${
+              formType === "register"
+                ? "auth__container__buttons__active w-1/2"
+                : "w-1/2 cursor-pointer"
+            }`}
           >
             {t(locale, "register")}
           </button>
         </div>
 
+        {/* Forms */}
         {formType === "login" ? (
-          <form onSubmit={handleLogin} className="flex flex-col gap-4">
+          <form
+            key="login"
+            onSubmit={handleLogin}
+            className="flex flex-col gap-4"
+          >
             <input
               type="email"
+              name="email"
+              autoComplete="email"
               placeholder={t(locale, "email")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="p-3 border border-gray-300 rounded-md dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              className="p-3 border border-transparent rounded-md transition-all duration-200 ease-in-out"
             />
             <input
               type="password"
+              name="password"
+              autoComplete="current-password"
               placeholder={t(locale, "password")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="p-3 border border-gray-300 rounded-md dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              className="p-3 border border-transparent rounded-md transition-all duration-200 ease-in-out"
             />
             <button
               type="submit"
-              className="p-3 rounded-full bg-black text-white hover:bg-zinc-800 transition-colors"
+              className="auth__container__submit p-3 rounded-full bg-black text-white hover:bg-zinc-800 transition-colors cursor-pointer"
             >
               {t(locale, "login")}
             </button>
           </form>
         ) : (
-          <form onSubmit={handleRegister} className="flex flex-col gap-4">
+          <form
+            key="register"
+            onSubmit={handleRegister}
+            className="flex flex-col gap-4"
+          >
             <input
               type="text"
+              name="firstName"
+              autoComplete="given-name"
               placeholder={t(locale, "firstName")}
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               required
-              className="p-3 border border-gray-300 rounded-md dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              className="p-3 border border-transparent rounded-md transition-all duration-200 ease-in-out"
             />
             <input
               type="text"
+              name="lastName"
+              autoComplete="family-name"
               placeholder={t(locale, "lastName")}
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               required
-              className="p-3 border border-gray-300 rounded-md dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
-            />
-            <input
-              type="text"
-              placeholder={t(locale, "username")}
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              className="p-3 border border-gray-300 rounded-md dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              className="p-3 border border-transparent rounded-md transition-all duration-200 ease-in-out"
             />
             <input
               type="email"
+              name="email"
+              autoComplete="email"
               placeholder={t(locale, "email")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="p-3 border border-gray-300 rounded-md dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              className="p-3 border border-transparent rounded-md transition-all duration-200 ease-in-out"
             />
             <input
               type="password"
+              name="password"
+              autoComplete="new-password"
               placeholder={t(locale, "password")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="p-3 border border-gray-300 rounded-md dark:bg-zinc-900 dark:border-zinc-700 dark:text-white"
+              className="p-3 border border-transparent rounded-md transition-all duration-200 ease-in-out"
             />
             <button
               type="submit"
-              className="p-3 rounded-full bg-black text-white hover:bg-zinc-800 transition-colors"
+              className="auth__container__submit p-3 rounded-full bg-black text-white hover:bg-zinc-800 transition-colors cursor-pointer"
             >
               {t(locale, "signUp")}
             </button>

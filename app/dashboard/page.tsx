@@ -99,9 +99,6 @@ export default function Dashboard() {
       <h1 className="text-2xl font-semibold text-black dark:text-zinc-50">
         {t(locale, "helloName", `${profile.firstName} ${profile.lastName}`)}
       </h1>
-      <p className="text-lg text-zinc-600 dark:text-zinc-400">
-        {t(locale, "yourUsername")}: {profile.username}
-      </p>
       <button
         onClick={handleLogout}
         className="px-6 py-3 rounded-full bg-black text-white hover:bg-zinc-800 transition-colors"
