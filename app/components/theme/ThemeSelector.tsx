@@ -5,11 +5,12 @@ import { useEffect, useState } from "react";
 type Theme = "light" | "dark" | "system";
 
 export default function ThemeSelector() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "system";
-    return (localStorage.getItem("theme") as Theme) || "system";
-  });
+  // track if component is mounted (to prevent SSR mismatch)
+  const [mounted, setMounted] = useState(false);
 
+  const [theme, setTheme] = useState<Theme>("system");
+
+  // Apply theme to <html>
   function applyTheme(theme: Theme) {
     const html = document.documentElement;
     html.classList.remove("dark");
@@ -24,14 +25,24 @@ export default function ThemeSelector() {
   }
 
   useEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
+    // mark component as mounted
+    setMounted(true);
+
+    // read theme from localStorage after mount
+    const savedTheme = (localStorage.getItem("theme") as Theme) || "system";
+    setTheme(savedTheme);
+    applyTheme(savedTheme);
+  }, []);
 
   const changeTheme = (newTheme: Theme) => {
     setTheme(newTheme);
     applyTheme(newTheme);
     localStorage.setItem("theme", newTheme);
   };
+
+  // Render nothing until mounted to avoid SSR mismatch
+  if (!mounted)
+    return <div className="flex gap-2">{/* placeholder if needed */}</div>;
 
   return (
     <div className="flex gap-2">

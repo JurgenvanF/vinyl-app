@@ -2,6 +2,19 @@
   background-color: var(--nav-background);
   color: var(--nav-color);
   border-bottom: 1px solid var(--nav-border);
+
+  &.drawer {
+    border-bottom: none;
+    border-left: 1px solid var(--nav-border);
+
+    .navbar__content__nav__item {
+      border-bottom: none;
+    }
+
+    .mt-auto {
+      border-top: 1px solid var(--nav-border);
+    }
+  }
 }
 
 .title {
