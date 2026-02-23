@@ -11,61 +11,98 @@
   --foreground: #171717;
 
   /* Auth */
+  --auth-body-background: linear-gradient(
+    to bottom right,
+    #fffae9,
+    #fff7ed,
+    #fef3c7
+  );
   --auth-background: #ffffff;
   --auth-color: #171717;
+  --auth-border: #fde68a;
+  --auth-footer: #4a5565;
 
   --auth-language: #ffd232;
   --auth-language-background: #fcf8eb;
 
   --auth-buttons-background: #ececf0;
   --auth-button-background: white;
+  --auth-button-color: black;
 
   --auth-input-background: #fffbeb;
   --auth-input-focus-outline: #ecbb82;
   --auth-input-focus-border: #de8723;
   --auth-input-focus-shadow: #ecbb82;
+  --auth-input-placeholder: #a1a1a1;
 
   --auth-submit-background: #e17100;
   --auth-submit-hover-background: #bb4d00;
+  --auth-submit-color: white;
 
   --nav-background: white;
   --nav-color: black;
+  --nav-border: #fee685;
+
   --nav-icon: #e17100;
   --nav-gradient: linear-gradient(to right, #d97706, #ea580c);
+  --logo-icon-color: #d97706;
 
   --nav-item-background: #fffbeb;
   --nav-item-color: #c56521;
   --nav-item-border: #ffd232;
+
+  --footer-background: white;
+  --footer-color: black;
+  --footer-hover: #ffb300;
 }
 
 .dark {
-  --background: linear-gradient(to bottom right, #000000, #0d0a05, #000000);
+  --background: linear-gradient(to bottom right, #111827, #111827, #1a110d);
   --foreground: #ededed;
 
+  --auth-body-background: linear-gradient(
+    to bottom right,
+    #111827,
+    #1f2937,
+    #451a03
+  );
   --auth-background: #12100c;
   --auth-color: #f4f4f5;
+  --auth-border: #78350f4d;
+  --auth-footer: #99a1af;
 
   --auth-language: #f59e0b;
   --auth-language-background: #2a1a07;
 
-  --auth-buttons-background: #1c1a16;
-  --auth-button-background: #34312b;
+  --auth-buttons-background: #262626;
+  --auth-button-background: #2d2a25;
+  --auth-button-border: rgba(245, 158, 11, 0.1);
+  --auth-button-color: white;
 
   --auth-input-background: #181611;
+  --auth-input-border: rgba(245, 158, 11, 0.1);
   --auth-input-focus-outline: #fbbf24;
   --auth-input-focus-border: #f59e0b;
   --auth-input-focus-shadow: rgba(245, 158, 11, 0.35);
+  --auth-input-placeholder: #a1a1a1;
 
-  --auth-submit-background: #f59e0b;
-  --auth-submit-hover-background: #d97706;
+  --auth-submit-background: #e17100;
+  --auth-submit-hover-background: #bb4d00;
+  --auth-submit-color: black;
 
-  --nav-background: #0c0906;
+  --nav-background: #101828;
   --nav-color: #f8fafc;
+  --nav-border: #78350f4d;
 
   --nav-icon: #fbbf24;
-  --nav-gradient: linear-gradient(135deg, #fbbf24, #f59e0b, #ea580c);
+  --nav-gradient: linear-gradient(to right, #f59e0b, #f97316);
+  --logo-icon-color: #f59e0b;
 
   --nav-item-background: #17130e;
   --nav-item-color: #fdba74;
   --nav-item-border: #ea580c;
+
+  --footer-background: #101828;
+  --footer-color: white;
+  --footer-hover: #ffb300;
 }

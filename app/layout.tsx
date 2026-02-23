@@ -3,6 +3,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { LanguageProvider } from "../lib/LanguageContext";
 import TopNav from "./components/topnav/TopNav";
+import ThemeInitializer from "./components/theme/ThemeInitializer";
+import Footer from "./components/footer/Footer";
 import { usePathname } from "next/navigation";
 import "./styles/main.scss";
 
@@ -24,15 +26,20 @@ export default function RootLayout({
   const pathname = usePathname();
 
   const hideTopNav = pathname === "/";
+  const isAuthPage = pathname === "/";
 
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased ${isAuthPage ? "auth-page" : "app-page"}`}
       >
         <LanguageProvider>
-          {!hideTopNav && <TopNav />}
-          {children}
+          <ThemeInitializer />
+          <div className="app-shell">
+            {!hideTopNav && <TopNav />}
+            <main className="app-main my-20">{children}</main>
+            {!isAuthPage && <Footer />}
+          </div>
         </LanguageProvider>
       </body>
     </html>

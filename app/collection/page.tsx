@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "../../lib/LanguageContext";
 import { t } from "../../lib/translations";
 import LogoutButton from "../components/auth/LogOut";
+import VinylSpinner from "../components/spinner/VinylSpinner";
 
 type UserProfile = {
   firstName: string;
@@ -69,14 +70,14 @@ export default function Dashboard() {
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-zinc-300 border-t-black rounded-full animate-spin"></div>
+      <div className="min-h-full flex items-center justify-center mt-10">
+        <VinylSpinner />
       </div>
     );
 
   if (errorMessage) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+      <div className="flex flex-col items-center justify-center min-h-full gap-4">
         <p className="text-red-600">{errorMessage}</p>
         <LogoutButton />
       </div>
@@ -87,7 +88,7 @@ export default function Dashboard() {
     return <p className="text-center mt-20">{t(locale, "loading")}</p>;
 
   return (
-    <div className="collection__container flex flex-col items-center min-h-screen gap-4 mt-20">
+    <div className="collection__container flex flex-col items-center min-h-full gap-4">
       <h1 className="text-2xl font-semibold">
         {t(locale, "helloName", `${profile.firstName} ${profile.lastName}`)}
       </h1>

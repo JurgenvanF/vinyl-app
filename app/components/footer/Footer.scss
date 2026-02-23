@@ -1,0 +1,11 @@
+.site-footer {
+  div {
+    color: var(--footer-color);
+  }
+
+  a {
+    &:hover {
+      color: var(--footer-hover);
+    }
+  }
+}

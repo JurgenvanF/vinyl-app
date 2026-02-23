@@ -5,15 +5,12 @@ import { useEffect, useState } from "react";
 type Theme = "light" | "dark" | "system";
 
 export default function ThemeSelector() {
-  const [theme, setTheme] = useState<Theme>("system");
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === "undefined") return "system";
+    return (localStorage.getItem("theme") as Theme) || "system";
+  });
 
-  useEffect(() => {
-    const saved = (localStorage.getItem("theme") as Theme) || "system";
-    setTheme(saved);
-    applyTheme(saved);
-  }, []);
-
-  const applyTheme = (theme: Theme) => {
+  function applyTheme(theme: Theme) {
     const html = document.documentElement;
     html.classList.remove("dark");
 
@@ -24,7 +21,11 @@ export default function ThemeSelector() {
         html.classList.add("dark");
       }
     }
-  };
+  }
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
 
   const changeTheme = (newTheme: Theme) => {
     setTheme(newTheme);
@@ -39,9 +40,7 @@ export default function ThemeSelector() {
           key={t}
           onClick={() => changeTheme(t)}
           className={`px-3 py-1 rounded ${
-            theme === t
-              ? "bg-black text-white dark:bg-white dark:text-black"
-              : "bg-gray-200 text-black dark:bg-gray-800 dark:text-white"
+            theme === t ? "bg-black text-white" : "bg-gray-200 text-black"
           }`}
         >
           {t.charAt(0).toUpperCase() + t.slice(1)}

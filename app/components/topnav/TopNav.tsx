@@ -29,8 +29,18 @@ export default function TopNav() {
     setOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    document.body.classList.toggle("sidenav-open", open);
+    document.documentElement.classList.toggle("sidenav-open", open);
+
+    return () => {
+      document.body.classList.remove("sidenav-open");
+      document.documentElement.classList.remove("sidenav-open");
+    };
+  }, [open]);
+
   return (
-    <div className="navigation w-full shadow-md px-6 py-4 relative">
+    <div className="navigation w-full shadow-md px-6 py-4 sticky top-0 z-50">
       <nav className="w-97/100 max-w-400 flex items-center justify-between mx-auto">
         {/* Logo */}
         <Link href="/collection" className="flex items-center gap-2 group">
@@ -54,7 +64,10 @@ export default function TopNav() {
           </NavItem>
 
           <NavItem auth onClick={handleLogout}>
-            <LogoutButton className="pointer-events-none" icon={<LogOut size={18} />} />
+            <LogoutButton
+              className="pointer-events-none"
+              icon={<LogOut size={18} />}
+            />
           </NavItem>
 
           <NavItem auth onClick={toggleLocale} compact>

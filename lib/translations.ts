@@ -4,6 +4,9 @@ type Translations = {
   [key in Locale]: {
     welcome: string;
     welcomeDescription: string;
+    welcomeFooter: string;
+    productBy: string;
+    by: string;
     login: string;
     register: string;
     email: string;
@@ -25,8 +28,12 @@ type Translations = {
 
 export const translations: Translations = {
   en: {
-    welcome: "Welcome",
-    welcomeDescription: "Organize, track, and share your vinyl collection",
+    welcome: "Manage your Vinyl Collection",
+    welcomeDescription:
+      "The app for vinyl collectors to catalog, organize, and share their music collections",
+    welcomeFooter: "Start building your vinyl collection today",
+    productBy: "A product by",
+    by: "by",
     login: "Login",
     register: "Register",
     email: "Email",
@@ -45,8 +52,12 @@ export const translations: Translations = {
     profileLoadError: "Could not load your profile. Please try again.",
   },
   nl: {
-    welcome: "Welkom",
-    welcomeDescription: "Organiseer, volg en deel je vinyl-collectie",
+    welcome: "Beheer uw Vinyl Collectie",
+    welcomeDescription:
+      "De app voor vinylverzamelaars om hun muziekcollecties te catalogiseren, ordenen en delen",
+    welcomeFooter: "Begin vandaag nog met het opbouwen van uw vinylcollectie",
+    productBy: "Een product van",
+    by: "door",
     login: "Inloggen",
     register: "Registreren",
     email: "E-mail",

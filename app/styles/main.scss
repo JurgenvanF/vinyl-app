@@ -3,23 +3,53 @@
 @import "./animations.scss";
 
 body {
-  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
 }
 
+body.auth-page {
+  background: var(--auth-body-background);
+}
+
+body.app-page {
+  background: var(--background);
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.site-footer {
+  background-color: var(--footer-background);
+  color: var(--nav-color);
+  border-top: 1px solid var(--nav-border);
+}
+
 .auth {
   &__title {
-    color: #e17100;
+    background: var(--nav-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
 
     svg {
       animation: rotate 20s linear infinite;
+      color: var(--logo-icon-color);
     }
   }
 
   &__container {
     background-color: var(--auth-background);
     color: var(--auth-color);
+    border: 1px solid var(--auth-border);
 
     &__language {
       border: 1px solid var(--auth-language);
@@ -31,15 +61,19 @@ body {
 
     &__buttons {
       background-color: var(--auth-buttons-background);
+      color: var(--muted-black);
 
       &__active {
         background: var(--auth-button-background);
+        border: 1px solid var(--auth-button-border);
+        color: var(--auth-button-color);
       }
     }
 
     input {
       color: var(--muted-black);
       background: var(--auth-input-background);
+      border: 1px solid var(--auth-input-border);
 
       &:focus {
         outline: var(--auth-input-focus-outline);
@@ -49,14 +83,22 @@ body {
       &:focus-visible {
         box-shadow: 0 0 0 3px var(--auth-input-focus-shadow);
       }
+
+      &::placeholder {
+        color: var(--auth-input-placeholder);
+      }
     }
 
     &__submit {
       background-color: var(--auth-submit-background);
+      color: var(--auth-submit-color);
 
       &:hover {
         background-color: var(--auth-submit-hover-background);
       }
+    }
+    &__footer {
+      color: var(--auth-footer);
     }
   }
 }
@@ -68,4 +110,61 @@ input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 1000px var(--auth-input-background) inset !important;
   -webkit-text-fill-color: var(--auth-color) !important;
   transition: background-color 5000s ease-in-out 0s;
+}
+
+.vinyl {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+
+  /* grooves */
+  background:
+    radial-gradient(
+      circle at center,
+      #222 0 8px,
+      #c33 8px 14px,
+      #222 14px 16px,
+      transparent 16px
+    ),
+    repeating-radial-gradient(
+      circle at center,
+      #000 0px,
+      #000 2px,
+      #111 3px,
+      #000 4px
+    );
+
+  box-shadow:
+    inset 0 0 10px rgba(255, 255, 255, 0.15),
+    0 0 20px rgba(0, 0, 0, 0.6);
+
+  animation: spin 1.8s linear infinite; /* realistic 33rpm */
+}
+
+.vinyl::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(
+    120deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 60%
+  );
+  mix-blend-mode: overlay;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+html.sidenav-open,
+body.sidenav-open {
+  overflow: hidden;
 }

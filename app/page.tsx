@@ -103,7 +103,7 @@ export default function AuthPage() {
           <Disc3 size={50} />
           <h1 className="text-4xl">Vinyl Vault</h1>
         </div>
-        <p>{t(locale, "welcomeDescription")}</p>
+        <p className="mt-2 w-7/10">{t(locale, "welcomeDescription")}</p>
       </div>
       <div className="auth__container p-8 rounded-lg shadow-md max-w-lg w-full">
         {/* Header */}
@@ -233,6 +233,19 @@ export default function AuthPage() {
             </button>
           </form>
         )}
+      </div>
+      <div className="auth__container__footer flex flex-col justify-center mt-4">
+        <p>{t(locale, "welcomeFooter")}</p>
+        <p className="text-center mt-2">
+          {t(locale, "productBy")}{" "}
+          <a
+            href="https://www.jurgenvanfraeijenhove.nl"
+            target="_blank"
+            className="underline"
+          >
+            Jurgen van Fraeijenhove
+          </a>
+        </p>
       </div>
     </div>
   );

@@ -1,0 +1,60 @@
+.vinyl {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  position: relative;
+  background: radial-gradient(
+    circle at center,
+    #e33 0 20px,
+    // label
+    #111 20px 25px,
+    // inner ring
+    #000 22px 100% // record body
+  );
+  animation: rotate 1s linear infinite;
+
+  // grooves
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 12px;
+    border-radius: 50%;
+    background: repeating-radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.08) 0px,
+      rgba(255, 255, 255, 0.08) 1px,
+      transparent 2px,
+      transparent 4px
+    );
+    pointer-events: none;
+  }
+
+  // shine reflection
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(
+      60deg,
+      rgba(255, 255, 255, 0.35) 0%,
+      rgba(255, 255, 255, 0.15) 20%,
+      transparent 40%
+    );
+    mix-blend-mode: screen;
+    pointer-events: none;
+  }
+
+  // center hole (if needed for ::marker)
+  &::before {
+    content: "";
+    position: absolute;
+    width: 10px; // size of hole
+    height: 10px;
+    background: #000;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
