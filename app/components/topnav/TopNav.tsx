@@ -31,11 +31,9 @@ export default function TopNav() {
 
   useEffect(() => {
     document.body.classList.toggle("sidenav-open", open);
-    document.documentElement.classList.toggle("sidenav-open", open);
 
     return () => {
       document.body.classList.remove("sidenav-open");
-      document.documentElement.classList.remove("sidenav-open");
     };
   }, [open]);
 
