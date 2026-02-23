@@ -1,0 +1,17 @@
+.navigation {
+  background-color: var(--nav-background);
+  color: var(--nav-color);
+}
+
+.title {
+  &__icon {
+    color: var(--nav-icon);
+  }
+
+  &__text {
+    background: var(--nav-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}

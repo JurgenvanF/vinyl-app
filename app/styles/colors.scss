@@ -14,6 +14,9 @@
   --auth-background: #ffffff;
   --auth-color: #171717;
 
+  --auth-language: #ffd232;
+  --auth-language-background: #fcf8eb;
+
   --auth-buttons-background: #ececf0;
   --auth-button-background: white;
 
@@ -24,28 +27,45 @@
 
   --auth-submit-background: #e17100;
   --auth-submit-hover-background: #bb4d00;
+
+  --nav-background: white;
+  --nav-color: black;
+  --nav-icon: #e17100;
+  --nav-gradient: linear-gradient(to right, #d97706, #ea580c);
+
+  --nav-item-background: #fffbeb;
+  --nav-item-color: #c56521;
+  --nav-item-border: #ffd232;
 }
 
 .dark {
-  --background: linear-gradient(
-    to bottom right,
-    #000000,
-    rgb(18, 12, 0),
-    #000000
-  );
+  --background: linear-gradient(to bottom right, #000000, #0d0a05, #000000);
   --foreground: #ededed;
 
-  --auth-background: #121212;
+  --auth-background: #12100c;
   --auth-color: #f4f4f5;
 
-  --auth-buttons-background: #1f1f23;
-  --auth-button-background: #424245;
+  --auth-language: #f59e0b;
+  --auth-language-background: #2a1a07;
 
-  --auth-input-background: #1a1a1a;
-  --auth-input-focus-outline: #ecbb82;
-  --auth-input-focus-border: #de8723;
-  --auth-input-focus-shadow: rgba(236, 187, 130, 0.4);
+  --auth-buttons-background: #1c1a16;
+  --auth-button-background: #34312b;
 
-  --auth-submit-background: #ff8c1a;
-  --auth-submit-hover-background: #e17100;
+  --auth-input-background: #181611;
+  --auth-input-focus-outline: #fbbf24;
+  --auth-input-focus-border: #f59e0b;
+  --auth-input-focus-shadow: rgba(245, 158, 11, 0.35);
+
+  --auth-submit-background: #f59e0b;
+  --auth-submit-hover-background: #d97706;
+
+  --nav-background: #0c0906;
+  --nav-color: #f8fafc;
+
+  --nav-icon: #fbbf24;
+  --nav-gradient: linear-gradient(135deg, #fbbf24, #f59e0b, #ea580c);
+
+  --nav-item-background: #17130e;
+  --nav-item-color: #fdba74;
+  --nav-item-border: #ea580c;
 }

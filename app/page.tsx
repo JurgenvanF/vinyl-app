@@ -18,7 +18,7 @@ import { Disc3 } from "lucide-react";
 type FormType = "login" | "register";
 
 export default function AuthPage() {
-  const { locale } = useLanguage();
+  const { locale, toggleLocale } = useLanguage();
   const router = useRouter();
 
   const [formType, setFormType] = useState<FormType>("login");
@@ -38,7 +38,7 @@ export default function AuthPage() {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        router.replace("/dashboard");
+        router.replace("/collection");
       } else {
         setLoading(false);
       }
@@ -60,7 +60,7 @@ export default function AuthPage() {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.replace("/dashboard");
+      router.replace("/collection");
     } catch (error: unknown) {
       alert(t(locale, "signInError"));
     }
@@ -83,14 +83,18 @@ export default function AuthPage() {
         createdAt: new Date(),
       });
 
-      router.replace("/dashboard");
+      router.replace("/collection");
     } catch (error: unknown) {
       alert(error instanceof Error ? error.message : "Something went wrong.");
     }
   };
 
   if (loading)
-    return <p className="text-center mt-20">{t(locale, "loading")}</p>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-zinc-300 border-t-black rounded-full animate-spin"></div>
+      </div>
+    );
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6">
@@ -109,7 +113,10 @@ export default function AuthPage() {
             <p>{t(locale, "signInInstructions")}</p>
           </div>
 
-          <div className="flex items-center">
+          <div
+            className="auth__container__language flex items-center px-4 py-2 rounded-xl border transition-colors cursor-pointer"
+            onClick={toggleLocale}
+          >
             <LanguageToggle />
           </div>
         </div>

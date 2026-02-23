@@ -1,0 +1,16 @@
+.item {
+  &:hover,
+  &__active {
+    background-color: var(--nav-item-background);
+    color: var(--nav-item-color);
+  }
+
+  &__auth {
+    border: 1px solid var(--nav-item-border);
+
+    &:hover {
+      background-color: var(--nav-item-background);
+      color: var(--nav-item-color);
+    }
+  }
+}

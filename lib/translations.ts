@@ -16,6 +16,9 @@ type Translations = {
     logout: string;
     helloName: (name: string) => string;
     loading: string;
+    myCollection: string;
+    wishlist: string;
+    profile: string;
     profileLoadError: string;
   };
 };
@@ -34,8 +37,11 @@ export const translations: Translations = {
     signInInstructions: "Sign in to your account or create a new one",
     signInError: "Something went wrong during login.",
     logout: "Logout",
-    helloName: (name) => `Hello ${name}!`,
+    helloName: (name) => `Hello, ${name}!`,
     loading: "Loading...",
+    myCollection: "My Collection",
+    wishlist: "Wishlist",
+    profile: "Profile",
     profileLoadError: "Could not load your profile. Please try again.",
   },
   nl: {
@@ -51,8 +57,11 @@ export const translations: Translations = {
     signInInstructions: "Log in op uw account of maak een nieuwe aan",
     signInError: "Er is iets misgegaan bij het inloggen.",
     logout: "Uitloggen",
-    helloName: (name) => `Hallo ${name}!`,
+    helloName: (name) => `Hallo, ${name}!`,
     loading: "Laden...",
+    myCollection: "Mijn Collectie",
+    wishlist: "Verlanglijst",
+    profile: "Profiel",
     profileLoadError: "Kan je profiel niet laden. Probeer het opnieuw.",
   },
 };

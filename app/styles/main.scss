@@ -21,6 +21,14 @@ body {
     background-color: var(--auth-background);
     color: var(--auth-color);
 
+    &__language {
+      border: 1px solid var(--auth-language);
+
+      &:hover {
+        background-color: var(--auth-language-background);
+      }
+    }
+
     &__buttons {
       background-color: var(--auth-buttons-background);
 
