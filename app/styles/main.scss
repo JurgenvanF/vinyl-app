@@ -7,11 +7,11 @@ body {
   font-family: var(--font-sans);
 }
 
-body.auth-page {
+.auth-page {
   background: var(--auth-body-background);
 }
 
-body.app-page {
+.app-page {
   background: var(--background);
 }
 
@@ -73,7 +73,6 @@ body.app-page {
     input {
       color: var(--muted-black);
       background: var(--auth-input-background);
-      border: 1px solid var(--auth-input-border);
 
       &:focus {
         outline: var(--auth-input-focus-outline);
