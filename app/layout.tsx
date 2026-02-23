@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { LanguageProvider } from "../lib/LanguageContext";
 import TopNav from "./components/topnav/TopNav";
@@ -24,6 +25,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [pathname]);
 
   const hideTopNav = pathname === "/";
   const isAuthPage = pathname === "/";

@@ -234,7 +234,7 @@ export default function AuthPage() {
           </form>
         )}
       </div>
-      <div className="auth__container__footer flex flex-col justify-center mt-4">
+      <div className="auth__container__footer flex flex-col text-center justify-center mt-4">
         <p>{t(locale, "welcomeFooter")}</p>
         <p className="text-center mt-2">
           {t(locale, "productBy")}{" "}
