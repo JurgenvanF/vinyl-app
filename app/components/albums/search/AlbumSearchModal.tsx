@@ -155,26 +155,6 @@ export default function AlbumSearchModal({
                 </div>
               ))}
             </div>
-
-            <div className="flex justify-center gap-2 mt-4">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="px-3 py-1 border rounded disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <span className="px-2 py-1">
-                {page} / {totalPages}
-              </span>
-              <button
-                disabled={page >= totalPages}
-                onClick={() => setPage((p) => p + 1)}
-                className="px-3 py-1 border rounded disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
           </>
         )}
 
