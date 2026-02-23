@@ -174,7 +174,7 @@ export default function AuthPage() {
             />
             <button
               type="submit"
-              className="auth__container__submit p-3 rounded-full bg-black text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+              className="auth__container__submit p-3 rounded-lg bg-black text-white hover:bg-zinc-800 transition-colors cursor-pointer"
             >
               {t(locale, "login")}
             </button>
@@ -227,7 +227,7 @@ export default function AuthPage() {
             />
             <button
               type="submit"
-              className="auth__container__submit p-3 rounded-full bg-black text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+              className="auth__container__submit p-3 rounded-lg bg-black text-white hover:bg-zinc-800 transition-colors cursor-pointer"
             >
               {t(locale, "signUp")}
             </button>
