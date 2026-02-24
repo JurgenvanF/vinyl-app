@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLanguage } from "../../../../lib/LanguageContext";
 import { t } from "../../../../lib/translations";
 import AlbumSearchToggle, { SearchMode } from "./AlbumSearchToggle";
@@ -23,6 +23,14 @@ export default function AlbumSearchModal({
 }: AlbumSearchModalProps) {
   const { locale } = useLanguage();
   const [mode, setMode] = useState<SearchMode>("search");
+
+  useEffect(() => {
+    document.body.classList.toggle("album-search-modal-open", open);
+
+    return () => {
+      document.body.classList.remove("album-search-modal-open");
+    };
+  }, [open]);
 
   if (!open) return null;
 
