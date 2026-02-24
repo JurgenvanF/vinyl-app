@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ReactNode } from "react";
+import { ReactNode, useRef } from "react";
 import { usePathname } from "next/navigation";
 import "./NavItem.scss";
 
@@ -23,6 +23,7 @@ export default function NavItem({
   compact = false,
 }: NavItemProps) {
   const pathname = usePathname();
+  const itemRef = useRef<HTMLDivElement>(null);
   const isActive = href && pathname === href;
 
   const baseClass = `
@@ -53,7 +54,21 @@ export default function NavItem({
   }
 
   return (
-    <div className={className} onClick={onClick}>
+    <div
+      ref={itemRef}
+      className={className}
+      onClick={(event) => {
+        if (onClick) {
+          onClick();
+          return;
+        }
+
+        if (event.target !== event.currentTarget) return;
+
+        const nestedButton = itemRef.current?.querySelector("button");
+        nestedButton?.click();
+      }}
+    >
       {icon}
       <span>{children}</span>
     </div>

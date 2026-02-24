@@ -1,75 +1,41 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { auth, db } from "../../lib/firebase";
+import { auth } from "../../lib/firebase";
 import { User } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../../lib/LanguageContext";
 import { t } from "../../lib/translations";
-import LogoutButton from "../components/auth/LogOut";
 import VinylSpinner from "../components/spinner/VinylSpinner";
 import AlbumSearchModal from "../components/albums/search/AlbumSearchModal";
 
-type UserProfile = {
-  firstName: string;
-  lastName: string;
-  username: string;
-  email: string;
-};
+import { Plus } from "lucide-react";
+
+import "./collection.scss";
 
 export default function Dashboard() {
   const { locale } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [errorMessage, setErrorMessage] = useState<string>("");
   const router = useRouter();
 
   const [modalOpen, setModalOpen] = useState(false);
 
-  const getErrorMessage = (error: unknown): string => {
-    if (error instanceof Error) return error.message;
-    return t(locale, "profileLoadError");
-  };
-
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       if (!currentUser) {
         setUser(null);
-        setProfile(null);
         setLoading(false);
         router.replace("/");
         return;
       }
 
       setUser(currentUser);
-
-      try {
-        const docRef = doc(db, "users", currentUser.uid);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          setProfile(docSnap.data() as UserProfile);
-        } else {
-          setProfile({
-            firstName: currentUser.email?.split("@")[0] ?? "User",
-            lastName: "",
-            username: currentUser.email?.split("@")[0] ?? "",
-            email: currentUser.email ?? "",
-          });
-        }
-
-        setErrorMessage("");
-      } catch (error: unknown) {
-        setErrorMessage(getErrorMessage(error));
-      } finally {
-        setLoading(false);
-      }
+      setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [router, locale]);
+  }, [router]);
 
   if (loading)
     return (
@@ -78,34 +44,33 @@ export default function Dashboard() {
       </div>
     );
 
-  if (errorMessage) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-full gap-4">
-        <p className="text-red-600">{errorMessage}</p>
-        <LogoutButton />
-      </div>
-    );
-  }
-
-  if (!user || !profile)
+  if (!user)
     return <p className="text-center mt-20">{t(locale, "loading")}</p>;
 
   return (
-    <div className="collection__container flex flex-col items-center min-h-full gap-4">
-      <h1 className="text-2xl font-semibold">
-        {t(locale, "helloName", `${profile.firstName} ${profile.lastName}`)}
-      </h1>
+    <div className="collection-container flex flex-col min-h-full gap-4">
+      <div className="flex justify-between">
+        <h1 className="text-3xl sm:text-5xl mb-4">
+          {t(locale, "myCollection")}
+        </h1>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setModalOpen(true)}
+            className="collection-container__add rounded h-10 p-2"
+          >
+            <div className="flex gap-2 items-center">
+              <Plus />
+              <span className="hidden sm:inline">{t(locale, "addAlbum")}</span>
+            </div>
+          </button>
+        </div>
 
-      <div className="flex gap-2 mt-4">
-        <button
-          onClick={() => setModalOpen(true)}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Search Albums
-        </button>
+        <AlbumSearchModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+        />
       </div>
-
-      <AlbumSearchModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <p>0 albums</p>
     </div>
   );
 }

@@ -1,0 +1,35 @@
+.search-container {
+  background-color: var(--auth-background);
+}
+
+.search-toggle {
+  background-color: var(--auth-buttons-background);
+
+  &__button {
+    background-color: transparent;
+    color: var(--muted-black);
+
+    &--active {
+      background: var(--auth-button-background);
+      border: 1px solid var(--auth-button-border);
+      color: var(--auth-button-color);
+    }
+  }
+}
+
+.search-input {
+  background-color: var(--auth-input-background);
+
+  &:focus {
+    outline: var(--auth-input-focus-outline);
+    border: 1px solid var(--auth-input-focus-border);
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 3px var(--auth-input-focus-shadow);
+  }
+
+  &::placeholder {
+    color: var(--auth-input-placeholder);
+  }
+}

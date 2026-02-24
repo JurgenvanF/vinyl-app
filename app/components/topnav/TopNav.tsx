@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import LanguageToggle from "../language/LanguageToggle";
 import LogoutButton from "../auth/LogOut";
+import ThemeSelector from "../theme/ThemeSelector";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { t } from "../../../lib/translations";
 import { Disc3, Heart, User, LogOut, Menu, X } from "lucide-react";
@@ -39,7 +40,7 @@ export default function TopNav() {
 
   return (
     <div className="navigation w-full shadow-md px-6 py-4 sticky top-0 z-50">
-      <nav className="w-97/100 max-w-400 flex items-center justify-between mx-auto">
+      <nav className="w-97/100 max-w-400 flex items-center justify-between mx-auto h-10">
         {/* Logo */}
         <Link href="/collection" className="flex items-center gap-2 group">
           <Disc3
@@ -70,6 +71,10 @@ export default function TopNav() {
 
           <NavItem auth onClick={toggleLocale} compact>
             <LanguageToggle />
+          </NavItem>
+
+          <NavItem auth compact>
+            <ThemeSelector />
           </NavItem>
         </div>
 
@@ -102,7 +107,12 @@ export default function TopNav() {
             open ? "translate-x-0" : "translate-x-full"
           }`}
         >
-          <div className="flex justify-end pr-9 py-5">
+          <div className="flex justify-between px-9 py-5">
+            <div className="">
+              <NavItem compact>
+                <ThemeSelector />
+              </NavItem>
+            </div>
             <button className="cursor-pointer" onClick={() => setOpen(false)}>
               <X size={28} />
             </button>

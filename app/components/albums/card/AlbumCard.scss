@@ -1,0 +1,23 @@
+.album-card {
+  border: 1px solid var(--muted-black);
+}
+
+.buttons {
+  &__collection,
+  &__wishlist {
+    border: 1px solid var(--medium-amber);
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: var(--soft-amber);
+      color: var(--hard-amber);
+    }
+  }
+
+  &__wishlist {
+    &:hover .buttons__wishlist__icon {
+      color: var(--rose-red);
+      fill: var(--rose-red);
+    }
+  }
+}

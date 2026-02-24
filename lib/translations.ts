@@ -23,6 +23,32 @@ type Translations = {
     wishlist: string;
     profile: string;
     profileLoadError: string;
+    searchAlbumArtist: string;
+    searchAlbumArtistCatNo: string;
+    addAlbum: string;
+    searchDatabase: string;
+    addToCollection: string;
+    addToCollectionTitle: string;
+    addToWishlist: string;
+    noMatch: string;
+    scanBarcode: string;
+    scanBarcodeInstruction: string;
+    activateCamera: string;
+    customEntry: string;
+    albumName: string;
+    artist: string;
+    genre: string;
+    releaseDate: string;
+    type: string;
+    nrOfRecords: string;
+    duration: string;
+    labelNr: string;
+    coverImage: string;
+    Tracklist: string;
+    addTrack: string;
+    title: string;
+    cancel: string;
+    addImage: string;
   };
 };
 
@@ -50,6 +76,34 @@ export const translations: Translations = {
     wishlist: "Wishlist",
     profile: "Profile",
     profileLoadError: "Could not load your profile. Please try again.",
+    searchAlbumArtist: "Search albums or artists",
+    searchAlbumArtistCatNo: "Search albums, artists or catalog numbers",
+    addAlbum: "Add Album",
+    searchDatabase: "Search Database",
+    addToCollection: "Collection",
+    addToCollectionTitle: "Add Album to Collection",
+    addToWishlist: "Wishlist",
+    noMatch:
+      "Can't find your result in this list? Try searching for the catalog number, scan the barcode or add it manually.",
+    scanBarcode: "Scan Barcode",
+    scanBarcodeInstruction:
+      "Click the button below to activate your camera and scan a barcode",
+    activateCamera: "Activate Camera",
+    customEntry: "Custom Entry",
+    albumName: "Album Name",
+    artist: "Artist",
+    genre: "Genre",
+    releaseDate: "Release Date",
+    type: "Type",
+    nrOfRecords: "Number of Records",
+    duration: "Duration",
+    labelNr: "Catalog nr",
+    coverImage: "Cover Image",
+    Tracklist: "Tracklist",
+    addTrack: "Add Track",
+    title: "Title",
+    cancel: "Cancel",
+    addImage: "Add Image",
   },
   nl: {
     welcome: "Beheer uw Vinyl Collectie",
@@ -74,6 +128,34 @@ export const translations: Translations = {
     wishlist: "Verlanglijst",
     profile: "Profiel",
     profileLoadError: "Kan je profiel niet laden. Probeer het opnieuw.",
+    searchAlbumArtist: "Zoek albums of artiesten",
+    searchAlbumArtistCatNo: "Zoek albums, artiesten of catalogusnummers",
+    addAlbum: "Album toevoegen",
+    searchDatabase: "Database doorzoeken",
+    addToCollection: "Collectie",
+    addToCollectionTitle: "Album toevoegen aan collectie",
+    addToWishlist: "Verlanglijst",
+    noMatch:
+      "Resultaat staat niet in de lijst? Probeer te zoeken met het catalogusnummer, scan de barcode of voeg hem handmatig toe.",
+    scanBarcode: "Barcode scannen",
+    scanBarcodeInstruction:
+      "Klik op de knop hieronder om je camera te activeren en een barcode te scannen",
+    activateCamera: "Camera activeren",
+    customEntry: "Handmatige invoer",
+    albumName: "Albumnaam",
+    artist: "Artiest",
+    genre: "Genre",
+    releaseDate: "Releasedatum",
+    type: "Type",
+    nrOfRecords: "Aantal platen",
+    duration: "Duur",
+    labelNr: "Catalogusnr.",
+    coverImage: "Omslagafbeelding",
+    Tracklist: "Tracklijst",
+    addTrack: "Track toevoegen",
+    title: "Titel",
+    cancel: "Annuleren",
+    addImage: "Afbeelding toevoegen",
   },
 };
 

@@ -7,7 +7,13 @@
   /* Base colors */
   --muted-black: #717182;
 
-  --background: linear-gradient(to bottom right, #fffae9, #fff7ed, #fef3c7);
+  --soft-amber: #fef3c7;
+  --medium-amber: #ffeab5;
+  --hard-amber: #92400e;
+
+  --rose-red: #ff2056;
+
+  --background: linear-gradient(to bottom right, #fffcf1, #fffcf8, #ffffff);
   --foreground: #171717;
 
   /* Auth */

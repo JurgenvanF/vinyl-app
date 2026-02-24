@@ -52,7 +52,9 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
       <ThemeInitializer />
       <div className="app-shell">
         {!hideTopNav && <TopNav />}
-        <main className={`app-main ${!isAuthPage && "my-10"}`}>{children}</main>
+        <main className={`app-main ${!isAuthPage && "my-10"} `}>
+          {children}
+        </main>
         {!isAuthPage && <Footer />}
       </div>
     </div>
