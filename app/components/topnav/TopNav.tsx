@@ -133,7 +133,7 @@ export default function TopNav() {
             </div>
 
             {/* Bottom actions */}
-            <div className="mt-auto flex gap-4 pt-6 pb-16 border-t">
+            <div className="mt-auto mb-4 flex gap-4 pt-6 pb-16 border-t">
               <div className="flex-4">
                 <NavItem auth onClick={handleLogout}>
                   <LogoutButton

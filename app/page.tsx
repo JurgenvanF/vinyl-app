@@ -97,7 +97,7 @@ export default function AuthPage() {
     );
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6">
+    <div className="flex flex-col items-center justify-center min-h-screen">
       <div className="mb-6 flex flex-col items-center text-center">
         <div className="auth__title flex items-center gap-4 mb-2">
           <Disc3 size={50} />

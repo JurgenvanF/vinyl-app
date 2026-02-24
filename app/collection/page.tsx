@@ -44,15 +44,12 @@ export default function Dashboard() {
       </div>
     );
 
-  if (!user)
-    return <p className="text-center mt-20">{t(locale, "loading")}</p>;
+  if (!user) return <p className="text-center mt-20">{t(locale, "loading")}</p>;
 
   return (
     <div className="collection-container flex flex-col min-h-full gap-4">
       <div className="flex justify-between">
-        <h1 className="text-3xl sm:text-5xl mb-4">
-          {t(locale, "myCollection")}
-        </h1>
+        <h1 className="text-3xl sm:text-5xl">{t(locale, "myCollection")}</h1>
         <div className="flex gap-2">
           <button
             onClick={() => setModalOpen(true)}
@@ -70,7 +67,7 @@ export default function Dashboard() {
           onClose={() => setModalOpen(false)}
         />
       </div>
-      <p>0 albums</p>
+      <p className="collection-container__count pl-1">0 albums</p>
     </div>
   );
 }
