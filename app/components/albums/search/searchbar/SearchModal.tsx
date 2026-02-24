@@ -122,7 +122,7 @@ export default function SearchModal() {
             setSearchQuery(e.target.value);
             setPage(1);
           }}
-          className="search-input rounded pl-10 py-2 w-full border border-transparent"
+          className="search-input rounded pl-10 pr-3 py-2 w-full border border-transparent"
         />
         <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
           <Search size={15} />
