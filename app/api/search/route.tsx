@@ -1,52 +1,111 @@
+// ---------- In-memory cache ----------
+const cache = new Map<string, { results: any[]; timestamp: number }>();
+const CACHE_TTL = 1000 * 60 * 10; // 10 minutes
+const FETCH_BUFFER = 300; // ms delay before fetching
+
+let lastTimeout: NodeJS.Timeout | null = null;
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const q = searchParams.get("q") ?? "";
+  const qRaw = (searchParams.get("q") ?? "").trim();
   const token = process.env.DISCOGS_TOKEN;
 
-  if (!q) return Response.json({ results: [], total: 0 });
+  if (!qRaw) return Response.json({ results: [], total: 0 });
 
-  const fetchField = async (field: "artist" | "release_title" | "catno") => {
-    const params = new URLSearchParams();
-    params.append(field, q);
-    params.append("type", "master"); // only master releases
-    params.append("per_page", "50"); // fetch top 50
-    params.append("sort", "have"); // most popular first
-    params.append("sort_order", "desc");
+  // ---------- Helpers ----------
+  const normalize = (str: string) =>
+    str
+      .toLowerCase()
+      .replace(/\b(en|and)\b/g, "&")
+      .replace(/[^a-z0-9&]+/g, "")
+      .trim();
 
-    const res = await fetch(
-      `https://api.discogs.com/database/search?${params.toString()}`,
-      { headers: { Authorization: `Discogs token=${token}` } },
-    );
-    const data = await res.json();
-    return data.results ?? [];
+  const q = normalize(qRaw);
+
+  // ---------- Check cache ----------
+  const cached = cache.get(q);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return Response.json({
+      results: cached.results,
+      total: cached.results.length,
+    });
+  }
+
+  const popularity = (r: any) => (r.have || 0) + (r.want || 0);
+
+  // ---------- Buffer before fetching ----------
+  if (lastTimeout) clearTimeout(lastTimeout);
+  await new Promise<void>((resolve) => {
+    lastTimeout = setTimeout(() => resolve(), FETCH_BUFFER);
+  });
+
+  // ---------- Fetch only masters & releases ----------
+  const fetchSearch = async () => {
+    const types: ("master" | "release")[] = ["master", "release"];
+    const results: any[] = [];
+
+    for (const type of types) {
+      const params = new URLSearchParams();
+      params.append("q", qRaw);
+      params.append("type", type);
+      params.append("per_page", "100");
+      params.append("sort", "have");
+      params.append("sort_order", "desc");
+
+      const res = await fetch(
+        `https://api.discogs.com/database/search?${params.toString()}`,
+        { headers: { Authorization: `Discogs token=${token}` } },
+      );
+      const data = await res.json();
+      results.push(...(data.results ?? []));
+    }
+
+    return results;
   };
 
   try {
-    const [artistResults, titleResults, catnoResults] = await Promise.all([
-      fetchField("artist"),
-      fetchField("release_title"),
-      fetchField("catno"),
-    ]);
+    const allItems = await fetchSearch();
 
-    // Merge all results
-    const allResults = [...artistResults, ...titleResults, ...catnoResults];
+    // ---------- Deduplicate ----------
+    const dedupe = (items: any[]) => {
+      const map = new Map<string, any>();
+      for (const r of items) {
+        const key = r.master_id
+          ? `m${r.master_id}`
+          : r.id
+            ? `r${r.id}`
+            : `${r.title}-${r.artist}`;
+        if (!map.has(key)) map.set(key, r);
+      }
+      return Array.from(map.values());
+    };
 
-    // Deduplicate by master_id
-    const uniqueMap = new Map<string, any>();
-    for (const r of allResults) {
-      const key = r.master_id ? `m${r.master_id}` : `${r.title}-${r.artist}`;
-      if (!uniqueMap.has(key)) uniqueMap.set(key, r);
-    }
+    const items = dedupe(allItems);
 
-    // Sort by popularity and limit to 40
-    const results = Array.from(uniqueMap.values())
-      .sort(
-        (a, b) =>
-          (b.have || 0) + (b.want || 0) - ((a.have || 0) + (a.want || 0)),
-      )
-      .slice(0, 40);
+    // ---------- Rank ----------
+    const rankResults = (items: any[]) =>
+      items
+        .map((r) => {
+          const artistNorm = normalize(r.artist || "");
+          const titleNorm = normalize(r.title || "");
 
-    return Response.json({ results, total: results.length });
+          let score = popularity(r);
+
+          if (artistNorm === q)
+            score += 10000; // exact artist match
+          else if (artistNorm.includes(q)) score += 5000; // partial artist match
+          if (titleNorm.includes(q)) score += 2000; // title match
+
+          return { ...r, _score: score };
+        })
+        .sort((a, b) => b._score - a._score);
+
+    const combined = rankResults(items).slice(0, 40);
+
+    // ---------- Save to cache ----------
+    cache.set(q, { results: combined, timestamp: Date.now() });
+
+    return Response.json({ results: combined, total: combined.length });
   } catch (err) {
     console.error(err);
     return Response.json({ results: [], total: 0 });
