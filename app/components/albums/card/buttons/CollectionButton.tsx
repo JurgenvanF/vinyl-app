@@ -56,7 +56,7 @@ export default function CollectionButton({ album }: CollectionButtonProps) {
           artist: albumArtist,
           cover_image: album.cover_image,
           releaseType: album.type,
-          genre: album.genre?.[0] || null,
+          genre: album.genre || [],
           year: album.year || null,
           catno: album.catno || null,
           master_id: album.master_id || null,
@@ -72,9 +72,9 @@ export default function CollectionButton({ album }: CollectionButtonProps) {
   };
 
   return (
-    <div className="buttons__collection w-full text-center border rounded px-2 py-1 cursor-pointer">
+    <div className="buttons__collection w-full text-center border rounded cursor-pointer">
       <button
-        className="flex items-center text-sm gap-2 transition-all duration-200 cursor-pointer"
+        className="flex items-center text-sm gap-2 px-2 py-1 w-full transition-all duration-200 cursor-pointer"
         onClick={handleAddToCollection}
       >
         <Plus size={15} /> {t(locale, "addToCollection")}

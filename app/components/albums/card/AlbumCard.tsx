@@ -47,7 +47,7 @@ export default function AlbumCard({
   buttons,
 }: AlbumCardProps) {
   return (
-    <div className="album-card flex flex-col items-center gap-2 border rounded group">
+    <div className="album-card flex flex-col items-center gap-2 border rounded group max-w-[200px]">
       <div className="album-card__image w-9/10 aspect-square rounded mt-2 overflow-hidden">
         <img
           src={album.cover_image || "/placeholder.png"}
@@ -71,8 +71,8 @@ export default function AlbumCard({
       <div className="buttons w-9/10 flex flex-col mt-auto mb-4 gap-2 transition duration-200">
         {buttons?.collection && <CollectionButton album={album} />}
         {buttons?.wishlist && <WishlistButton album={album} />}
-        {buttons?.removeCollection && <RemoveCollectionButton />}
-        {buttons?.removeWishlist && <RemoveWishlistButton />}
+        {buttons?.removeCollection && <RemoveCollectionButton album={album} />}
+        {buttons?.removeWishlist && <RemoveWishlistButton album={album} />}
         {buttons?.viewDetails && <ViewDetailsButton />}
       </div>
     </div>

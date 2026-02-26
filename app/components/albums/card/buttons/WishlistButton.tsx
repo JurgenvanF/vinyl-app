@@ -72,9 +72,9 @@ export default function WishlistButton({ album }: WishlistButtonProps) {
   };
 
   return (
-    <div className="buttons__wishlist w-full text-center border rounded px-2 py-1 cursor-pointer">
+    <div className="buttons__wishlist w-full text-center border rounded cursor-pointer">
       <button
-        className="flex items-center text-sm gap-2 transition-all duration-200 cursor-pointer"
+        className="flex items-center text-sm gap-2 px-2 py-1 w-full transition-all duration-200 cursor-pointer"
         onClick={handleAddToWishlist}
       >
         <Heart size={15} className="buttons__wishlist__icon" />

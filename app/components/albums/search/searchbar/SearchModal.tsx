@@ -156,9 +156,9 @@ export default function SearchModal() {
                 buttons={{
                   collection: true,
                   wishlist: true,
-                  removeCollection: true,
-                  removeWishlist: true,
-                  viewDetails: true,
+                  removeCollection: false,
+                  removeWishlist: false,
+                  viewDetails: false,
                 }}
               />
             );

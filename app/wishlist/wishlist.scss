@@ -1,0 +1,13 @@
+.collection-container {
+  &__add {
+    background-color: var(--auth-submit-background);
+    color: var(--auth-submit-color);
+
+    &:hover {
+      background-color: var(--auth-submit-hover-background);
+    }
+  }
+  &__count {
+    color: var(--muted-black);
+  }
+}
