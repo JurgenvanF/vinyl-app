@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { LanguageProvider } from "../lib/LanguageContext";
 import ClientLayout from "./ClientLayout";
+import ToastContainer from "./components/albums/toast/ToastContainer";
 import "./styles/main.scss";
 
 const geistSans = Geist({
@@ -40,6 +41,7 @@ export default function RootLayout({
       >
         <LanguageProvider>
           <ClientLayout>{children}</ClientLayout>
+          <ToastContainer />
         </LanguageProvider>
       </body>
     </html>

@@ -28,12 +28,20 @@ export default function CollectionButton({ album }: CollectionButtonProps) {
   const handleAddToCollection = async () => {
     const user = auth.currentUser;
     if (!user) {
-      alert("Please log in first!");
+      // show toast instead of alert
+      (window as any).addToast?.({
+        message: "Please log in first!",
+        icon: Plus,
+        bgColor: "bg-red-100",
+        textColor: "text-red-900",
+        iconBgColor: "bg-red-200",
+        iconBorderColor: "border-red-400",
+      });
       return;
     }
 
     const splitDiscogsTitle = (fullTitle: string, artist?: string) => {
-      if (artist) return { artist, title: fullTitle }; // artist already present
+      if (artist) return { artist, title: fullTitle };
 
       const [maybeArtist, ...titleParts] = fullTitle.split(" - ");
       const albumTitle = titleParts.join(" - ").trim() || fullTitle;
@@ -64,10 +72,25 @@ export default function CollectionButton({ album }: CollectionButtonProps) {
         },
       );
 
-      alert(`${albumTitle} added to your collection!`);
+      // toast success
+      (window as any).addToast?.({
+        message: `${albumTitle} added to your collection!`,
+        icon: Plus,
+        bgColor: "bg-green-100",
+        textColor: "text-green-900",
+        iconBgColor: "bg-green-200",
+        iconBorderColor: "border-green-400",
+      });
     } catch (err) {
       console.error(err);
-      alert("Something went wrong adding to collection.");
+      (window as any).addToast?.({
+        message: "Something went wrong adding to collection.",
+        icon: Plus,
+        bgColor: "bg-red-100",
+        textColor: "text-red-900",
+        iconBgColor: "bg-red-200",
+        iconBorderColor: "border-red-400",
+      });
     }
   };
 
