@@ -28,14 +28,16 @@ export default function WishlistButton({ album }: WishlistButtonProps) {
   const handleAddToWishlist = async () => {
     const user = auth.currentUser;
     if (!user) {
-      (window as any).addToast?.({
-        message: "Please log in first!",
-        icon: Heart,
-        bgColor: "bg-red-100",
-        textColor: "text-red-900",
-        iconBgColor: "bg-red-200",
-        iconBorderColor: "border-red-400",
-      });
+      if (typeof window !== "undefined") {
+        (window as any).addToast?.({
+          message: "Please log in first!",
+          icon: Heart,
+          bgColor: "bg-red-100",
+          textColor: "text-red-900",
+          iconBgColor: "bg-red-200",
+          iconBorderColor: "border-red-400",
+        });
+      }
       return;
     }
 
@@ -71,24 +73,28 @@ export default function WishlistButton({ album }: WishlistButtonProps) {
         },
       );
 
-      (window as any).addToast?.({
-        message: `${albumTitle} added to your wishlist!`,
-        icon: Heart,
-        bgColor: "bg-green-100",
-        textColor: "text-green-900",
-        iconBgColor: "bg-green-200",
-        iconBorderColor: "border-green-400",
-      });
+      if (typeof window !== "undefined") {
+        (window as any).addToast?.({
+          message: `${albumTitle} added to your wishlist!`,
+          icon: Heart,
+          bgColor: "bg-green-100",
+          textColor: "text-green-900",
+          iconBgColor: "bg-green-200",
+          iconBorderColor: "border-green-400",
+        });
+      }
     } catch (err) {
       console.error(err);
-      (window as any).addToast?.({
-        message: "Something went wrong adding to wishlist.",
-        icon: Heart,
-        bgColor: "bg-red-100",
-        textColor: "text-red-900",
-        iconBgColor: "bg-red-200",
-        iconBorderColor: "border-red-400",
-      });
+      if (typeof window !== "undefined") {
+        (window as any).addToast?.({
+          message: "Something went wrong adding to wishlist.",
+          icon: Heart,
+          bgColor: "bg-red-100",
+          textColor: "text-red-900",
+          iconBgColor: "bg-red-200",
+          iconBorderColor: "border-red-400",
+        });
+      }
     }
   };
 

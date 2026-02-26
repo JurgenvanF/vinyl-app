@@ -25,14 +25,16 @@ export default function RemoveWishlistButton({
   const handleRemove = async () => {
     const user = auth.currentUser;
     if (!user) {
-      (window as any).addToast?.({
-        message: "Please log in first!",
-        icon: Trash2,
-        bgColor: "bg-red-100",
-        textColor: "text-red-900",
-        iconBgColor: "bg-red-200",
-        iconBorderColor: "border-red-400",
-      });
+      if (typeof window !== "undefined") {
+        (window as any).addToast?.({
+          message: "Please log in first!",
+          icon: Trash2,
+          bgColor: "bg-red-100",
+          textColor: "text-red-900",
+          iconBgColor: "bg-red-200",
+          iconBorderColor: "border-red-400",
+        });
+      }
       return;
     }
 
@@ -41,24 +43,28 @@ export default function RemoveWishlistButton({
         doc(db, "users", user.uid, "Wishlist", album.id.toString()),
       );
 
-      (window as any).addToast?.({
-        message: `${album.title} removed from your wishlist!`,
-        icon: Trash2,
-        bgColor: "bg-yellow-100",
-        textColor: "text-yellow-900",
-        iconBgColor: "bg-yellow-200",
-        iconBorderColor: "border-yellow-400",
-      });
+      if (typeof window !== "undefined") {
+        (window as any).addToast?.({
+          message: `${album.title} removed from your wishlist!`,
+          icon: Trash2,
+          bgColor: "bg-yellow-100",
+          textColor: "text-yellow-900",
+          iconBgColor: "bg-yellow-200",
+          iconBorderColor: "border-yellow-400",
+        });
+      }
     } catch (err) {
       console.error(err);
-      (window as any).addToast?.({
-        message: "Something went wrong removing the album.",
-        icon: Trash2,
-        bgColor: "bg-red-100",
-        textColor: "text-red-900",
-        iconBgColor: "bg-red-200",
-        iconBorderColor: "border-red-400",
-      });
+      if (typeof window !== "undefined") {
+        (window as any).addToast?.({
+          message: "Something went wrong removing the album.",
+          icon: Trash2,
+          bgColor: "bg-red-100",
+          textColor: "text-red-900",
+          iconBgColor: "bg-red-200",
+          iconBorderColor: "border-red-400",
+        });
+      }
     }
   };
 

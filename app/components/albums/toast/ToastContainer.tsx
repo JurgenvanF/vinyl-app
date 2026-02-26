@@ -1,7 +1,6 @@
-// components/ToastContainer.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Toast from "./Toast";
 import { LucideIcon } from "lucide-react";
 
@@ -27,8 +26,13 @@ export default function ToastContainer() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // Expose `addToast` globally if you want
-  (window as any).addToast = addToast;
+  useEffect(() => {
+    (window as any).addToast = addToast;
+
+    return () => {
+      delete (window as any).addToast;
+    };
+  }, []);
 
   return (
     <div className="fixed bottom-4 right-4 flex flex-col gap-3 z-50">

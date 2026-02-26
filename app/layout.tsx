@@ -18,7 +18,11 @@ export const metadata = {
   title: "Vinyl Vault",
   description: "Manage your vinyl collection in one central place.",
   manifest: "/manifest.json",
-  themeColor: "#0f0f0f",
+};
+
+export const viewport = {
+  viewport: { width: "device-width", initialScale: 1 },
+  themeColor: "#e17100",
 };
 
 export default function RootLayout({
