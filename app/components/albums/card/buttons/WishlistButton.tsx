@@ -2,7 +2,7 @@
 
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
-import { Heart } from "lucide-react";
+import { Heart, Check } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
@@ -22,6 +22,8 @@ type DiscogsRelease = {
 type WishlistButtonProps = {
   album: DiscogsRelease;
   releaseType?: string;
+  action?: "enabled" | "disabled";
+  onAdded?: (albumId: string) => void;
 };
 
 const getReleaseType = (formats?: string[]) => {
@@ -37,6 +39,8 @@ const getReleaseType = (formats?: string[]) => {
 export default function WishlistButton({
   album,
   releaseType,
+  action = "enabled",
+  onAdded,
 }: WishlistButtonProps) {
   const { locale } = useLanguage();
 
@@ -89,6 +93,7 @@ export default function WishlistButton({
           addedAt: serverTimestamp(),
         },
       );
+      onAdded?.(album.id.toString());
 
       if (typeof window !== "undefined") {
         (window as any).addToast?.({
@@ -116,12 +121,28 @@ export default function WishlistButton({
   };
 
   return (
-    <div className="buttons__wishlist w-full text-center border rounded cursor-pointer">
+    <div
+      className={`w-full text-center border rounded ${
+        action === "disabled"
+          ? "buttons__wishlist__disabled"
+          : "buttons__wishlist"
+      }`}
+    >
       <button
-        className="flex items-center text-sm gap-2 px-2 py-1 w-full transition-all duration-200 cursor-pointer"
-        onClick={handleAddToWishlist}
+        className={`flex items-center text-sm gap-2 px-2 py-1 w-full transition-all duration-200 ${
+          action === "disabled"
+            ? "cursor-not-allowed opacity-70"
+            : "cursor-pointer"
+        }`}
+        onClick={action === "enabled" ? handleAddToWishlist : undefined}
+        disabled={action === "disabled"}
       >
-        <Heart size={15} className="buttons__wishlist__icon" />
+        <Heart
+          size={15}
+          className={
+            action === "disabled" ? "opacity-70" : "buttons__wishlist__icon"
+          }
+        />
         {t(locale, "wishlist")}
       </button>
     </div>

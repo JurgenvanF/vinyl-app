@@ -29,6 +29,10 @@ type AlbumCardProps = {
   releaseType?: string;
   artist?: string;
   title?: string;
+  collectionAction?: "enabled" | "disabled";
+  wishlistAction?: "enabled" | "disabled";
+  onAddedToCollection?: (albumId: string) => void;
+  onAddedToWishlist?: (albumId: string) => void;
   buttons?: {
     collection?: boolean;
     wishlist?: boolean;
@@ -44,6 +48,10 @@ export default function AlbumCard({
   releaseType,
   artist,
   title,
+  collectionAction = "enabled",
+  wishlistAction = "enabled",
+  onAddedToCollection,
+  onAddedToWishlist,
   buttons,
 }: AlbumCardProps) {
   return (
@@ -70,11 +78,23 @@ export default function AlbumCard({
       </div>
       <div className="buttons w-9/10 flex flex-col mt-auto mb-4 gap-2 transition duration-200">
         {buttons?.collection && (
-          <CollectionButton album={album} releaseType={releaseType} />
+          <CollectionButton
+            album={album}
+            releaseType={releaseType}
+            action={collectionAction}
+            onAdded={onAddedToCollection}
+          />
         )}
+
         {buttons?.wishlist && (
-          <WishlistButton album={album} releaseType={releaseType} />
+          <WishlistButton
+            album={album}
+            releaseType={releaseType}
+            action={wishlistAction}
+            onAdded={onAddedToWishlist}
+          />
         )}
+
         {buttons?.removeCollection && <RemoveCollectionButton album={album} />}
         {buttons?.removeWishlist && <RemoveWishlistButton album={album} />}
         {buttons?.viewDetails && <ViewDetailsButton />}

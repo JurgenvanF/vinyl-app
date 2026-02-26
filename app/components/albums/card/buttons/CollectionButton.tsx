@@ -2,7 +2,7 @@
 
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
-import { Plus } from "lucide-react";
+import { Plus, Check } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
@@ -22,6 +22,8 @@ type DiscogsRelease = {
 type CollectionButtonProps = {
   album: DiscogsRelease;
   releaseType?: string;
+  action?: "enabled" | "disabled";
+  onAdded?: (albumId: string) => void;
 };
 
 const getReleaseType = (formats?: string[]) => {
@@ -37,6 +39,8 @@ const getReleaseType = (formats?: string[]) => {
 export default function CollectionButton({
   album,
   releaseType,
+  action = "enabled",
+  onAdded,
 }: CollectionButtonProps) {
   const { locale } = useLanguage();
 
@@ -89,6 +93,7 @@ export default function CollectionButton({
           addedAt: serverTimestamp(),
         },
       );
+      onAdded?.(album.id.toString());
 
       if (typeof window !== "undefined") {
         (window as any).addToast?.({
@@ -116,12 +121,24 @@ export default function CollectionButton({
   };
 
   return (
-    <div className="buttons__collection w-full text-center border rounded cursor-pointer">
+    <div
+      className={`w-full text-center border rounded ${
+        action === "disabled"
+          ? "buttons__collection__disabled"
+          : "buttons__collection"
+      }`}
+    >
       <button
-        className="flex items-center text-sm gap-2 px-2 py-1 w-full transition-all duration-200 cursor-pointer"
-        onClick={handleAddToCollection}
+        className={`flex items-center text-sm gap-2 px-2 py-1 w-full transition-all duration-200 ${
+          action === "disabled"
+            ? "cursor-not-allowed opacity-70"
+            : "cursor-pointer"
+        }`}
+        onClick={action === "enabled" ? handleAddToCollection : undefined}
+        disabled={action === "disabled"}
       >
-        <Plus size={15} /> {t(locale, "collection")}
+        {action === "disabled" ? <Check size={15} /> : <Plus size={15} />}
+        {t(locale, "collection")}
       </button>
     </div>
   );

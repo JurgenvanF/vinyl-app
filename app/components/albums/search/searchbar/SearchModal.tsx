@@ -7,6 +7,8 @@ import { t } from "../../../../../lib/translations";
 import AlbumCard from "../../card/AlbumCard";
 
 import { Search } from "lucide-react";
+import { auth, db } from "../../../../../lib/firebase";
+import { collection, getDocs } from "firebase/firestore";
 
 type DiscogsRelease = {
   id: number;
@@ -40,12 +42,41 @@ export default function SearchModal() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  const [collectionIds, setCollectionIds] = useState<Set<string>>(new Set());
+  const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
+
   const PER_PAGE = 40;
   const { locale } = useLanguage();
 
   const popularityScore = (release: DiscogsRelease) =>
     (release.have || 0) + (release.want || 0);
 
+  // ✅ Fetch user's collection + wishlist once
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      try {
+        const collectionSnap = await getDocs(
+          collection(db, "users", user.uid, "Collection"),
+        );
+        const wishlistSnap = await getDocs(
+          collection(db, "users", user.uid, "Wishlist"),
+        );
+
+        setCollectionIds(new Set(collectionSnap.docs.map((doc) => doc.id)));
+
+        setWishlistIds(new Set(wishlistSnap.docs.map((doc) => doc.id)));
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  // ✅ Search logic
   useEffect(() => {
     if (!searchQuery) {
       setSearchResults([]);
@@ -124,7 +155,7 @@ export default function SearchModal() {
           }}
           className="search-input rounded pl-10 pr-3 py-2 w-full border border-transparent"
         />
-        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
           <Search size={15} />
         </span>
       </div>
@@ -145,6 +176,9 @@ export default function SearchModal() {
               album.artist,
             );
 
+            const isInCollection = collectionIds.has(album.id.toString());
+            const isInWishlist = wishlistIds.has(album.id.toString());
+
             return (
               <AlbumCard
                 key={album.id}
@@ -153,6 +187,14 @@ export default function SearchModal() {
                 releaseType={releaseType}
                 artist={artist}
                 title={title}
+                collectionAction={isInCollection ? "disabled" : "enabled"}
+                wishlistAction={isInWishlist ? "disabled" : "enabled"}
+                onAddedToCollection={(albumId) =>
+                  setCollectionIds((prev) => new Set(prev).add(albumId))
+                }
+                onAddedToWishlist={(albumId) =>
+                  setWishlistIds((prev) => new Set(prev).add(albumId))
+                }
                 buttons={{
                   collection: true,
                   wishlist: true,
@@ -164,9 +206,6 @@ export default function SearchModal() {
             );
           })}
         </div>
-      )}
-      {!searchLoading && searchResults.length >= 1 && searchQuery && (
-        <p className="text-center mt-4">{t(locale, "noMatch")}</p>
       )}
 
       {!searchLoading && searchResults.length === 0 && searchQuery && (
