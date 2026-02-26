@@ -57,7 +57,7 @@ export default function RemoveCollectionButton({
       console.error(err);
       if (typeof window !== "undefined") {
         (window as any).addToast?.({
-          message: `${t(locale, "errorRemovedFromCollection")}.`,
+          message: `${t(locale, "errorRemovedFromCollection")?.toLowerCase()}.`,
           icon: Trash2,
           bgColor: "bg-red-100",
           textColor: "text-red-900",
