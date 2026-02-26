@@ -29,7 +29,7 @@ export default function Toast({
   useEffect(() => {
     // start closing animation slightly before removal
     const closeTimer = setTimeout(() => setClosing(true), duration);
-    const removeTimer = setTimeout(() => onClose(), duration + 300); // 300ms matches animation duration
+    const removeTimer = setTimeout(() => onClose(), duration + 300);
 
     return () => {
       clearTimeout(closeTimer);
@@ -40,8 +40,12 @@ export default function Toast({
   return (
     <div
       className={`flex items-center p-4 rounded shadow-lg space-x-3 min-w-[250px]
-        ${bgColor} ${textColor} 
-        ${closing ? "animate-slide-down" : "animate-slide-up"}`}
+        ${bgColor} ${textColor}`}
+      style={{
+        animation: closing
+          ? "slide-down 300ms ease-in forwards"
+          : "slide-up 300ms ease-out both",
+      }}
     >
       <div
         className={`p-2 rounded-full border ${iconBgColor} ${iconBorderColor} flex items-center justify-center`}

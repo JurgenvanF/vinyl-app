@@ -13,7 +13,7 @@ import { useLanguage } from "../lib/LanguageContext";
 import { t } from "../lib/translations";
 import LanguageToggle from "./components/language/LanguageToggle";
 
-import { Disc3 } from "lucide-react";
+import { Disc3, Eye, EyeOff } from "lucide-react";
 
 type FormType = "login" | "register";
 
@@ -32,6 +32,8 @@ export default function AuthPage() {
   // Register-only states
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false);
 
   // Check if user is already logged in
   useEffect(() => {
@@ -162,16 +164,26 @@ export default function AuthPage() {
               required
               className="p-3 border border-transparent rounded-md transition-all duration-200 ease-in-out"
             />
-            <input
-              type="password"
-              name="password"
-              autoComplete="current-password"
-              placeholder={t(locale, "password")}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="p-3 border border-transparent rounded-md transition-all duration-200 ease-in-out"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                autoComplete="new-password"
+                placeholder={t(locale, "password")}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="p-3 pr-10 w-full border border-transparent rounded-md transition-all duration-200 ease-in-out"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-800 transition"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             <button
               type="submit"
               className="auth__container__submit p-3 rounded-lg bg-black text-white hover:bg-zinc-800 transition-colors cursor-pointer"
@@ -215,16 +227,26 @@ export default function AuthPage() {
               required
               className="p-3 border border-transparent rounded-md transition-all duration-200 ease-in-out"
             />
-            <input
-              type="password"
-              name="password"
-              autoComplete="new-password"
-              placeholder={t(locale, "password")}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="p-3 border border-transparent rounded-md transition-all duration-200 ease-in-out"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                autoComplete="new-password"
+                placeholder={t(locale, "password")}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="p-3 pr-10 w-full border border-transparent rounded-md transition-all duration-200 ease-in-out"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-800 transition"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             <button
               type="submit"
               className="auth__container__submit p-3 rounded-lg bg-black text-white hover:bg-zinc-800 transition-colors cursor-pointer"

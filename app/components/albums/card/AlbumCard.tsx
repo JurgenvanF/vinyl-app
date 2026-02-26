@@ -69,8 +69,12 @@ export default function AlbumCard({
         )}
       </div>
       <div className="buttons w-9/10 flex flex-col mt-auto mb-4 gap-2 transition duration-200">
-        {buttons?.collection && <CollectionButton album={album} />}
-        {buttons?.wishlist && <WishlistButton album={album} />}
+        {buttons?.collection && (
+          <CollectionButton album={album} releaseType={releaseType} />
+        )}
+        {buttons?.wishlist && (
+          <WishlistButton album={album} releaseType={releaseType} />
+        )}
         {buttons?.removeCollection && <RemoveCollectionButton album={album} />}
         {buttons?.removeWishlist && <RemoveWishlistButton album={album} />}
         {buttons?.viewDetails && <ViewDetailsButton />}

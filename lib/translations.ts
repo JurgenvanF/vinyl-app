@@ -29,9 +29,16 @@ type Translations = {
     searchDatabase: string;
     remove: string;
     viewDetails: string;
-    addToCollection: string;
+    collection: string;
     addToCollectionTitle: string;
-    addToWishlist: string;
+    addedToCollection: string;
+    errorAddToCollection: string;
+    removedFromCollection: string;
+    errorRemovedFromCollection: string;
+    addedToWishlist: string;
+    errorAddToWishlist: string;
+    removedFromWishlist: string;
+    errorRemovedFromWishlist: string;
     noMatch: string;
     scanBarcode: string;
     scanBarcodeInstruction: string;
@@ -84,9 +91,18 @@ export const translations: Translations = {
     searchDatabase: "Search Database",
     remove: "Remove",
     viewDetails: "Details",
-    addToCollection: "Collection",
+    collection: "Collection",
     addToCollectionTitle: "Add Album to Collection",
-    addToWishlist: "Wishlist",
+    addedToCollection: "Added to your collection",
+    errorAddToCollection: "Something went wrong adding to your collection",
+    removedFromCollection: "Removed from your collection",
+    errorRemovedFromCollection:
+      "Something went wrong removing from your collection",
+    addedToWishlist: "Added to your wishlist",
+    errorAddToWishlist: "Something went wrong adding to wishlist",
+    removedFromWishlist: "Removed from your wishlist",
+    errorRemovedFromWishlist:
+      "Something went wrong removing from your wishlist",
     noMatch:
       "Can't find your result in this list? Try searching for the catalog number, scan the barcode or add it manually.",
     scanBarcode: "Scan Barcode",
@@ -138,9 +154,20 @@ export const translations: Translations = {
     searchDatabase: "Database doorzoeken",
     remove: "Verwijder",
     viewDetails: "Details",
-    addToCollection: "Collectie",
+    collection: "Collectie",
     addToCollectionTitle: "Album toevoegen aan collectie",
-    addToWishlist: "Verlanglijst",
+    addedToCollection: "Toegevoegd aan je collectie",
+    errorAddToCollection:
+      "Er is iets misgegaan bij het toevoegen aan de collectie",
+    removedFromCollection: "Verwijderd uit je collectie",
+    errorRemovedFromCollection:
+      "Er is iets misgegaan bij het verwijderen uit je collectie",
+    addedToWishlist: "Toegevoegd aan je verlanglijst",
+    errorAddToWishlist:
+      "Er is iets misgegaan bij het toevoegen aan de verlanglijst",
+    removedFromWishlist: "Verwijderd uit je verlanglijst",
+    errorRemovedFromWishlist:
+      "Er is iets misgegaan bij het verwijderen uit je verlanglijst",
     noMatch:
       "Resultaat staat niet in de lijst? Probeer te zoeken met het catalogusnummer, scan de barcode of voeg hem handmatig toe.",
     scanBarcode: "Barcode scannen",

@@ -45,7 +45,7 @@ export default function RemoveWishlistButton({
 
       if (typeof window !== "undefined") {
         (window as any).addToast?.({
-          message: `${album.title} removed from your wishlist!`,
+          message: `${album.title} ${t(locale, "removedFromWishlist")?.toLowerCase()}!`,
           icon: Trash2,
           bgColor: "bg-yellow-100",
           textColor: "text-yellow-900",
@@ -57,7 +57,7 @@ export default function RemoveWishlistButton({
       console.error(err);
       if (typeof window !== "undefined") {
         (window as any).addToast?.({
-          message: "Something went wrong removing the album.",
+          message: `${t(locale, "errorRemovedFromWishlist")?.toLowerCase()}.`,
           icon: Trash2,
           bgColor: "bg-red-100",
           textColor: "text-red-900",

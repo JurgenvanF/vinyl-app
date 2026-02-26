@@ -24,7 +24,7 @@ type DiscogsRelease = {
 };
 
 const splitDiscogsTitle = (fullTitle: string, artist?: string) => {
-  if (artist) return { artist, title: fullTitle }; // artist already present
+  if (artist) return { artist, title: fullTitle };
 
   const [maybeArtist, ...titleParts] = fullTitle.split(" - ");
   const albumTitle = titleParts.join(" - ").trim() || fullTitle;

@@ -12,6 +12,7 @@ type DiscogsRelease = {
   artist?: string;
   cover_image: string;
   type?: string;
+  format?: string[];
   genre?: string[];
   year?: number;
   catno?: string;
@@ -20,9 +21,23 @@ type DiscogsRelease = {
 
 type WishlistButtonProps = {
   album: DiscogsRelease;
+  releaseType?: string;
 };
 
-export default function WishlistButton({ album }: WishlistButtonProps) {
+const getReleaseType = (formats?: string[]) => {
+  if (!formats || formats.length === 0) return undefined;
+  const meaningful = formats.find((f) =>
+    /LP|Single|EP|CD|Compilation/i.test(f),
+  );
+  if (!meaningful) return undefined;
+  if (/LP/i.test(meaningful)) return "Album";
+  return meaningful;
+};
+
+export default function WishlistButton({
+  album,
+  releaseType,
+}: WishlistButtonProps) {
   const { locale } = useLanguage();
 
   const handleAddToWishlist = async () => {
@@ -56,6 +71,8 @@ export default function WishlistButton({ album }: WishlistButtonProps) {
       album.artist,
     );
 
+    const normalizedReleaseType = releaseType ?? getReleaseType(album.format);
+
     try {
       await setDoc(
         doc(db, "users", user.uid, "Wishlist", album.id.toString()),
@@ -64,7 +81,7 @@ export default function WishlistButton({ album }: WishlistButtonProps) {
           title: albumTitle,
           artist: albumArtist,
           cover_image: album.cover_image,
-          releaseType: album.type,
+          releaseType: normalizedReleaseType || null,
           genre: album.genre?.[0] || null,
           year: album.year || null,
           catno: album.catno || null,
@@ -75,7 +92,7 @@ export default function WishlistButton({ album }: WishlistButtonProps) {
 
       if (typeof window !== "undefined") {
         (window as any).addToast?.({
-          message: `${albumTitle} added to your wishlist!`,
+          message: `${albumTitle} ${t(locale, "addedToWishlist")?.toLowerCase()}!`,
           icon: Heart,
           bgColor: "bg-green-100",
           textColor: "text-green-900",
@@ -87,7 +104,7 @@ export default function WishlistButton({ album }: WishlistButtonProps) {
       console.error(err);
       if (typeof window !== "undefined") {
         (window as any).addToast?.({
-          message: "Something went wrong adding to wishlist.",
+          message: `${t(locale, "errorAddToWishlist")?.toLowerCase()}.`,
           icon: Heart,
           bgColor: "bg-red-100",
           textColor: "text-red-900",
@@ -105,7 +122,7 @@ export default function WishlistButton({ album }: WishlistButtonProps) {
         onClick={handleAddToWishlist}
       >
         <Heart size={15} className="buttons__wishlist__icon" />
-        {t(locale, "addToWishlist")}
+        {t(locale, "wishlist")}
       </button>
     </div>
   );

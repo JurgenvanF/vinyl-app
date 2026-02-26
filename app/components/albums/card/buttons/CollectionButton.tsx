@@ -12,6 +12,7 @@ type DiscogsRelease = {
   artist?: string;
   cover_image: string;
   type?: string;
+  format?: string[];
   genre?: string[];
   year?: number;
   catno?: string;
@@ -20,9 +21,23 @@ type DiscogsRelease = {
 
 type CollectionButtonProps = {
   album: DiscogsRelease;
+  releaseType?: string;
 };
 
-export default function CollectionButton({ album }: CollectionButtonProps) {
+const getReleaseType = (formats?: string[]) => {
+  if (!formats || formats.length === 0) return undefined;
+  const meaningful = formats.find((f) =>
+    /LP|Single|EP|CD|Compilation/i.test(f),
+  );
+  if (!meaningful) return undefined;
+  if (/LP/i.test(meaningful)) return "Album";
+  return meaningful;
+};
+
+export default function CollectionButton({
+  album,
+  releaseType,
+}: CollectionButtonProps) {
   const { locale } = useLanguage();
 
   const handleAddToCollection = async () => {
@@ -56,6 +71,8 @@ export default function CollectionButton({ album }: CollectionButtonProps) {
       album.artist,
     );
 
+    const normalizedReleaseType = releaseType ?? getReleaseType(album.format);
+
     try {
       await setDoc(
         doc(db, "users", user.uid, "Collection", album.id.toString()),
@@ -64,7 +81,7 @@ export default function CollectionButton({ album }: CollectionButtonProps) {
           title: albumTitle,
           artist: albumArtist,
           cover_image: album.cover_image,
-          releaseType: album.type,
+          releaseType: normalizedReleaseType || null,
           genre: album.genre || [],
           year: album.year || null,
           catno: album.catno || null,
@@ -73,10 +90,9 @@ export default function CollectionButton({ album }: CollectionButtonProps) {
         },
       );
 
-      // toast success
       if (typeof window !== "undefined") {
         (window as any).addToast?.({
-          message: `${albumTitle} added to your collection!`,
+          message: `${albumTitle} ${t(locale, "addedToCollection")?.toLowerCase()}!`,
           icon: Plus,
           bgColor: "bg-green-100",
           textColor: "text-green-900",
@@ -88,7 +104,7 @@ export default function CollectionButton({ album }: CollectionButtonProps) {
       console.error(err);
       if (typeof window !== "undefined") {
         (window as any).addToast?.({
-          message: "Something went wrong adding to collection.",
+          message: `${t(locale, "errorAddToCollection")?.toLowerCase()}.`,
           icon: Plus,
           bgColor: "bg-red-100",
           textColor: "text-red-900",
@@ -105,7 +121,7 @@ export default function CollectionButton({ album }: CollectionButtonProps) {
         className="flex items-center text-sm gap-2 px-2 py-1 w-full transition-all duration-200 cursor-pointer"
         onClick={handleAddToCollection}
       >
-        <Plus size={15} /> {t(locale, "addToCollection")}
+        <Plus size={15} /> {t(locale, "collection")}
       </button>
     </div>
   );
