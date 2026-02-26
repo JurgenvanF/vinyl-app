@@ -9,7 +9,7 @@ import { t } from "../../lib/translations";
 import VinylSpinner from "../components/spinner/VinylSpinner";
 import AlbumSearchModal from "../components/albums/search/AlbumSearchModal";
 
-import { Plus } from "lucide-react";
+import { Plus, Disc3 } from "lucide-react";
 
 import "./collection.scss";
 
@@ -68,6 +68,7 @@ export default function Dashboard() {
         />
       </div>
       <p className="collection-container__count pl-1">0 albums</p>
+      <Disc3 className="test p-60" size={2000} />
     </div>
   );
 }

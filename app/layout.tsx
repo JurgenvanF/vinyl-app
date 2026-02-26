@@ -1,13 +1,6 @@
-"use client";
-
-import { useEffect } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
-import { LanguageProvider, useLanguage } from "../lib/LanguageContext";
-import { t } from "../lib/translations";
-import TopNav from "./components/topnav/TopNav";
-import ThemeInitializer from "./components/theme/ThemeInitializer";
-import Footer from "./components/footer/Footer";
-import { usePathname } from "next/navigation";
+import { LanguageProvider } from "../lib/LanguageContext";
+import ClientLayout from "./ClientLayout";
 import "./styles/main.scss";
 
 const geistSans = Geist({
@@ -20,46 +13,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-function AppLayoutContent({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const { locale } = useLanguage();
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, [pathname]);
-
-  useEffect(() => {
-    if (pathname === "/wishlist") {
-      document.title = `Vinyl Vault | ${t(locale, "wishlist")}`;
-      return;
-    }
-
-    if (pathname === "/profile") {
-      document.title = `Vinyl Vault | ${t(locale, "profile")}`;
-      return;
-    }
-
-    document.title = "Vinyl Vault";
-  }, [pathname, locale]);
-
-  const hideTopNav = pathname === "/";
-  const isAuthPage = pathname === "/";
-
-  return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} antialiased ${isAuthPage ? "auth-page" : "app-page"}`}
-    >
-      <ThemeInitializer />
-      <div className="app-shell">
-        {!hideTopNav && <TopNav />}
-        <main className={`app-main ${!isAuthPage && "my-10"} `}>
-          {children}
-        </main>
-        {!isAuthPage && <Footer />}
-      </div>
-    </div>
-  );
-}
+export const metadata = {
+  title: "Vinyl Vault",
+  description: "Manage your vinyl collection in one central place.",
+  manifest: "/manifest.json",
+  themeColor: "#0f0f0f",
+};
 
 export default function RootLayout({
   children,
@@ -68,9 +27,19 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <head>
+        <link rel="apple-touch-icon" href="/app-logo-192.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
+      </head>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <LanguageProvider>
-          <AppLayoutContent>{children}</AppLayoutContent>
+          <ClientLayout>{children}</ClientLayout>
         </LanguageProvider>
       </body>
     </html>
