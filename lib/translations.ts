@@ -27,6 +27,8 @@ type Translations = {
     searchAlbumArtistCatNo: string;
     addAlbum: string;
     searchDatabase: string;
+    remove: string;
+    viewDetails: string;
     addToCollection: string;
     addToCollectionTitle: string;
     addToWishlist: string;
@@ -80,6 +82,8 @@ export const translations: Translations = {
     searchAlbumArtistCatNo: "Search albums, artists or catalog numbers",
     addAlbum: "Add Album",
     searchDatabase: "Search Database",
+    remove: "Remove",
+    viewDetails: "Details",
     addToCollection: "Collection",
     addToCollectionTitle: "Add Album to Collection",
     addToWishlist: "Wishlist",
@@ -132,6 +136,8 @@ export const translations: Translations = {
     searchAlbumArtistCatNo: "Zoek albums, artiesten of catalogusnummers",
     addAlbum: "Album toevoegen",
     searchDatabase: "Database doorzoeken",
+    remove: "Verwijder",
+    viewDetails: "Details",
     addToCollection: "Collectie",
     addToCollectionTitle: "Album toevoegen aan collectie",
     addToWishlist: "Verlanglijst",

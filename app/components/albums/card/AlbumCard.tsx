@@ -2,6 +2,9 @@
 
 import CollectionButton from "./buttons/CollectionButton";
 import WishlistButton from "./buttons/WishlistButton";
+import RemoveCollectionButton from "./buttons/RemoveCollectionButton";
+import RemoveWishlistButton from "./buttons/RemoveWishlistButton";
+import ViewDetailsButton from "./buttons/ViewDetailsButton";
 
 import "./AlbumCard.scss";
 
@@ -26,6 +29,13 @@ type AlbumCardProps = {
   releaseType?: string;
   artist?: string;
   title?: string;
+  buttons?: {
+    collection?: boolean;
+    wishlist?: boolean;
+    removeCollection?: boolean;
+    removeWishlist?: boolean;
+    viewDetails?: boolean;
+  };
 };
 
 export default function AlbumCard({
@@ -34,6 +44,7 @@ export default function AlbumCard({
   releaseType,
   artist,
   title,
+  buttons,
 }: AlbumCardProps) {
   return (
     <div className="album-card flex flex-col items-center gap-2 border rounded group">
@@ -57,9 +68,12 @@ export default function AlbumCard({
           <p className="text-xs text-gray-500 mt-1">{album.catno}</p>
         )}
       </div>
-      <div className=" buttons w-9/10 flex flex-col mt-auto mb-4 gap-2 transition duration-200">
-        <CollectionButton />
-        <WishlistButton />
+      <div className="buttons w-9/10 flex flex-col mt-auto mb-4 gap-2 transition duration-200">
+        {buttons?.collection && <CollectionButton />}
+        {buttons?.wishlist && <WishlistButton />}
+        {buttons?.removeCollection && <RemoveCollectionButton />}
+        {buttons?.removeWishlist && <RemoveWishlistButton />}
+        {buttons?.viewDetails && <ViewDetailsButton />}
       </div>
     </div>
   );

@@ -153,6 +153,13 @@ export default function SearchModal() {
                 releaseType={releaseType}
                 artist={artist}
                 title={title}
+                buttons={{
+                  collection: true,
+                  wishlist: true,
+                  removeCollection: true,
+                  removeWishlist: true,
+                  viewDetails: true,
+                }}
               />
             );
           })}

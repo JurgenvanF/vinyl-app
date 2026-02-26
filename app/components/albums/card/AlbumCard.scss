@@ -4,7 +4,8 @@
 
 .buttons {
   &__collection,
-  &__wishlist {
+  &__wishlist,
+  &__details {
     border: 1px solid var(--medium-amber);
     transition: background-color 0.2s ease;
 
@@ -18,6 +19,16 @@
     &:hover .buttons__wishlist__icon {
       color: var(--rose-red);
       fill: var(--rose-red);
+    }
+  }
+
+  &__remove {
+    border: 1px solid var(--medium-amber);
+    transition: background-color 0.2s ease;
+    &:hover {
+      background-color: #d4183d;
+      border: 1px solid #ef1d26;
+      color: white;
     }
   }
 }

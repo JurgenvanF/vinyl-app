@@ -9,7 +9,7 @@ import { t } from "../../lib/translations";
 import VinylSpinner from "../components/spinner/VinylSpinner";
 import AlbumSearchModal from "../components/albums/search/AlbumSearchModal";
 
-import { Plus, Disc3 } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import "./collection.scss";
 
