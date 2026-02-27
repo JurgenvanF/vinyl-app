@@ -10,13 +10,20 @@ type Translations = {
     login: string;
     register: string;
     email: string;
+    emailAlreadyInUse: string;
     password: string;
     firstName: string;
     lastName: string;
     signUp: string;
     signInInstructions: string;
     signInError: string;
+    invalidEmailOrPassword: string;
+    signUpError: string;
     logout: string;
+    loginSuccess: string;
+    registerSuccess: string;
+    logoutSuccess: string;
+    logoutError: string;
     helloName: (name: string) => string;
     loading: string;
     myCollection: string;
@@ -79,13 +86,20 @@ export const translations: Translations = {
     login: "Login",
     register: "Register",
     email: "Email",
+    emailAlreadyInUse: "This email address is already in use.",
     password: "Password",
     firstName: "First Name",
     lastName: "Last Name",
     signUp: "Sign Up",
     signInInstructions: "Sign in to your account or create a new one",
     signInError: "Something went wrong during login.",
+    invalidEmailOrPassword: "Email or password is incorrect.",
+    signUpError: "Something went wrong during registration.",
     logout: "Logout",
+    loginSuccess: "Logged in successfully.",
+    registerSuccess: "Account created successfully.",
+    logoutSuccess: "Logged out successfully.",
+    logoutError: "Something went wrong during logout.",
     helloName: (name) => `Hello, ${name}!`,
     loading: "Loading...",
     myCollection: "My Collection",
@@ -152,13 +166,20 @@ export const translations: Translations = {
     login: "Inloggen",
     register: "Registreren",
     email: "E-mail",
+    emailAlreadyInUse: "Dit e-mailadres is al in gebruik.",
     password: "Wachtwoord",
     firstName: "Voornaam",
     lastName: "Achternaam",
     signUp: "Registreren",
     signInInstructions: "Log in op uw account of maak een nieuwe aan",
     signInError: "Er is iets misgegaan bij het inloggen.",
+    invalidEmailOrPassword: "E-mailadres of wachtwoord is onjuist.",
+    signUpError: "Er is iets misgegaan bij het registreren.",
     logout: "Uitloggen",
+    loginSuccess: "Succesvol ingelogd.",
+    registerSuccess: "Account succesvol aangemaakt.",
+    logoutSuccess: "Succesvol uitgelogd.",
+    logoutError: "Er is iets misgegaan bij het uitloggen.",
     helloName: (name) => `Hallo, ${name}!`,
     loading: "Laden...",
     myCollection: "Mijn Collectie",

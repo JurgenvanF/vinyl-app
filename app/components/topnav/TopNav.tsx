@@ -8,10 +8,8 @@ import ThemeSelector from "../theme/ThemeSelector";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { t } from "../../../lib/translations";
 import { Disc3, Heart, User, LogOut, Menu, X } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import NavItem from "./NavItem/NavItem";
-import { signOut } from "firebase/auth";
-import { auth } from "../../../lib/firebase";
 
 import "./TopNav.scss";
 
@@ -19,12 +17,6 @@ export default function TopNav() {
   const { locale, toggleLocale } = useLanguage();
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    await signOut(auth);
-    router.replace("/");
-  };
 
   useEffect(() => {
     setOpen(false);
@@ -62,11 +54,8 @@ export default function TopNav() {
             {t(locale, "profile")}
           </NavItem>
 
-          <NavItem auth onClick={handleLogout}>
-            <LogoutButton
-              className="pointer-events-none"
-              icon={<LogOut size={18} />}
-            />
+          <NavItem auth>
+            <LogoutButton icon={<LogOut size={18} />} />
           </NavItem>
 
           <NavItem auth onClick={toggleLocale} compact>
@@ -135,11 +124,8 @@ export default function TopNav() {
             {/* Bottom actions */}
             <div className="mt-auto mb-4 flex gap-4 pt-6 pb-16 border-t">
               <div className="flex-4">
-                <NavItem auth onClick={handleLogout}>
-                  <LogoutButton
-                    className="pointer-events-none"
-                    icon={<LogOut size={18} />}
-                  />
+                <NavItem auth>
+                  <LogoutButton icon={<LogOut size={18} />} />
                 </NavItem>
               </div>
 

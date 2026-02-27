@@ -5,15 +5,22 @@ import { auth, db } from "../lib/firebase";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  User,
 } from "firebase/auth";
 import { setDoc, doc } from "firebase/firestore";
+import { FirebaseError } from "firebase/app";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../lib/LanguageContext";
 import { t } from "../lib/translations";
 import LanguageToggle from "./components/language/LanguageToggle";
 
-import { Disc3, Eye, EyeOff } from "lucide-react";
+import {
+  Disc3,
+  Eye,
+  EyeOff,
+  LogIn,
+  UserPlus,
+  TriangleAlert,
+} from "lucide-react";
 
 type FormType = "login" | "register";
 
@@ -23,7 +30,6 @@ export default function AuthPage() {
 
   const [formType, setFormType] = useState<FormType>("login");
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
 
   // Common form states
   const [email, setEmail] = useState("");
@@ -32,6 +38,7 @@ export default function AuthPage() {
   // Register-only states
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [registerEmailError, setRegisterEmailError] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -39,7 +46,6 @@ export default function AuthPage() {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       if (currentUser) {
-        setUser(currentUser);
         router.replace("/collection");
       } else {
         setLoading(false);
@@ -56,20 +62,88 @@ export default function AuthPage() {
     setPassword("");
     setFirstName("");
     setLastName("");
+    setRegisterEmailError("");
+  };
+
+  const showToast = (
+    message: string,
+    icon: typeof LogIn,
+    bgColor: string,
+    textColor: string,
+    iconBgColor: string,
+    iconBorderColor: string,
+  ) => {
+    if (typeof window === "undefined") return;
+
+    const toastWindow = window as Window & {
+      addToast?: (toast: {
+        message: string;
+        icon: typeof LogIn;
+        bgColor: string;
+        textColor: string;
+        iconBgColor: string;
+        iconBorderColor: string;
+      }) => void;
+    };
+
+    toastWindow.addToast?.({
+      message,
+      icon,
+      bgColor,
+      textColor,
+      iconBgColor,
+      iconBorderColor,
+    });
   };
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      showToast(
+        t(locale, "loginSuccess"),
+        LogIn,
+        "bg-green-100",
+        "text-green-900",
+        "bg-green-200",
+        "border-green-400",
+      );
       router.replace("/collection");
     } catch (error: unknown) {
-      alert(t(locale, "signInError"));
+      if (
+        error instanceof FirebaseError &&
+        (error.code === "auth/invalid-credential" ||
+          error.code === "auth/wrong-password" ||
+          error.code === "auth/user-not-found" ||
+          error.code === "auth/invalid-email")
+      ) {
+        showToast(
+          t(locale, "invalidEmailOrPassword"),
+          TriangleAlert,
+          "bg-red-100",
+          "text-red-900",
+          "bg-red-200",
+          "border-red-400",
+        );
+        return;
+      }
+
+      showToast(
+        t(locale, "signInError"),
+        TriangleAlert,
+        "bg-red-100",
+        "text-red-900",
+        "bg-red-200",
+        "border-red-400",
+      );
     }
   };
 
   const handleRegister = async (e: FormEvent) => {
     e.preventDefault();
+    setRegisterEmailError("");
+
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -85,9 +159,43 @@ export default function AuthPage() {
         createdAt: new Date(),
       });
 
+      showToast(
+        t(locale, "registerSuccess"),
+        UserPlus,
+        "bg-green-100",
+        "text-green-900",
+        "bg-green-200",
+        "border-green-400",
+      );
       router.replace("/collection");
     } catch (error: unknown) {
-      alert(error instanceof Error ? error.message : "Something went wrong.");
+      console.error(error);
+
+      if (
+        error instanceof FirebaseError &&
+        error.code === "auth/email-already-in-use"
+      ) {
+        const message = t(locale, "emailAlreadyInUse");
+        setRegisterEmailError(message);
+        showToast(
+          message,
+          TriangleAlert,
+          "bg-red-100",
+          "text-red-900",
+          "bg-red-200",
+          "border-red-400",
+        );
+        return;
+      }
+
+      showToast(
+        t(locale, "signUpError"),
+        TriangleAlert,
+        "bg-red-100",
+        "text-red-900",
+        "bg-red-200",
+        "border-red-400",
+      );
     }
   };
 
@@ -160,10 +268,16 @@ export default function AuthPage() {
               autoComplete="email"
               placeholder={t(locale, "email")}
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (registerEmailError) setRegisterEmailError("");
+              }}
               required
               className="p-3 border border-transparent rounded-md transition-all duration-200 ease-in-out"
             />
+            {registerEmailError && (
+              <p className="text-sm text-red-600 -mt-2">{registerEmailError}</p>
+            )}
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -236,6 +350,7 @@ export default function AuthPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={8}
                 className="p-3 pr-10 w-full border border-transparent rounded-md transition-all duration-200 ease-in-out"
               />
 
