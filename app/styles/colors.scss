@@ -8,6 +8,7 @@
   --muted-black: #717182;
 
   --white-black: white;
+  --muted-white-black: #d1d5db;
 
   --soft-amber: #fef3c7;
   --medium-amber: #ffeab5;
@@ -59,6 +60,8 @@
   --nav-item-color: #c56521;
   --nav-item-border: #ffd232;
 
+  --album-card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
   --footer-background: white;
   --footer-color: black;
   --footer-hover: #ffb300;
@@ -69,6 +72,7 @@
   --foreground: #ededed;
 
   --white-black: black;
+  --muted-white-black: #4b5563;
 
   --auth-body-background: linear-gradient(
     to bottom right,
@@ -111,6 +115,8 @@
   --nav-item-background: #17130e;
   --nav-item-color: #fdba74;
   --nav-item-border: #ea580c;
+
+  --album-card-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
 
   --footer-background: #101828;
   --footer-color: white;

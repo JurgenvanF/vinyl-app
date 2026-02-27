@@ -1,5 +1,16 @@
 .album-card {
-  border: 1px solid var(--muted-black);
+  border: 1px solid var(--muted-white-black);
+  background-color: var(--white-black);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+@media (min-width: 768px) {
+  .album-card:hover {
+    box-shadow: var(--album-card-shadow);
+    transform: translateY(-5px);
+  }
 }
 
 .buttons {

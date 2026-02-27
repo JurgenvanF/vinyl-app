@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { t } from "../../../lib/translations";
 
@@ -41,8 +42,9 @@ export default function MessageModal({
   };
 
   if (!open) return null;
+  if (typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-[rgba(0,0,0,0.6)] flex items-center justify-center z-50"
       onClick={onCancel}
@@ -74,6 +76,7 @@ export default function MessageModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
