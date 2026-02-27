@@ -95,7 +95,7 @@ export default function SearchModal() {
       setHasCompletedSearch(false);
       setSearchNotice("");
       const slowSearchTimer = setTimeout(() => {
-        setSearchNotice("Searching is taking a bit longer than usual...");
+        setSearchNotice(t(locale, "searchTakingLonger"));
       }, 5000);
       try {
         const queryUrl = `/api/search?q=${encodeURIComponent(searchQuery)}&page=${page}&per_page=${PER_PAGE}`;

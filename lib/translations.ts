@@ -32,6 +32,7 @@ type Translations = {
     profileLoadError: string;
     searchAlbumArtist: string;
     searchAlbumArtistCatNo: string;
+    searchTakingLonger: string;
     addAlbum: string;
     recentlyAdded: string;
     searchDatabase: string;
@@ -114,6 +115,7 @@ export const translations: Translations = {
     profileLoadError: "Could not load your profile. Please try again.",
     searchAlbumArtist: "Search albums or artists",
     searchAlbumArtistCatNo: "Search albums, artists or catalog numbers",
+    searchTakingLonger: "Searching is taking a bit longer than usual...",
     addAlbum: "Add Album",
     recentlyAdded: "Recently added",
     searchDatabase: "Search Database",
@@ -200,6 +202,7 @@ export const translations: Translations = {
     profileLoadError: "Kan je profiel niet laden. Probeer het opnieuw.",
     searchAlbumArtist: "Zoek albums of artiesten",
     searchAlbumArtistCatNo: "Zoek albums, artiesten of catalogusnummers",
+    searchTakingLonger: "Zoeken duurt iets langer dan normaal...",
     addAlbum: "Album toevoegen",
     recentlyAdded: "Recent toegevoegd",
     searchDatabase: "Database doorzoeken",
