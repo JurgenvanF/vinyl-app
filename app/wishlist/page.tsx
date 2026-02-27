@@ -153,13 +153,13 @@ export default function WishlistPage() {
       for (const album of missingArtistMeta) {
         if (cancelled) return;
 
-        const discogsArtists = await fetchDiscogsArtists({
+        const discogsArtistResult = await fetchDiscogsArtists({
           id: album.id,
           masterId: album.master_id,
         });
         const artists =
-          discogsArtists.length > 0
-            ? discogsArtists
+          discogsArtistResult.length > 0
+            ? discogsArtistResult
             : deriveArtists(album.artist, album.artists);
         const primaryArtist = derivePrimaryArtist(
           album.primaryArtist,

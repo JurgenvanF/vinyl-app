@@ -2,8 +2,37 @@
 const cache = new Map<string, { results: any[]; timestamp: number }>();
 const CACHE_TTL = 1000 * 60 * 10; // 10 minutes
 const FETCH_BUFFER = 300; // ms delay before fetching
+const RATE_LIMIT = 55;
+const RATE_WINDOW_MS = 60_000;
+const requestTimestamps: number[] = [];
 
 let lastTimeout: NodeJS.Timeout | null = null;
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const waitForDiscogsSlot = async (): Promise<number> => {
+  let waitedMs = 0;
+  while (true) {
+    const now = Date.now();
+    while (
+      requestTimestamps.length > 0 &&
+      now - requestTimestamps[0] >= RATE_WINDOW_MS
+    ) {
+      requestTimestamps.shift();
+    }
+
+    if (requestTimestamps.length < RATE_LIMIT) {
+      requestTimestamps.push(now);
+      return waitedMs;
+    }
+
+    const waitMs = Math.max(
+      RATE_WINDOW_MS - (now - requestTimestamps[0]) + 25,
+      25,
+    );
+    waitedMs += waitMs;
+    await sleep(waitMs);
+  }
+};
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -52,19 +81,33 @@ export async function GET(request: Request) {
       params.append("sort", "have");
       params.append("sort_order", "desc");
 
-      const res = await fetch(
+      await waitForDiscogsSlot();
+      let res = await fetch(
         `https://api.discogs.com/database/search?${params.toString()}`,
         { headers: { Authorization: `Discogs token=${token}` } },
       );
+
+      if (res.status === 429) {
+        const retryAfterHeader = res.headers.get("Retry-After");
+        const retryAfterMs =
+          (retryAfterHeader ? Number(retryAfterHeader) : 60) * 1000;
+        await sleep(Number.isFinite(retryAfterMs) ? retryAfterMs : 60_000);
+        await waitForDiscogsSlot();
+        res = await fetch(
+          `https://api.discogs.com/database/search?${params.toString()}`,
+          { headers: { Authorization: `Discogs token=${token}` } },
+        );
+      }
+
       const data = await res.json();
       results.push(...(data.results ?? []));
     }
 
-    return results;
+    return { results };
   };
 
   try {
-    const allItems = await fetchSearch();
+    const { results: allItems } = await fetchSearch();
 
     // ---------- Deduplicate ----------
     const dedupe = (items: any[]) => {
@@ -105,7 +148,10 @@ export async function GET(request: Request) {
     // ---------- Save to cache ----------
     cache.set(q, { results: combined, timestamp: Date.now() });
 
-    return Response.json({ results: combined, total: combined.length });
+    return Response.json({
+      results: combined,
+      total: combined.length,
+    });
   } catch (err) {
     console.error(err);
     return Response.json({ results: [], total: 0 });

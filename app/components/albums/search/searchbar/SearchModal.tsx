@@ -40,6 +40,7 @@ export default function SearchModal() {
   const [searchResults, setSearchResults] = useState<DiscogsRelease[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [hasCompletedSearch, setHasCompletedSearch] = useState(false);
+  const [searchNotice, setSearchNotice] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -85,16 +86,20 @@ export default function SearchModal() {
       setPage(1);
       setTotalPages(1);
       setHasCompletedSearch(false);
+      setSearchNotice("");
       return;
     }
 
     const timeout = setTimeout(async () => {
       setSearchLoading(true);
       setHasCompletedSearch(false);
+      setSearchNotice("");
+      const slowSearchTimer = setTimeout(() => {
+        setSearchNotice("Searching is taking a bit longer than usual...");
+      }, 5000);
       try {
-        const res = await fetch(
-          `/api/search?q=${encodeURIComponent(searchQuery)}&page=${page}&per_page=${PER_PAGE}`,
-        );
+        const queryUrl = `/api/search?q=${encodeURIComponent(searchQuery)}&page=${page}&per_page=${PER_PAGE}`;
+        const res = await fetch(queryUrl);
         const data = await res.json();
         const results: DiscogsRelease[] = data.results ?? [];
 
@@ -126,6 +131,7 @@ export default function SearchModal() {
         setSearchResults([]);
         setHasCompletedSearch(true);
       } finally {
+        clearTimeout(slowSearchTimer);
         setSearchLoading(false);
       }
     }, 300);
@@ -231,6 +237,12 @@ export default function SearchModal() {
             );
           })}
         </div>
+      )}
+
+      {searchLoading && searchNotice && (
+        <p className="text-center mt-3 text-sm text-amber-700">
+          {searchNotice}
+        </p>
       )}
 
       {!searchLoading &&

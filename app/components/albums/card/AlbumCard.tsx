@@ -172,13 +172,15 @@ export default function AlbumCard({
             );
 
             // Add to collection
-            const discogsArtists = await fetchDiscogsArtists({
+            const discogsArtistResult = await fetchDiscogsArtists({
               id: pendingAlbum.id,
               masterId: pendingAlbum.master_id,
             });
             const artists = deriveArtists(
               pendingAlbum.artist,
-              discogsArtists.length > 0 ? discogsArtists : pendingAlbum.artists,
+              discogsArtistResult.length > 0
+                ? discogsArtistResult
+                : pendingAlbum.artists,
             );
             const primaryArtist = derivePrimaryArtist(
               pendingAlbum.primaryArtist,

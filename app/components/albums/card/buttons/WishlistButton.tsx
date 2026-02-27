@@ -67,13 +67,13 @@ export default function WishlistButton({
       album.title,
       album.artist,
     );
-    const discogsArtists = await fetchDiscogsArtists({
+    const discogsArtistResult = await fetchDiscogsArtists({
       id: album.id,
       masterId: album.master_id,
     });
     const artists =
-      discogsArtists.length > 0
-        ? discogsArtists
+      discogsArtistResult.length > 0
+        ? discogsArtistResult
         : deriveArtists(albumArtist, album.artists);
     const primaryArtist = derivePrimaryArtist(undefined, artists, albumArtist);
 

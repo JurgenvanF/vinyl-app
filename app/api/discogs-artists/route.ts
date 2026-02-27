@@ -1,9 +1,42 @@
 const normalizeArtistName = (name: string) =>
-  name.replace(/\s+/g, " ").replace(/\(\d+\)$/, "").trim();
+  name
+    .replace(/\s+/g, " ")
+    .replace(/\(\d+\)$/, "")
+    .trim();
 
 const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
 const cache = new Map<string, { artists: string[]; timestamp: number }>();
 const inFlight = new Map<string, Promise<string[]>>();
+const RATE_LIMIT = 55;
+const RATE_WINDOW_MS = 60_000;
+const requestTimestamps: number[] = [];
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const waitForDiscogsSlot = async (): Promise<number> => {
+  let waitedMs = 0;
+  while (true) {
+    const now = Date.now();
+    while (
+      requestTimestamps.length > 0 &&
+      now - requestTimestamps[0] >= RATE_WINDOW_MS
+    ) {
+      requestTimestamps.shift();
+    }
+
+    if (requestTimestamps.length < RATE_LIMIT) {
+      requestTimestamps.push(now);
+      return waitedMs;
+    }
+
+    const waitMs = Math.max(
+      RATE_WINDOW_MS - (now - requestTimestamps[0]) + 25,
+      25,
+    );
+    waitedMs += waitMs;
+    await sleep(waitMs);
+  }
+};
 
 const extractArtists = (payload: any): string[] => {
   if (!Array.isArray(payload?.artists)) return [];
@@ -42,7 +75,18 @@ export async function GET(request: Request) {
   const fetchArtists = (async () => {
     for (const url of urls) {
       try {
-        const res = await fetch(url, { headers });
+        await waitForDiscogsSlot();
+        let res = await fetch(url, { headers });
+
+        if (res.status === 429) {
+          const retryAfterHeader = res.headers.get("Retry-After");
+          const retryAfterMs =
+            (retryAfterHeader ? Number(retryAfterHeader) : 60) * 1000;
+          await sleep(Number.isFinite(retryAfterMs) ? retryAfterMs : 60_000);
+          await waitForDiscogsSlot();
+          res = await fetch(url, { headers });
+        }
+
         if (!res.ok) continue;
         const data = await res.json();
         const artists = extractArtists(data);
