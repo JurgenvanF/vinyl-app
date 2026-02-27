@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import VinylSpinner from "../../../spinner/VinylSpinner";
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
 import AlbumCard from "../../card/AlbumCard";
+import Searchbar from "./Searchbar";
 
-import { Search, X } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
@@ -45,7 +45,8 @@ export default function SearchModal() {
 
   const [collectionIds, setCollectionIds] = useState<Set<string>>(new Set());
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
-  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const [isOpen, setIsOpen] = useState(false);
 
   const PER_PAGE = 40;
   const { locale } = useLanguage();
@@ -78,7 +79,6 @@ export default function SearchModal() {
     fetchUserData();
   }, []);
 
-  // ✅ Search logic
   useEffect(() => {
     if (!searchQuery) {
       setSearchResults([]);
@@ -152,36 +152,19 @@ export default function SearchModal() {
   return (
     <>
       <div className="relative w-full">
-        <input
-          ref={searchInputRef}
-          type="text"
-          placeholder={t(locale, "searchAlbumArtistCatNo")}
+        <Searchbar
           value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
+          placeholder={t(locale, "searchAlbumArtistCatNo")}
+          onChange={(value) => {
+            setSearchQuery(value);
             setHasCompletedSearch(false);
             setPage(1);
           }}
-          className="search-input rounded pl-10 pr-10 py-2 w-full border border-transparent"
+          onClear={() => {
+            setHasCompletedSearch(false);
+            setPage(1);
+          }}
         />
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-          <Search size={15} />
-        </span>
-        {searchQuery && (
-          <button
-            type="button"
-            onClick={() => {
-              setSearchQuery("");
-              setHasCompletedSearch(false);
-              setPage(1);
-              searchInputRef.current?.focus();
-            }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
-            aria-label="Clear search"
-          >
-            <X size={15} />
-          </button>
-        )}
       </div>
 
       {searchLoading && (
@@ -213,34 +196,30 @@ export default function SearchModal() {
                 title={title}
                 collectionAction={isInCollection ? "disabled" : "enabled"}
                 wishlistAction={isInWishlist ? "disabled" : "enabled"}
-                onAddedToCollection={(albumId) =>
-                  {
-                    setCollectionIds((prev) => {
-                      const next = new Set(prev);
-                      next.add(albumId);
-                      return next;
-                    });
-                    setWishlistIds((prev) => {
-                      const next = new Set(prev);
-                      next.delete(albumId);
-                      return next;
-                    });
-                  }
-                }
-                onAddedToWishlist={(albumId) =>
-                  {
-                    setWishlistIds((prev) => {
-                      const next = new Set(prev);
-                      next.add(albumId);
-                      return next;
-                    });
-                    setCollectionIds((prev) => {
-                      const next = new Set(prev);
-                      next.delete(albumId);
-                      return next;
-                    });
-                  }
-                }
+                onAddedToCollection={(albumId) => {
+                  setCollectionIds((prev) => {
+                    const next = new Set(prev);
+                    next.add(albumId);
+                    return next;
+                  });
+                  setWishlistIds((prev) => {
+                    const next = new Set(prev);
+                    next.delete(albumId);
+                    return next;
+                  });
+                }}
+                onAddedToWishlist={(albumId) => {
+                  setWishlistIds((prev) => {
+                    const next = new Set(prev);
+                    next.add(albumId);
+                    return next;
+                  });
+                  setCollectionIds((prev) => {
+                    const next = new Set(prev);
+                    next.delete(albumId);
+                    return next;
+                  });
+                }}
                 buttons={{
                   collection: true,
                   wishlist: true,
@@ -257,9 +236,7 @@ export default function SearchModal() {
       {!searchLoading &&
         hasCompletedSearch &&
         searchResults.length === 0 &&
-        searchQuery && (
-        <p className="text-center mt-4">No results found.</p>
-      )}
+        searchQuery && <p className="text-center mt-4">No results found.</p>}
     </>
   );
 }
