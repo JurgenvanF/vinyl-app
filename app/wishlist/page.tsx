@@ -30,6 +30,7 @@ export default function WishlistPage() {
   const { locale } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [albumsLoading, setAlbumsLoading] = useState<boolean>(true);
   const [albums, setAlbums] = useState<AlbumFromFirestore[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const router = useRouter();
@@ -53,31 +54,46 @@ export default function WishlistPage() {
 
   // Real-time listener for Wishlist
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setAlbums([]);
+      setAlbumsLoading(false);
+      return;
+    }
+
+    setAlbumsLoading(true);
 
     const wishlistRef = collection(db, "users", user.uid, "Wishlist");
     const q = query(wishlistRef, orderBy("addedAt", "desc"));
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const albumsData = snapshot.docs.map((doc) => {
-        const data = doc.data() as AlbumFromFirestore;
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const albumsData = snapshot.docs.map((doc) => {
+          const data = doc.data() as AlbumFromFirestore;
 
-        return {
-          ...data,
-          cover_image: data.cover_image || "/placeholder.png",
-          genre: Array.isArray(data.genre)
-            ? data.genre
-            : data.genre
-              ? [data.genre]
-              : undefined,
-          year: data.year ?? undefined,
-          catno: data.catno ?? undefined,
-          master_id: data.master_id ?? undefined,
-        };
-      });
+          return {
+            ...data,
+            cover_image: data.cover_image || "/placeholder.png",
+            genre: Array.isArray(data.genre)
+              ? data.genre
+              : data.genre
+                ? [data.genre]
+                : undefined,
+            year: data.year ?? undefined,
+            catno: data.catno ?? undefined,
+            master_id: data.master_id ?? undefined,
+          };
+        });
 
-      setAlbums(albumsData);
-    });
+        setAlbums(albumsData);
+        setAlbumsLoading(false);
+      },
+      (error) => {
+        console.error(error);
+        setAlbums([]);
+        setAlbumsLoading(false);
+      },
+    );
 
     return () => unsubscribe();
   }, [user]);
@@ -110,32 +126,42 @@ export default function WishlistPage() {
 
       <AlbumSearchModal open={modalOpen} onClose={() => setModalOpen(false)} />
 
-      <p className="collection-container__count pl-1">
-        {albums.length} {albums.length === 1 ? "album" : "albums"}
-      </p>
+      {albumsLoading ? (
+        <p className="collection-container__count pl-1">{t(locale, "loading")}</p>
+      ) : (
+        <p className="collection-container__count pl-1">
+          {albums.length} {albums.length === 1 ? "album" : "albums"}
+        </p>
+      )}
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4 mt-6">
-        {albums.map((album) => (
-          <AlbumCard
-            key={album.id}
-            album={{
-              ...album,
-              cover_image: album.cover_image || "/placeholder.png",
-              genre: album.genre?.length ? album.genre : undefined,
-              year: album.year ?? undefined,
-              catno: album.catno ?? undefined,
-              master_id: album.master_id ?? undefined,
-            }}
-            mainGenre={album.genre?.[0]}
-            releaseType={album.releaseType}
-            artist={album.artist}
-            title={album.title}
-            buttons={{
-              removeWishlist: true,
-              toCollection: true,
-            }}
-          />
-        ))}
+        {albumsLoading ? (
+          <div className="col-span-full flex items-center justify-center py-10">
+            <VinylSpinner />
+          </div>
+        ) : (
+          albums.map((album) => (
+            <AlbumCard
+              key={album.id}
+              album={{
+                ...album,
+                cover_image: album.cover_image || "/placeholder.png",
+                genre: album.genre?.length ? album.genre : undefined,
+                year: album.year ?? undefined,
+                catno: album.catno ?? undefined,
+                master_id: album.master_id ?? undefined,
+              }}
+              mainGenre={album.genre?.[0]}
+              releaseType={album.releaseType}
+              artist={album.artist}
+              title={album.title}
+              buttons={{
+                removeWishlist: true,
+                toCollection: true,
+              }}
+            />
+          ))
+        )}
       </div>
     </div>
   );

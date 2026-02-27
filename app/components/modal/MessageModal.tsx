@@ -50,7 +50,7 @@ export default function MessageModal({
       onClick={onCancel}
     >
       <div
-        className="message-modal p-6 rounded shadow-lg max-w-sm w-full"
+        className="message-modal p-6 m-4 rounded shadow-lg max-w-sm w-full"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-semibold mb-2">{title}</h2>

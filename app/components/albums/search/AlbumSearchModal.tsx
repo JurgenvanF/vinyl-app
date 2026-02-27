@@ -56,9 +56,15 @@ export default function AlbumSearchModal({
 
         <AlbumSearchToggle mode={mode} setMode={setMode} />
 
-        {mode === "search" && <SearchModal />}
-        {mode === "barcode" && <Barcode />}
-        {mode === "custom" && <CustomEntry />}
+        <div className={mode === "search" ? "" : "hidden"}>
+          <SearchModal />
+        </div>
+        <div className={mode === "barcode" ? "" : "hidden"}>
+          <Barcode />
+        </div>
+        <div className={mode === "custom" ? "" : "hidden"}>
+          <CustomEntry />
+        </div>
       </div>
     </div>
   );

@@ -29,16 +29,6 @@ export default function RemoveWishlistButton({
   const handleRemove = async () => {
     const user = auth.currentUser;
     if (!user) {
-      if (typeof window !== "undefined") {
-        (window as any).addToast?.({
-          message: "Please log in first!",
-          icon: HeartOff,
-          bgColor: "bg-red-100",
-          textColor: "text-red-900",
-          iconBgColor: "bg-red-200",
-          iconBorderColor: "border-red-400",
-        });
-      }
       return;
     }
 

@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import VinylSpinner from "../../../spinner/VinylSpinner";
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
 import AlbumCard from "../../card/AlbumCard";
 
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
@@ -39,11 +39,13 @@ export default function SearchModal() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<DiscogsRelease[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [hasCompletedSearch, setHasCompletedSearch] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   const [collectionIds, setCollectionIds] = useState<Set<string>>(new Set());
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const PER_PAGE = 40;
   const { locale } = useLanguage();
@@ -82,11 +84,13 @@ export default function SearchModal() {
       setSearchResults([]);
       setPage(1);
       setTotalPages(1);
+      setHasCompletedSearch(false);
       return;
     }
 
     const timeout = setTimeout(async () => {
       setSearchLoading(true);
+      setHasCompletedSearch(false);
       try {
         const res = await fetch(
           `/api/search?q=${encodeURIComponent(searchQuery)}&page=${page}&per_page=${PER_PAGE}`,
@@ -116,12 +120,15 @@ export default function SearchModal() {
 
         setSearchResults(uniqueResults);
         setTotalPages(Math.ceil(data.total / PER_PAGE));
+        setHasCompletedSearch(true);
       } catch (err) {
         console.error(err);
+        setSearchResults([]);
+        setHasCompletedSearch(true);
       } finally {
         setSearchLoading(false);
       }
-    }, 500);
+    }, 300);
 
     return () => clearTimeout(timeout);
   }, [searchQuery, page]);
@@ -146,18 +153,35 @@ export default function SearchModal() {
     <>
       <div className="relative w-full">
         <input
+          ref={searchInputRef}
           type="text"
           placeholder={t(locale, "searchAlbumArtistCatNo")}
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value);
+            setHasCompletedSearch(false);
             setPage(1);
           }}
-          className="search-input rounded pl-10 pr-3 py-2 w-full border border-transparent"
+          className="search-input rounded pl-10 pr-10 py-2 w-full border border-transparent"
         />
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
           <Search size={15} />
         </span>
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => {
+              setSearchQuery("");
+              setHasCompletedSearch(false);
+              setPage(1);
+              searchInputRef.current?.focus();
+            }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+            aria-label="Clear search"
+          >
+            <X size={15} />
+          </button>
+        )}
       </div>
 
       {searchLoading && (
@@ -230,7 +254,10 @@ export default function SearchModal() {
         </div>
       )}
 
-      {!searchLoading && searchResults.length === 0 && searchQuery && (
+      {!searchLoading &&
+        hasCompletedSearch &&
+        searchResults.length === 0 &&
+        searchQuery && (
         <p className="text-center mt-4">No results found.</p>
       )}
     </>
