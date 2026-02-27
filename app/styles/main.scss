@@ -25,7 +25,12 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: clamp(1rem, 5%, 6rem);
+
+  max-width: 1500px; /* your desired page width */
+  width: 100%;
+  margin: 0 auto; /* center it */
+
+  padding: 2rem;
   padding-top: 1rem;
 }
 

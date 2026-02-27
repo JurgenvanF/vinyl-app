@@ -8,6 +8,8 @@ import { useLanguage } from "../../../../lib/LanguageContext";
 import { t } from "../../../../lib/translations";
 
 import { Plus } from "lucide-react";
+import { deriveArtists, derivePrimaryArtist } from "../../../../lib/artist";
+import { fetchDiscogsArtists } from "../../../../lib/discogsArtists";
 
 import CollectionButton from "./buttons/CollectionButton";
 import WishlistButton from "./buttons/WishlistButton";
@@ -23,6 +25,8 @@ type DiscogsRelease = {
   id: number;
   title: string;
   artist?: string;
+  artists?: Array<string | { name?: string }>;
+  primaryArtist?: string;
   cover_image: string;
   type?: string;
   genre?: string[];
@@ -168,6 +172,19 @@ export default function AlbumCard({
             );
 
             // Add to collection
+            const discogsArtists = await fetchDiscogsArtists({
+              id: pendingAlbum.id,
+              masterId: pendingAlbum.master_id,
+            });
+            const artists = deriveArtists(
+              pendingAlbum.artist,
+              discogsArtists.length > 0 ? discogsArtists : pendingAlbum.artists,
+            );
+            const primaryArtist = derivePrimaryArtist(
+              pendingAlbum.primaryArtist,
+              artists,
+              pendingAlbum.artist,
+            );
             await setDoc(
               doc(
                 db,
@@ -178,6 +195,8 @@ export default function AlbumCard({
               ),
               {
                 ...pendingAlbum,
+                artists,
+                primaryArtist,
                 addedAt: serverTimestamp(),
               },
             );

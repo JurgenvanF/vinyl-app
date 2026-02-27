@@ -33,6 +33,7 @@ type Translations = {
     searchAlbumArtist: string;
     searchAlbumArtistCatNo: string;
     addAlbum: string;
+    recentlyAdded: string;
     searchDatabase: string;
     remove: string;
     viewDetails: string;
@@ -72,6 +73,11 @@ type Translations = {
     confirm: string;
     cancel: string;
     addImage: string;
+    unknownArtist: string;
+    unknownYear: string;
+    noAlbumsFound: string;
+    collectionCount: (visible: number, total: number) => string;
+    albumCount: (count: number) => string;
   };
 };
 
@@ -109,6 +115,7 @@ export const translations: Translations = {
     searchAlbumArtist: "Search albums or artists",
     searchAlbumArtistCatNo: "Search albums, artists or catalog numbers",
     addAlbum: "Add Album",
+    recentlyAdded: "Recently added",
     searchDatabase: "Search Database",
     remove: "Remove",
     viewDetails: "Details",
@@ -155,6 +162,11 @@ export const translations: Translations = {
     confirm: "Confirm",
     cancel: "Cancel",
     addImage: "Add Image",
+    unknownArtist: "Unknown artist",
+    unknownYear: "Unknown year",
+    noAlbumsFound: "No albums found.",
+    collectionCount: (visible, total) => `${visible} of ${total} albums`,
+    albumCount: (count) => `${count} ${count === 1 ? "album" : "albums"}`,
   },
   nl: {
     welcome: "Beheer uw Vinyl Collectie",
@@ -189,6 +201,7 @@ export const translations: Translations = {
     searchAlbumArtist: "Zoek albums of artiesten",
     searchAlbumArtistCatNo: "Zoek albums, artiesten of catalogusnummers",
     addAlbum: "Album toevoegen",
+    recentlyAdded: "Recent toegevoegd",
     searchDatabase: "Database doorzoeken",
     remove: "Verwijder",
     viewDetails: "Details",
@@ -238,6 +251,11 @@ export const translations: Translations = {
     confirm: "Bevestigen",
     cancel: "Annuleren",
     addImage: "Afbeelding toevoegen",
+    unknownArtist: "Onbekende artiest",
+    unknownYear: "Onbekend jaar",
+    noAlbumsFound: "Geen albums gevonden.",
+    collectionCount: (visible, total) => `${visible} van ${total} albums`,
+    albumCount: (count) => `${count} ${count === 1 ? "album" : "albums"}`,
   },
 };
 

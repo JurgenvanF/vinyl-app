@@ -42,8 +42,8 @@ export default function TopNav() {
           <h1 className="title__text text-2xl font-semibold">Vinyl Vault</h1>
         </Link>
 
-        {/* Desktop Navigation (>= 900px) */}
-        <div className="hidden min-[900px]:flex items-center gap-6">
+        {/* Desktop Navigation (>= 950px) */}
+        <div className="hidden min-[950px]:flex items-center gap-6">
           <NavItem href="/collection">{t(locale, "myCollection")}</NavItem>
 
           <NavItem href="/wishlist" icon={<Heart size={18} />}>
@@ -67,9 +67,9 @@ export default function TopNav() {
           </NavItem>
         </div>
 
-        {/* Hamburger (< 900px) */}
+        {/* Hamburger (< 950px) */}
         <button
-          className="cursor-pointer min-[900px]:hidden"
+          className="cursor-pointer min-[950px]:hidden"
           onClick={() => setOpen(true)}
         >
           <Menu size={28} />

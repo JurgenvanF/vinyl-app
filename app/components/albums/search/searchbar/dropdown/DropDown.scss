@@ -1,0 +1,21 @@
+.dropdown-trigger-colors {
+  border-color: var(--auth-input-background);
+  background-color: var(--auth-input-background);
+  color: var(--dropdown-trigger-text);
+}
+
+.dropdown-menu-colors {
+  background: var(--dropdown-menu-background);
+  border-color: var(--dropdown-menu-border);
+}
+
+.dropdown-option-colors {
+  background: var(--dropdown-menu-background);
+  color: var(--dropdown-option-text);
+  border: 0;
+}
+
+.dropdown-option-hover:hover {
+  background: var(--dropdown-option-hover-bg);
+  color: var(--dropdown-option-hover-text);
+}

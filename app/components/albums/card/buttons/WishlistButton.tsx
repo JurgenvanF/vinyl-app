@@ -5,11 +5,14 @@ import { t } from "../../../../../lib/translations";
 import { Heart, Check } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { deriveArtists, derivePrimaryArtist } from "../../../../../lib/artist";
+import { fetchDiscogsArtists } from "../../../../../lib/discogsArtists";
 
 type DiscogsRelease = {
   id: number;
   title: string;
   artist?: string;
+  artists?: Array<string | { name?: string }>;
   cover_image: string;
   type?: string;
   format?: string[];
@@ -64,6 +67,15 @@ export default function WishlistButton({
       album.title,
       album.artist,
     );
+    const discogsArtists = await fetchDiscogsArtists({
+      id: album.id,
+      masterId: album.master_id,
+    });
+    const artists =
+      discogsArtists.length > 0
+        ? discogsArtists
+        : deriveArtists(albumArtist, album.artists);
+    const primaryArtist = derivePrimaryArtist(undefined, artists, albumArtist);
 
     const normalizedReleaseType = releaseType ?? getReleaseType(album.format);
 
@@ -74,6 +86,8 @@ export default function WishlistButton({
           id: album.id,
           title: albumTitle,
           artist: albumArtist,
+          artists,
+          primaryArtist,
           cover_image: album.cover_image,
           releaseType: normalizedReleaseType || null,
           genre: album.genre?.[0] || null,
