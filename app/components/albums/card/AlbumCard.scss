@@ -20,6 +20,13 @@
       color: var(--rose-red);
       fill: var(--rose-red);
     }
+
+    &__icon {
+      &__disabled {
+        color: var(--rose-red);
+        fill: var(--rose-red);
+      }
+    }
   }
 
   &__remove {

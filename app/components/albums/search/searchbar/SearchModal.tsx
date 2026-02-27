@@ -190,10 +190,32 @@ export default function SearchModal() {
                 collectionAction={isInCollection ? "disabled" : "enabled"}
                 wishlistAction={isInWishlist ? "disabled" : "enabled"}
                 onAddedToCollection={(albumId) =>
-                  setCollectionIds((prev) => new Set(prev).add(albumId))
+                  {
+                    setCollectionIds((prev) => {
+                      const next = new Set(prev);
+                      next.add(albumId);
+                      return next;
+                    });
+                    setWishlistIds((prev) => {
+                      const next = new Set(prev);
+                      next.delete(albumId);
+                      return next;
+                    });
+                  }
                 }
                 onAddedToWishlist={(albumId) =>
-                  setWishlistIds((prev) => new Set(prev).add(albumId))
+                  {
+                    setWishlistIds((prev) => {
+                      const next = new Set(prev);
+                      next.add(albumId);
+                      return next;
+                    });
+                    setCollectionIds((prev) => {
+                      const next = new Set(prev);
+                      next.delete(albumId);
+                      return next;
+                    });
+                  }
                 }
                 buttons={{
                   collection: true,

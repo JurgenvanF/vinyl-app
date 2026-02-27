@@ -4,7 +4,7 @@ import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
 import { Plus, Check } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, getDoc } from "firebase/firestore";
 
 type DiscogsRelease = {
   id: number;
@@ -24,6 +24,7 @@ type CollectionButtonProps = {
   releaseType?: string;
   action?: "enabled" | "disabled";
   onAdded?: (albumId: string) => void;
+  onConflict?: () => void; // NEW: triggered if album is in wishlist
 };
 
 const getReleaseType = (formats?: string[]) => {
@@ -41,6 +42,7 @@ export default function CollectionButton({
   releaseType,
   action = "enabled",
   onAdded,
+  onConflict,
 }: CollectionButtonProps) {
   const { locale } = useLanguage();
 
@@ -60,13 +62,20 @@ export default function CollectionButton({
       return;
     }
 
+    // Check if album exists in wishlist
+    const wishRef = doc(db, "users", user.uid, "Wishlist", album.id.toString());
+    const wishSnap = await getDoc(wishRef);
+    if (wishSnap.exists()) {
+      // trigger conflict callback instead of adding
+      onConflict?.();
+      return;
+    }
+
     const splitDiscogsTitle = (fullTitle: string, artist?: string) => {
       if (artist) return { artist, title: fullTitle };
-
       const [maybeArtist, ...titleParts] = fullTitle.split(" - ");
       const albumTitle = titleParts.join(" - ").trim() || fullTitle;
       const albumArtist = maybeArtist?.trim() || "Unknown";
-
       return { artist: albumArtist, title: albumTitle };
     };
 
@@ -93,6 +102,7 @@ export default function CollectionButton({
           addedAt: serverTimestamp(),
         },
       );
+
       onAdded?.(album.id.toString());
 
       if (typeof window !== "undefined") {
@@ -120,6 +130,14 @@ export default function CollectionButton({
     }
   };
 
+  const handleClick = () => {
+    if (action === "disabled") {
+      onConflict?.();
+      return;
+    }
+    handleAddToCollection();
+  };
+
   return (
     <div
       className={`w-full text-center border rounded ${
@@ -134,7 +152,7 @@ export default function CollectionButton({
             ? "cursor-not-allowed opacity-70"
             : "cursor-pointer"
         }`}
-        onClick={action === "enabled" ? handleAddToCollection : undefined}
+        onClick={handleClick}
         disabled={action === "disabled"}
       >
         {action === "disabled" ? <Check size={15} /> : <Plus size={15} />}

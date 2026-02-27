@@ -131,11 +131,8 @@ export default function WishlistPage() {
             artist={album.artist}
             title={album.title}
             buttons={{
-              collection: false,
-              wishlist: false,
-              removeCollection: false,
               removeWishlist: true,
-              viewDetails: false,
+              toCollection: true,
             }}
           />
         ))}

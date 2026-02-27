@@ -140,7 +140,9 @@ export default function WishlistButton({
         <Heart
           size={15}
           className={
-            action === "disabled" ? "opacity-70" : "buttons__wishlist__icon"
+            action === "disabled"
+              ? "buttons__wishlist__icon__disabled opacity-70"
+              : "buttons__wishlist__icon"
           }
         />
         {t(locale, "wishlist")}

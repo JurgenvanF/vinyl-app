@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
-import { Trash2 } from "lucide-react";
+import { HeartOff } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
 import { doc, deleteDoc } from "firebase/firestore";
+
+import MessageModal from "../../../modal/MessageModal";
 
 type DiscogsRelease = {
   id: number;
@@ -21,6 +24,7 @@ export default function RemoveWishlistButton({
   album,
 }: RemoveWishlistButtonProps) {
   const { locale } = useLanguage();
+  const [modalOpen, setModalOpen] = useState(false);
 
   const handleRemove = async () => {
     const user = auth.currentUser;
@@ -28,7 +32,7 @@ export default function RemoveWishlistButton({
       if (typeof window !== "undefined") {
         (window as any).addToast?.({
           message: "Please log in first!",
-          icon: Trash2,
+          icon: HeartOff,
           bgColor: "bg-red-100",
           textColor: "text-red-900",
           iconBgColor: "bg-red-200",
@@ -46,7 +50,7 @@ export default function RemoveWishlistButton({
       if (typeof window !== "undefined") {
         (window as any).addToast?.({
           message: `${album.title} ${t(locale, "removedFromWishlist")?.toLowerCase()}!`,
-          icon: Trash2,
+          icon: HeartOff,
           bgColor: "bg-yellow-100",
           textColor: "text-yellow-900",
           iconBgColor: "bg-yellow-200",
@@ -58,7 +62,7 @@ export default function RemoveWishlistButton({
       if (typeof window !== "undefined") {
         (window as any).addToast?.({
           message: `${t(locale, "errorRemovedFromWishlist")?.toLowerCase()}.`,
-          icon: Trash2,
+          icon: HeartOff,
           bgColor: "bg-red-100",
           textColor: "text-red-900",
           iconBgColor: "bg-red-200",
@@ -69,13 +73,30 @@ export default function RemoveWishlistButton({
   };
 
   return (
-    <div className="buttons__remove w-full text-center border rounded cursor-pointer">
-      <button
-        className="flex items-center text-sm gap-2 px-2 py-1 w-full transition-all duration-200 cursor-pointer"
-        onClick={handleRemove}
-      >
-        <Trash2 size={15} /> {t(locale, "remove")}
-      </button>
-    </div>
+    <>
+      <div className="buttons__remove w-full text-center border rounded cursor-pointer">
+        <button
+          className="flex items-center text-sm gap-2 px-2 py-1 w-full transition-all duration-200 cursor-pointer"
+          onClick={() => setModalOpen(true)}
+        >
+          <HeartOff size={15} /> {t(locale, "remove")}
+        </button>
+      </div>
+
+      {modalOpen && (
+        <MessageModal
+          open={modalOpen}
+          title={`${t(locale, "remove")} ${album.title}?`}
+          message={`${t(locale, "confirmRemoveFromWishlist")}?`}
+          background="red"
+          color="white"
+          onCancel={() => setModalOpen(false)}
+          onConfirm={() => {
+            handleRemove();
+            setModalOpen(false);
+          }}
+        />
+      )}
+    </>
   );
 }

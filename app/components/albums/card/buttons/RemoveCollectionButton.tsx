@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
 import { Trash2 } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
 import { doc, deleteDoc } from "firebase/firestore";
+import MessageModal from "../../../modal/MessageModal";
 
 type DiscogsRelease = {
   id: number;
@@ -21,6 +23,7 @@ export default function RemoveCollectionButton({
   album,
 }: RemoveCollectionButtonProps) {
   const { locale } = useLanguage();
+  const [modalOpen, setModalOpen] = useState(false);
 
   const handleRemove = async () => {
     const user = auth.currentUser;
@@ -69,13 +72,30 @@ export default function RemoveCollectionButton({
   };
 
   return (
-    <div className="buttons__remove w-full text-center border rounded cursor-pointer">
-      <button
-        className="flex items-center text-sm gap-2 px-2 py-1 w-full transition-all duration-200 cursor-pointer"
-        onClick={handleRemove}
-      >
-        <Trash2 size={15} /> {t(locale, "remove")}
-      </button>
-    </div>
+    <>
+      <div className="buttons__remove w-full text-center border rounded cursor-pointer">
+        <button
+          className="flex items-center text-sm gap-2 px-2 py-1 w-full transition-all duration-200 cursor-pointer"
+          onClick={() => setModalOpen(true)}
+        >
+          <Trash2 size={15} /> {t(locale, "remove")}
+        </button>
+      </div>
+
+      {modalOpen && (
+        <MessageModal
+          open={modalOpen}
+          title={`${t(locale, "remove")} ${album.title}?`}
+          message={`${t(locale, "confirmRemoveFromCollection")}?`}
+          background="red"
+          color="white"
+          onCancel={() => setModalOpen(false)}
+          onConfirm={() => {
+            handleRemove();
+            setModalOpen(false);
+          }}
+        />
+      )}
+    </>
   );
 }

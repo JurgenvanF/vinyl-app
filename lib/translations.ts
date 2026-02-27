@@ -34,10 +34,16 @@ type Translations = {
     addedToCollection: string;
     errorAddToCollection: string;
     removedFromCollection: string;
+    confirmRemoveFromCollection: string;
     errorRemovedFromCollection: string;
+    toCollection: string;
+    moveToCollection: (albumTitle: string) => string;
+    moveToCollectionMessage: string;
+    movedToCollection: string;
     addedToWishlist: string;
     errorAddToWishlist: string;
     removedFromWishlist: string;
+    confirmRemoveFromWishlist: string;
     errorRemovedFromWishlist: string;
     noMatch: string;
     scanBarcode: string;
@@ -56,6 +62,7 @@ type Translations = {
     Tracklist: string;
     addTrack: string;
     title: string;
+    confirm: string;
     cancel: string;
     addImage: string;
   };
@@ -96,11 +103,20 @@ export const translations: Translations = {
     addedToCollection: "Added to your collection",
     errorAddToCollection: "Something went wrong adding to your collection",
     removedFromCollection: "Removed from your collection",
+    confirmRemoveFromCollection:
+      "Are you sure you want to remove this album from your collection",
     errorRemovedFromCollection:
       "Something went wrong removing from your collection",
+    toCollection: "To collection",
+    moveToCollection: (albumTitle) => `Move ${albumTitle} to collection`,
+    moveToCollectionMessage:
+      "Do you want to remove this album from the wishlist and add it to your collection",
+    movedToCollection: "moved to your collection",
     addedToWishlist: "Added to your wishlist",
     errorAddToWishlist: "Something went wrong adding to wishlist",
     removedFromWishlist: "Removed from your wishlist",
+    confirmRemoveFromWishlist:
+      "Are you sure you want to remove this album from your wishlist",
     errorRemovedFromWishlist:
       "Something went wrong removing from your wishlist",
     noMatch:
@@ -122,6 +138,7 @@ export const translations: Translations = {
     Tracklist: "Tracklist",
     addTrack: "Add Track",
     title: "Title",
+    confirm: "Confirm",
     cancel: "Cancel",
     addImage: "Add Image",
   },
@@ -160,12 +177,22 @@ export const translations: Translations = {
     errorAddToCollection:
       "Er is iets misgegaan bij het toevoegen aan de collectie",
     removedFromCollection: "Verwijderd uit je collectie",
+    confirmRemoveFromCollection:
+      "Weet je zeker dat je dit album uit je collectie wilt verwijderen",
     errorRemovedFromCollection:
       "Er is iets misgegaan bij het verwijderen uit je collectie",
+    toCollection: "Naar collectie",
+    moveToCollection: (albumTitle) =>
+      `Verplaats ${albumTitle} naar collectie`,
+    moveToCollectionMessage:
+      "Wil je dit album verwijderen van je verlanglijstje en toevoegen aan je collectie",
+    movedToCollection: "verplaatst naar je collectie",
     addedToWishlist: "Toegevoegd aan je verlanglijst",
     errorAddToWishlist:
       "Er is iets misgegaan bij het toevoegen aan de verlanglijst",
     removedFromWishlist: "Verwijderd uit je verlanglijst",
+    confirmRemoveFromWishlist:
+      "Weet je zeker dat je dit album uit je verlanglijst wilt verwijderen",
     errorRemovedFromWishlist:
       "Er is iets misgegaan bij het verwijderen uit je verlanglijst",
     noMatch:
@@ -187,6 +214,7 @@ export const translations: Translations = {
     Tracklist: "Tracklijst",
     addTrack: "Track toevoegen",
     title: "Titel",
+    confirm: "Bevestigen",
     cancel: "Annuleren",
     addImage: "Afbeelding toevoegen",
   },
