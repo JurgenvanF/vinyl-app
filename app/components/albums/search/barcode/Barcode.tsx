@@ -19,7 +19,7 @@ export default function Barcode() {
     if (isRunning) return;
 
     setError(null);
-    setScannedText(null); // reset scanned text
+    setScannedText(null);
     setIsRunning(true);
     setHasScanned(false);
 
