@@ -40,19 +40,16 @@ export async function GET(request: Request) {
   const token = process.env.DISCOGS_TOKEN;
   const master_id = searchParams.get("master_id");
   const id = searchParams.get("id");
-  const barcode = searchParams.get("barcode");
 
-  if (!rawInput && !master_id && !id && !barcode)
+  if (!rawInput && !master_id && !id)
     return Response.json({ results: [], total: 0 });
 
   // ---------- Detect catno-only search with # ----------
   let catnoOnly = false;
   let qRaw = rawInput;
-
-  // If user starts with #, treat it as a catno search
   if (rawInput.startsWith("#")) {
     catnoOnly = true;
-    qRaw = rawInput.slice(1).trim(); // remove the '#' from the query
+    qRaw = rawInput.slice(1).trim();
   }
 
   // ---------- Helpers ----------
@@ -99,15 +96,6 @@ export async function GET(request: Request) {
         headers: { Authorization: `Discogs token=${token}` },
       });
       if (res.ok) results.push(await res.json());
-    } else if (barcode) {
-      const cleanBarcode = barcode.replace(/\D/g, "");
-      await waitForDiscogsSlot();
-      const discogsRes = await fetch(
-        `https://api.discogs.com/database/search?barcode=${cleanBarcode}&type=release&per_page=5`,
-        { headers: { Authorization: `Discogs token=${token}` } },
-      );
-      const discogsData = await discogsRes.json();
-      return Response.json(discogsData);
     } else if (qRaw) {
       // ---------- Text search ----------
       const types: ("master" | "release")[] = ["master", "release"];
@@ -118,8 +106,6 @@ export async function GET(request: Request) {
         params.append("per_page", "40");
         params.append("sort", "have");
         params.append("sort_order", "desc");
-
-        // Only add catno if this is a catno-only search
         if (catnoOnly) params.append("catno", qRaw);
 
         await waitForDiscogsSlot();
@@ -170,18 +156,12 @@ export async function GET(request: Request) {
           const titleNorm = normalize(r.title || "");
 
           let score = popularity(r);
-
-          // Huge boost for exact catno matches
           if ((r.catno || "").trim().toLowerCase() === qCatno) score += 20000;
 
-          // Exact or partial title match
           if (!catnoOnly) {
             if (titleNorm === q) score += 15000;
             else if (titleNorm.includes(q)) score += 2000;
-          }
 
-          // Exact or partial artist match, treat "Various" as wildcard
-          if (!catnoOnly) {
             if (artistNorm === q) score += 10000;
             else if (artistNorm.includes(q)) score += 5000;
             else if (artistNorm === "various" || artistNorm === "va")
