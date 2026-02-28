@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import {
   X,
   ChevronLeft,
@@ -677,27 +678,74 @@ export default function AlbumDetailsModal({
 
                   {isLightboxOpen && (
                     <div
-                      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0 backdrop-blur-xs"
+                      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0 backdrop-blur-xs bg-black/80"
                       onClick={() => setIsLightboxOpen(false)}
                     >
                       <div
-                        className="relative max-w-full max-h-full sm:max-w-[95vw] sm:max-h-[95vh] overflow-auto cursor-grab active:cursor-grabbing"
+                        className="relative max-w-full max-h-full"
                         onClick={(e) => e.stopPropagation()}
-                        style={{ touchAction: "pan-x pan-y pinch-zoom" }}
                       >
-                        <img
-                          src={images[imageIndex] || "/placeholder.png"}
-                          alt={displayTitle || album.title}
-                          className="w-auto h-auto max-w-full max-h-[80vh] sm:max-h-[95vh] object-contain"
-                          draggable={false}
-                        />
-
-                        <button
-                          className="absolute top-4 right-4 text-white text-2xl mix-blend-difference cursor-pointer"
-                          onClick={() => setIsLightboxOpen(false)}
+                        <TransformWrapper
+                          initialScale={1}
+                          initialPositionX={0}
+                          initialPositionY={0}
+                          minScale={1}
+                          maxScale={3}
+                          centerOnInit={true}
                         >
-                          <X />
-                        </button>
+                          {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
+                            <>
+                              {/* Previous / Next arrows */}
+                              {images.length > 1 && (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      setImageIndex((prev) =>
+                                        prev === 0
+                                          ? images.length - 1
+                                          : prev - 1,
+                                      )
+                                    }
+                                    className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full text-white z-50 bg-black/40"
+                                  >
+                                    <ChevronLeft size={24} />
+                                  </button>
+
+                                  <button
+                                    onClick={() =>
+                                      setImageIndex((prev) =>
+                                        prev === images.length - 1
+                                          ? 0
+                                          : prev + 1,
+                                      )
+                                    }
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full text-white z-50 bg-black/40"
+                                  >
+                                    <ChevronRight size={24} />
+                                  </button>
+                                </>
+                              )}
+
+                              {/* The zoomable image */}
+                              <TransformComponent>
+                                <img
+                                  src={images[imageIndex] || "/placeholder.png"}
+                                  alt={displayTitle || album.title}
+                                  className="w-auto h-auto max-w-full max-h-[80vh] sm:max-h-[95vh] object-contain"
+                                  draggable={false}
+                                />
+                              </TransformComponent>
+
+                              {/* Close button */}
+                              <button
+                                className="absolute top-4 right-4 text-white text-2xl mix-blend-difference cursor-pointer z-50"
+                                onClick={() => setIsLightboxOpen(false)}
+                              >
+                                <X />
+                              </button>
+                            </>
+                          )}
+                        </TransformWrapper>
                       </div>
                     </div>
                   )}
