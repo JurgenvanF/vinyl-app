@@ -677,17 +677,18 @@ export default function AlbumDetailsModal({
 
                   {isLightboxOpen && (
                     <div
-                      className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
+                      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0 backdrop-blur-xs"
                       onClick={() => setIsLightboxOpen(false)}
                     >
                       <div
-                        className="relative max-w-[95vw] max-h-[95vh] overflow-auto cursor-grab active:cursor-grabbing"
+                        className="relative max-w-full max-h-full sm:max-w-[95vw] sm:max-h-[95vh] overflow-auto cursor-grab active:cursor-grabbing"
                         onClick={(e) => e.stopPropagation()}
+                        style={{ touchAction: "pan-x pan-y" }}
                       >
                         <img
                           src={images[imageIndex] || "/placeholder.png"}
                           alt={displayTitle || album.title}
-                          className="max-w-none max-h-none object-contain"
+                          className="w-auto h-auto max-w-full max-h-[80vh] sm:max-h-[95vh] object-contain"
                           draggable={false}
                         />
 
