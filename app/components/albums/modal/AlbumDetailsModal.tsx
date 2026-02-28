@@ -683,7 +683,7 @@ export default function AlbumDetailsModal({
                       <div
                         className="relative max-w-full max-h-full sm:max-w-[95vw] sm:max-h-[95vh] overflow-auto cursor-grab active:cursor-grabbing"
                         onClick={(e) => e.stopPropagation()}
-                        style={{ touchAction: "pan-x pan-y" }}
+                        style={{ touchAction: "pan-x pan-y pinch-zoom" }}
                       >
                         <img
                           src={images[imageIndex] || "/placeholder.png"}
