@@ -701,7 +701,7 @@ export default function AlbumDetailsModal({
                     </div>
                   )}
 
-                  {images.length > 1 && (
+                  {images.length > 1 && !isLightboxOpen && (
                     <>
                       <button
                         onClick={prevImage}
