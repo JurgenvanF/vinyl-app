@@ -47,25 +47,25 @@ export default function Barcode() {
         undefined,
         videoElement,
         async (result) => {
-          if (result && !hasScanned) {
-            setHasScanned(true);
+          if (!result) return;
 
-            const scanned = result.getText();
-            setScannedText(scanned);
-            const cleanBarcode = scanned.replace(/\D/g, "");
+          // Prevent multiple scans
+          if (hasScanned) return;
+          setHasScanned(true);
 
-            try {
-              // Call your API
-              const res = await fetch(`/api/search?barcode=${cleanBarcode}`);
-              const data = await res.json();
+          const scanned = result.getText();
+          setScannedText(scanned);
+          const cleanBarcode = scanned.replace(/\D/g, "");
 
-              // Always show full JSON under scanned text
-              setJsonResult(data);
-            } catch {
-              setError("Error fetching album.");
-            } finally {
-              stopScanner();
-            }
+          // Stop the scanner immediately
+          stopScanner();
+
+          try {
+            const res = await fetch(`/api/search?barcode=${cleanBarcode}`);
+            const data = await res.json();
+            setJsonResult(data);
+          } catch {
+            setError("Error fetching album.");
           }
         },
       );
