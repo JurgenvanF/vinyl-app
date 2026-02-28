@@ -282,7 +282,7 @@ export default function AuthPage() {
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
-                autoComplete="new-password"
+                autoComplete="current-password"
                 placeholder={t(locale, "password")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -345,7 +345,7 @@ export default function AuthPage() {
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
-                autoComplete="current-password"
+                autoComplete="new-password"
                 placeholder={t(locale, "password")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
