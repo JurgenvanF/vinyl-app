@@ -104,42 +104,16 @@ export async function GET(request: Request) {
 
       await waitForDiscogsSlot();
       const res = await fetch(
-        `https://api.discogs.com/database/search?barcode=${cleanBarcode}&type=release&per_page=1`,
+        `https://api.discogs.com/database/search?barcode=${cleanBarcode}&type=release&per_page=5`,
         {
           headers: { Authorization: `Discogs token=${token}` },
         },
       );
 
       const data = await res.json();
-      const release = data.results?.[0];
 
-      if (!release) {
-        return Response.json({ found: false });
-      }
-
-      const releaseId = String(release.id);
-
-      // 🔥 CHECK FIRESTORE HERE
-      const admin = await import("firebase-admin");
-
-      if (!admin.apps.length) {
-        admin.initializeApp({
-          credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-          }),
-        });
-      }
-
-      const db = admin.firestore();
-      const doc = await db.collection("details").doc(releaseId).get();
-
-      if (doc.exists) {
-        return Response.json({ found: true, id: releaseId });
-      }
-
-      return Response.json({ found: false });
+      // Always return the full JSON from Discogs, even if results is empty
+      return Response.json(data);
     } else if (qRaw) {
       // ---------- Text search ----------
       const types: ("master" | "release")[] = ["master", "release"];

@@ -2,24 +2,24 @@
 
 import { useRef, useState } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
-import { useRouter } from "next/navigation";
 
 export default function Barcode() {
-  const router = useRouter();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
   const [error, setError] = useState<string | null>(null);
-  const [scannedText, setScannedText] = useState<string | null>(null); // NEW
+  const [scannedText, setScannedText] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [hasScanned, setHasScanned] = useState(false);
+  const [jsonResult, setJsonResult] = useState<any>(null); // NEW
 
   const startScanner = async () => {
     if (isRunning) return;
 
     setError(null);
     setScannedText(null);
+    setJsonResult(null);
     setIsRunning(true);
     setHasScanned(false);
 
@@ -51,19 +51,16 @@ export default function Barcode() {
             setHasScanned(true);
 
             const scanned = result.getText();
-            setScannedText(scanned); // set scanned text
+            setScannedText(scanned);
             const cleanBarcode = scanned.replace(/\D/g, "");
 
             try {
+              // Call your API
               const res = await fetch(`/api/search?barcode=${cleanBarcode}`);
               const data = await res.json();
 
-              if (data.results && data.results.length > 0) {
-                const releaseId = data.results[0].id;
-                router.push(`/album/${releaseId}`);
-              } else {
-                setError("Album not found.");
-              }
+              // Always show full JSON under scanned text
+              setJsonResult(data);
             } catch {
               setError("Error fetching album.");
             } finally {
@@ -85,7 +82,6 @@ export default function Barcode() {
     }
 
     if (videoRef.current) videoRef.current.srcObject = null;
-
     setIsRunning(false);
   };
 
@@ -113,6 +109,13 @@ export default function Barcode() {
       )}
 
       {scannedText && <p className="text-gray-700">Scanned: {scannedText}</p>}
+
+      {jsonResult && (
+        <pre className="text-sm text-gray-800 bg-gray-100 p-2 rounded max-w-md overflow-auto">
+          {JSON.stringify(jsonResult, null, 2)}
+        </pre>
+      )}
+
       {error && <p className="text-red-500">{error}</p>}
     </div>
   );
