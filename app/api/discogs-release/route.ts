@@ -111,7 +111,7 @@ type DiscogsReleasePayload = {
   community?: DiscogsCommunityPayload;
 };
 
-const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
+const CACHE_TTL = 1000 * 60 * 60 * 2; // 2 hours
 const CACHE_VERSION = "v2";
 const cache = new Map<
   string,
@@ -162,7 +162,9 @@ const normalizeTrackArtists = (
   return names.length > 0 ? names : undefined;
 };
 
-const normalizeArtists = (artists?: DiscogsArtistPayload[]): DiscogsArtist[] => {
+const normalizeArtists = (
+  artists?: DiscogsArtistPayload[],
+): DiscogsArtist[] => {
   if (!Array.isArray(artists)) return [];
   return artists
     .map((artist) => ({
@@ -306,7 +308,9 @@ const extractSeries = (payload: DiscogsReleasePayload): string => {
     .join(", ");
 };
 
-const normalizeDetails = (payload: DiscogsReleasePayload): DiscogsReleaseDetails => {
+const normalizeDetails = (
+  payload: DiscogsReleasePayload,
+): DiscogsReleaseDetails => {
   const { format, text, qty } = extractFormats(payload.formats);
 
   return {
@@ -371,7 +375,8 @@ const fetchDiscogsPayload = async (
 
   if (res.status === 429) {
     const retryAfterHeader = res.headers.get("Retry-After");
-    const retryAfterMs = (retryAfterHeader ? Number(retryAfterHeader) : 60) * 1000;
+    const retryAfterMs =
+      (retryAfterHeader ? Number(retryAfterHeader) : 60) * 1000;
     await sleep(Number.isFinite(retryAfterMs) ? retryAfterMs : 60_000);
     await waitForDiscogsSlot();
     res = await fetch(url, { headers });
@@ -394,7 +399,8 @@ export async function GET(request: Request) {
   const cacheKey = `${CACHE_VERSION}|id:${id ?? ""}|master:${masterId ?? ""}|type:${resultType}`;
 
   if (!token) return Response.json(normalizeDetails({}), { status: 200 });
-  if (!id && !masterId) return Response.json(normalizeDetails({}), { status: 200 });
+  if (!id && !masterId)
+    return Response.json(normalizeDetails({}), { status: 200 });
 
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
