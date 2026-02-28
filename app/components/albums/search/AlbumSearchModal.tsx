@@ -42,14 +42,17 @@ export default function AlbumSearchModal({
       }}
     >
       <div
-        className="search-container rounded-lg p-4 m-4 w-full max-w-3xl max-h-[80vh] overflow-y-auto"
+        className="search-container rounded-lg p-4 m-4 w-full max-w-3xl max-h-[80vh] overflow-y-hidden"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4 gap-6">
           <h2 className="text-xl font-semibold">
             {t(locale, "addToCollectionTitle")}
           </h2>
-          <button onClick={onClose} className="font-bold">
+          <button
+            onClick={onClose}
+            className="search-container__close font-bold"
+          >
             <X className="cursor-pointer" />
           </button>
         </div>

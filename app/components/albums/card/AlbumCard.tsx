@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { auth, db } from "../../../../lib/firebase";
-import { doc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  deleteDoc,
+  serverTimestamp,
+  getDoc,
+} from "firebase/firestore";
 
 import { useLanguage } from "../../../../lib/LanguageContext";
 import { t } from "../../../../lib/translations";
@@ -10,6 +16,7 @@ import { t } from "../../../../lib/translations";
 import { Plus } from "lucide-react";
 import { deriveArtists, derivePrimaryArtist } from "../../../../lib/artist";
 import { fetchDiscogsArtists } from "../../../../lib/discogsArtists";
+import { ensureSharedAlbumDetails } from "../../../../lib/sharedAlbumDetails";
 
 import CollectionButton from "./buttons/CollectionButton";
 import WishlistButton from "./buttons/WishlistButton";
@@ -44,6 +51,7 @@ type AlbumCardProps = {
   releaseType?: string;
   artist?: string;
   title?: string;
+  onCardClick?: () => void;
   collectionAction?: "enabled" | "disabled";
   wishlistAction?: "enabled" | "disabled";
   onAddedToCollection?: (albumId: string) => void;
@@ -64,6 +72,7 @@ export default function AlbumCard({
   releaseType,
   artist,
   title,
+  onCardClick,
   collectionAction = "enabled",
   wishlistAction = "enabled",
   onAddedToCollection,
@@ -90,31 +99,71 @@ export default function AlbumCard({
   }, [wishlistAction]);
 
   return (
-    <div className="album-card flex flex-col items-center gap-2 border rounded group max-w-[200px]">
-      <div className="album-card__image w-9/10 aspect-square rounded mt-2 overflow-hidden">
+    <div
+      className="album-card group flex flex-col items-center gap-2 border rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 max-w-[200px] cursor-pointer overflow-hidden"
+      onClick={onCardClick}
+      role={onCardClick ? "button" : undefined}
+      tabIndex={onCardClick ? 0 : undefined}
+      onKeyDown={
+        onCardClick
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onCardClick();
+              }
+            }
+          : undefined
+      }
+    >
+      {/* Album Image */}
+      <div className="album-card__image w-10/12 aspect-square rounded-xl overflow-hidden mt-4 relative">
         <img
           src={album.cover_image || "/placeholder.png"}
           alt={title}
-          className="object-cover rounded group-hover:scale-110 transition"
+          className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
         />
       </div>
 
-      <div className="album-card__details w-full px-2 pb-4">
-        {releaseType && <p className="text-xs text-gray-500">{releaseType}</p>}
-        <p className="text-sm font-semibold mt-1">{artist}</p>
-        <p className="text-sm">{title}</p>
-        <div className="flex gap-1 text-xs text-gray-500 mt-2">
-          {mainGenre && <span>{mainGenre}</span>}
-          {mainGenre && album.year && <span>•</span>}
-          {album.year && <span>{album.year}</span>}
+      {/* Album Details */}
+      <div className="album-card__details w-full px-3 pb-4 flex flex-col gap-1">
+        {releaseType && (
+          <p className="text-xs text-orange-400 uppercase tracking-wide">
+            {releaseType}
+          </p>
+        )}
+
+        <p className="text-sm font-semibold line-clamp-1">{artist}</p>
+        <p className="text-sm line-clamp-1">{title}</p>
+
+        {/* Tags & Year */}
+        <div className="flex flex-wrap gap-1 mt-2 items-center text-xs">
+          {mainGenre && (
+            <span className="bg-orange-500/20 px-2 py-0.5 rounded-full">
+              {mainGenre}
+            </span>
+          )}
+          {album.format?.map((f, idx) => (
+            <span
+              key={`${f}-${idx}`}
+              className="bg-green-500/20 px-2 py-0.5 rounded-full"
+            >
+              {f}
+            </span>
+          ))}
+          {album.year && <span className="opacity-60">{album.year}</span>}
         </div>
+
+        {/* Catalog number */}
         {album.catno && album.catno.toLowerCase() !== "none" && (
-          <p className="text-xs text-gray-500 mt-1">{album.catno}</p>
+          <p className="text-xs mt-1">{album.catno}</p>
         )}
       </div>
 
-      <div className="buttons w-9/10 flex flex-col mt-auto mb-4 gap-2 transition duration-200">
-        {/* Collection button */}
+      {/* Buttons */}
+      <div
+        className="buttons w-10/12 flex flex-col mt-auto mb-4 gap-2 transition duration-200"
+        onClick={(event) => event.stopPropagation()}
+      >
         {buttons?.collection && (
           <CollectionButton
             album={album}
@@ -134,7 +183,6 @@ export default function AlbumCard({
           />
         )}
 
-        {/* Wishlist button (hidden if in collection) */}
         {buttons?.wishlist && !isInCollection && (
           <WishlistButton
             album={album}
@@ -148,7 +196,6 @@ export default function AlbumCard({
           />
         )}
 
-        {/* Modal to confirm moving album from wishlist to collection */}
         <ConfirmModal
           open={modalOpen}
           title={`${t(locale, "moveToCollection", pendingAlbum?.title || album.title)}?`}
@@ -156,22 +203,24 @@ export default function AlbumCard({
           onCancel={() => setModalOpen(false)}
           onConfirm={async () => {
             if (!pendingAlbum) return;
-
             const user = auth.currentUser;
             if (!user) return;
 
-            // Remove from wishlist
-            await deleteDoc(
-              doc(
-                db,
-                "users",
-                user.uid,
-                "Wishlist",
-                pendingAlbum.id.toString(),
-              ),
+            const wishlistDocRef = doc(
+              db,
+              "users",
+              user.uid,
+              "Wishlist",
+              pendingAlbum.id.toString(),
             );
+            const wishlistDocSnap = await getDoc(wishlistDocRef);
+            const existingDetailsRef =
+              typeof wishlistDocSnap.data()?.detailsRef === "string"
+                ? wishlistDocSnap.data()?.detailsRef
+                : undefined;
 
-            // Add to collection
+            await deleteDoc(wishlistDocRef);
+
             const discogsArtistResult = await fetchDiscogsArtists({
               id: pendingAlbum.id,
               masterId: pendingAlbum.master_id,
@@ -187,6 +236,12 @@ export default function AlbumCard({
               artists,
               pendingAlbum.artist,
             );
+            const { detailsRef } = await ensureSharedAlbumDetails({
+              id: pendingAlbum.id,
+              masterId: pendingAlbum.master_id,
+              resultType: pendingAlbum.type,
+              detailsRef: existingDetailsRef,
+            });
             await setDoc(
               doc(
                 db,
@@ -199,6 +254,7 @@ export default function AlbumCard({
                 ...pendingAlbum,
                 artists,
                 primaryArtist,
+                detailsRef,
                 addedAt: serverTimestamp(),
               },
             );
@@ -207,8 +263,18 @@ export default function AlbumCard({
             setIsInCollection(true);
             setIsInWishlist(false);
 
-            // toast
-            (window as any).addToast?.({
+            (
+              window as Window & {
+                addToast?: (payload: {
+                  message: string;
+                  icon: typeof Plus;
+                  bgColor: string;
+                  textColor: string;
+                  iconBgColor: string;
+                  iconBorderColor: string;
+                }) => void;
+              }
+            ).addToast?.({
               message: `${pendingAlbum.title} ${t(locale, "movedToCollection")}!`,
               icon: Plus,
               bgColor: "bg-green-100",

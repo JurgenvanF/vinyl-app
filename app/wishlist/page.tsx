@@ -19,6 +19,7 @@ import { fetchDiscogsArtists } from "../../lib/discogsArtists";
 import VinylSpinner from "../components/spinner/VinylSpinner";
 import AlbumCard from "../components/albums/card/AlbumCard";
 import AlbumSearchModal from "../components/albums/search/AlbumSearchModal";
+import AlbumDetailsModal from "../components/albums/modal/AlbumDetailsModal";
 import Searchbar from "../components/albums/search/searchbar/Searchbar";
 import DropDown from "../components/albums/search/searchbar/dropdown/DropDown";
 import { Plus, SlidersHorizontal } from "lucide-react";
@@ -37,6 +38,7 @@ type AlbumFromFirestore = {
   year?: number | null;
   catno?: string | null;
   master_id?: number | null;
+  detailsRef?: string | null;
 };
 
 type WishlistSort = "recentlyAdded" | "artist" | "albumName" | "releaseDate";
@@ -51,6 +53,23 @@ export default function WishlistPage() {
   const [searchValue, setSearchValue] = useState("");
   const [sortBy, setSortBy] = useState<WishlistSort>("recentlyAdded");
   const [modalOpen, setModalOpen] = useState(false);
+  const [selectedAlbum, setSelectedAlbum] = useState<{
+    album: {
+      id: number;
+      title: string;
+      artist?: string;
+      cover_image: string;
+      genre?: string[];
+      year?: number;
+      catno?: string;
+      master_id?: number;
+      have?: number;
+      want?: number;
+      detailsRef?: string | null;
+    };
+    artist: string;
+    title: string;
+  } | null>(null);
   const router = useRouter();
 
   const sortOptions: { value: WishlistSort; label: string }[] = [
@@ -214,8 +233,16 @@ export default function WishlistPage() {
 
     if (sortBy === "artist") {
       sorted.sort((a, b) => {
-        const aArtist = derivePrimaryArtist(a.primaryArtist, a.artists, a.artist);
-        const bArtist = derivePrimaryArtist(b.primaryArtist, b.artists, b.artist);
+        const aArtist = derivePrimaryArtist(
+          a.primaryArtist,
+          a.artists,
+          a.artist,
+        );
+        const bArtist = derivePrimaryArtist(
+          b.primaryArtist,
+          b.artists,
+          b.artist,
+        );
         const artistCompare = aArtist.localeCompare(bArtist);
         if (artistCompare !== 0) return artistCompare;
         return a.title.localeCompare(b.title);
@@ -269,7 +296,7 @@ export default function WishlistPage() {
         <div className="flex gap-2">
           <button
             onClick={() => setModalOpen(true)}
-            className="collection-container__add rounded h-10 p-2"
+            className="collection-container__add rounded h-10 p-2 cursor-pointer"
           >
             <div className="flex gap-2 items-center">
               <Plus />
@@ -280,9 +307,19 @@ export default function WishlistPage() {
       </div>
 
       <AlbumSearchModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <AlbumDetailsModal
+        key={selectedAlbum?.album.id ?? 0}
+        open={Boolean(selectedAlbum)}
+        album={selectedAlbum?.album ?? null}
+        artist={selectedAlbum?.artist}
+        displayTitle={selectedAlbum?.title}
+        onClose={() => setSelectedAlbum(null)}
+      />
 
       {albumsLoading ? (
-        <p className="collection-container__count pl-1">{t(locale, "loading")}</p>
+        <p className="collection-container__count pl-1">
+          {t(locale, "loading")}
+        </p>
       ) : (
         <p className="collection-container__count pl-1">
           {visibleAlbums.length < albums.length
@@ -344,6 +381,21 @@ export default function WishlistPage() {
                     releaseType={album.releaseType}
                     artist={album.artist}
                     title={album.title}
+                    onCardClick={() =>
+                      setSelectedAlbum({
+                        album: {
+                          ...album,
+                          artist: album.artist,
+                          cover_image: album.cover_image || "/placeholder.png",
+                          genre: album.genre?.length ? album.genre : undefined,
+                          year: album.year ?? undefined,
+                          catno: album.catno ?? undefined,
+                          master_id: album.master_id ?? undefined,
+                        },
+                        artist: album.artist,
+                        title: album.title,
+                      })
+                    }
                     buttons={{
                       removeWishlist: true,
                       toCollection: true,
@@ -371,6 +423,21 @@ export default function WishlistPage() {
               releaseType={album.releaseType}
               artist={album.artist}
               title={album.title}
+              onCardClick={() =>
+                setSelectedAlbum({
+                  album: {
+                    ...album,
+                    artist: album.artist,
+                    cover_image: album.cover_image || "/placeholder.png",
+                    genre: album.genre?.length ? album.genre : undefined,
+                    year: album.year ?? undefined,
+                    catno: album.catno ?? undefined,
+                    master_id: album.master_id ?? undefined,
+                  },
+                  artist: album.artist,
+                  title: album.title,
+                })
+              }
               buttons={{
                 removeWishlist: true,
                 toCollection: true,
@@ -382,7 +449,7 @@ export default function WishlistPage() {
               <p className="text-center">{t(locale, "noAlbumsFound")}</p>
               <button
                 onClick={() => setModalOpen(true)}
-                className="collection-container__add rounded h-10 px-3"
+                className="collection-container__add rounded h-10 px-3 cursor-pointer"
               >
                 <span className="flex items-center gap-2">
                   <Plus size={16} />
@@ -401,7 +468,7 @@ export default function WishlistPage() {
             <p className="text-center">{t(locale, "noAlbumsFound")}</p>
             <button
               onClick={() => setModalOpen(true)}
-              className="collection-container__add rounded h-10 px-3"
+              className="collection-container__add rounded h-10 px-3 cursor-pointer"
             >
               <span className="flex items-center gap-2">
                 <Plus size={16} />

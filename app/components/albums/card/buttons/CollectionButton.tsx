@@ -7,6 +7,7 @@ import { auth, db } from "../../../../../lib/firebase";
 import { doc, setDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import { deriveArtists, derivePrimaryArtist } from "../../../../../lib/artist";
 import { fetchDiscogsArtists } from "../../../../../lib/discogsArtists";
+import { ensureSharedAlbumDetails } from "../../../../../lib/sharedAlbumDetails";
 
 type DiscogsRelease = {
   id: number;
@@ -87,6 +88,11 @@ export default function CollectionButton({
     const primaryArtist = derivePrimaryArtist(undefined, artists, albumArtist);
 
     const normalizedReleaseType = releaseType ?? getReleaseType(album.format);
+    const { detailsRef } = await ensureSharedAlbumDetails({
+      id: album.id,
+      masterId: album.master_id,
+      resultType: album.type,
+    });
 
     try {
       await setDoc(
@@ -103,6 +109,7 @@ export default function CollectionButton({
           year: album.year || null,
           catno: album.catno || null,
           master_id: album.master_id || null,
+          detailsRef,
           addedAt: serverTimestamp(),
         },
       );
@@ -110,7 +117,18 @@ export default function CollectionButton({
       onAdded?.(album.id.toString());
 
       if (typeof window !== "undefined") {
-        (window as any).addToast?.({
+        (
+          window as Window & {
+            addToast?: (payload: {
+              message: string;
+              icon: typeof Plus;
+              bgColor: string;
+              textColor: string;
+              iconBgColor: string;
+              iconBorderColor: string;
+            }) => void;
+          }
+        ).addToast?.({
           message: `${albumTitle} ${t(locale, "addedToCollection")?.toLowerCase()}!`,
           icon: Plus,
           bgColor: "bg-green-100",
@@ -122,7 +140,18 @@ export default function CollectionButton({
     } catch (err) {
       console.error(err);
       if (typeof window !== "undefined") {
-        (window as any).addToast?.({
+        (
+          window as Window & {
+            addToast?: (payload: {
+              message: string;
+              icon: typeof Plus;
+              bgColor: string;
+              textColor: string;
+              iconBgColor: string;
+              iconBorderColor: string;
+            }) => void;
+          }
+        ).addToast?.({
           message: `${t(locale, "errorAddToCollection")?.toLowerCase()}.`,
           icon: Plus,
           bgColor: "bg-red-100",

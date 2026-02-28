@@ -73,6 +73,64 @@
   --footer-background: white;
   --footer-color: black;
   --footer-hover: #ffb300;
+
+  /* Card colors */
+  --album-card-border: #e5e7eb;
+  --album-card-bg: #f9fafb;
+  --album-card-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Button colors */
+  --btn-collection-bg: #fff7ed;
+  --btn-collection-border: #fdba74;
+  --btn-collection-color: #9a3412;
+  --btn-collection-hover-bg: #ffedd5;
+  --btn-collection-hover-border: #fb923c;
+  --btn-collection-hover-color: #7c2d12;
+  --btn-collection-disabled-bg: #f8fafc;
+  --btn-collection-disabled-border: #cbd5e1;
+  --btn-collection-disabled-color: #64748b;
+
+  --btn-wishlist-bg: #ecfeff;
+  --btn-wishlist-border: #67e8f9;
+  --btn-wishlist-color: #0e7490;
+  --btn-wishlist-hover-bg: #cffafe;
+  --btn-wishlist-hover-border: #22d3ee;
+  --btn-wishlist-hover-color: #155e75;
+  --btn-wishlist-disabled-bg: #f8fafc;
+  --btn-wishlist-disabled-border: #cbd5e1;
+  --btn-wishlist-disabled-color: #64748b;
+
+  --btn-details-bg: #eef2ff;
+  --btn-details-border: #c7d2fe;
+  --btn-details-color: #3730a3;
+  --btn-details-hover-bg: #e0e7ff;
+  --btn-details-hover-border: #a5b4fc;
+  --btn-details-hover-color: #312e81;
+
+  --btn-remove-bg: #fef2f2;
+  --btn-remove-border: #fecaca;
+  --btn-remove-color: #b91c1c;
+  --btn-remove-hover-bg: #fee2e2;
+  --btn-remove-hover-border: #fca5a5;
+  --btn-remove-hover-color: #991b1b;
+
+  /* Tags / badges */
+  --tag-genre-bg: #fed7aa;
+  --tag-genre-color: #7c2d12;
+
+  --tag-style-bg: #bfdbfe;
+  --tag-style-color: #1e3a8a;
+
+  --tag-format-bg: #bbf7d0;
+  --tag-format-color: #065f46;
+
+  --add-btn-bg: #ea580c; /* orange-600 */
+  --add-btn-bg-hover: #c2410c; /* darker orange */
+  --add-btn-border: #ea580c;
+  --add-btn-text: #ffffff;
+
+  --add-btn-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);
 }
 
 .dark {
@@ -137,4 +195,59 @@
   --footer-background: #101828;
   --footer-color: white;
   --footer-hover: #ffb300;
+
+  --album-card-border: #3f3f46;
+  --album-card-bg: #27272a;
+  --album-card-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -2px rgba(0, 0, 0, 0.5);
+
+  --btn-collection-bg: rgba(124, 45, 18, 0.22);
+  --btn-collection-border: #9a3412;
+  --btn-collection-color: #fdba74;
+  --btn-collection-hover-bg: rgba(194, 65, 12, 0.3);
+  --btn-collection-hover-border: #f59e0b;
+  --btn-collection-hover-color: #ffedd5;
+  --btn-collection-disabled-bg: rgba(39, 39, 42, 0.7);
+  --btn-collection-disabled-border: #3f3f46;
+  --btn-collection-disabled-color: #71717a;
+
+  --btn-wishlist-bg: rgba(8, 145, 178, 0.22);
+  --btn-wishlist-border: #0891b2;
+  --btn-wishlist-color: #67e8f9;
+  --btn-wishlist-hover-bg: rgba(8, 145, 178, 0.34);
+  --btn-wishlist-hover-border: #22d3ee;
+  --btn-wishlist-hover-color: #cffafe;
+  --btn-wishlist-disabled-bg: rgba(39, 39, 42, 0.7);
+  --btn-wishlist-disabled-border: #3f3f46;
+  --btn-wishlist-disabled-color: #71717a;
+
+  --btn-details-bg: rgba(55, 48, 163, 0.24);
+  --btn-details-border: #4338ca;
+  --btn-details-color: #c7d2fe;
+  --btn-details-hover-bg: rgba(67, 56, 202, 0.36);
+  --btn-details-hover-border: #6366f1;
+  --btn-details-hover-color: #e0e7ff;
+
+  --btn-remove-bg: rgba(127, 29, 29, 0.2);
+  --btn-remove-border: #7f1d1d;
+  --btn-remove-color: #fca5a5;
+  --btn-remove-hover-bg: rgba(127, 29, 29, 0.35);
+  --btn-remove-hover-border: #991b1b;
+  --btn-remove-hover-color: #fecaca;
+
+  --tag-genre-bg: rgba(124, 45, 18, 0.2);
+  --tag-genre-color: #fdba74;
+
+  --tag-style-bg: rgba(55, 48, 163, 0.2);
+  --tag-style-color: #c7d2fe;
+
+  --tag-format-bg: rgba(5, 111, 77, 0.2);
+  --tag-format-color: #bbf7d0;
+
+  --add-btn-bg: #f97316; /* slightly brighter for dark mode */
+  --add-btn-bg-hover: #ea580c;
+  --add-btn-border: #f97316;
+  --add-btn-text: #ffffff;
+
+  --add-btn-shadow: 0 4px 18px rgba(249, 115, 22, 0.45);
 }

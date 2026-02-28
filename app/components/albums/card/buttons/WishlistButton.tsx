@@ -2,11 +2,12 @@
 
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
-import { Heart, Check } from "lucide-react";
+import { Heart } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { deriveArtists, derivePrimaryArtist } from "../../../../../lib/artist";
 import { fetchDiscogsArtists } from "../../../../../lib/discogsArtists";
+import { ensureSharedAlbumDetails } from "../../../../../lib/sharedAlbumDetails";
 
 type DiscogsRelease = {
   id: number;
@@ -78,6 +79,11 @@ export default function WishlistButton({
     const primaryArtist = derivePrimaryArtist(undefined, artists, albumArtist);
 
     const normalizedReleaseType = releaseType ?? getReleaseType(album.format);
+    const { detailsRef } = await ensureSharedAlbumDetails({
+      id: album.id,
+      masterId: album.master_id,
+      resultType: album.type,
+    });
 
     try {
       await setDoc(
@@ -94,13 +100,25 @@ export default function WishlistButton({
           year: album.year || null,
           catno: album.catno || null,
           master_id: album.master_id || null,
+          detailsRef,
           addedAt: serverTimestamp(),
         },
       );
       onAdded?.(album.id.toString());
 
       if (typeof window !== "undefined") {
-        (window as any).addToast?.({
+        (
+          window as Window & {
+            addToast?: (payload: {
+              message: string;
+              icon: typeof Heart;
+              bgColor: string;
+              textColor: string;
+              iconBgColor: string;
+              iconBorderColor: string;
+            }) => void;
+          }
+        ).addToast?.({
           message: `${albumTitle} ${t(locale, "addedToWishlist")?.toLowerCase()}!`,
           icon: Heart,
           bgColor: "bg-green-100",
@@ -112,7 +130,18 @@ export default function WishlistButton({
     } catch (err) {
       console.error(err);
       if (typeof window !== "undefined") {
-        (window as any).addToast?.({
+        (
+          window as Window & {
+            addToast?: (payload: {
+              message: string;
+              icon: typeof Heart;
+              bgColor: string;
+              textColor: string;
+              iconBgColor: string;
+              iconBorderColor: string;
+            }) => void;
+          }
+        ).addToast?.({
           message: `${t(locale, "errorAddToWishlist")?.toLowerCase()}.`,
           icon: Heart,
           bgColor: "bg-red-100",

@@ -1,12 +1,42 @@
 .collection-container {
   &__add {
-    background-color: var(--auth-submit-background);
-    color: var(--auth-submit-color);
+    background: var(--add-btn-bg);
+    color: var(--add-btn-text);
+    border: 1px solid var(--add-btn-border);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 0.75rem;
+    font-weight: 500;
+
+    transition:
+      background 0.2s ease,
+      transform 0.15s ease,
+      box-shadow 0.2s ease,
+      border-color 0.2s ease;
+
+    box-shadow: var(--add-btn-shadow);
 
     &:hover {
-      background-color: var(--auth-submit-hover-background);
+      background: var(--add-btn-bg-hover);
+      border-color: var(--add-btn-bg-hover);
+    }
+
+    &:active {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
   }
+
+  &__add svg {
+    transition: transform 0.2s ease;
+  }
+
+  &__add:hover svg {
+    transform: rotate(90deg);
+  }
+
   &__count {
     color: var(--muted-black);
   }

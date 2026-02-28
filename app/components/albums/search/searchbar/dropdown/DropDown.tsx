@@ -82,7 +82,7 @@ export default function DropDown({
       {/* Trigger */}
       <button
         type="button"
-        className={`dropdown-trigger dropdown-trigger-colors flex w-full h-full min-h-[2.5rem] items-center justify-between rounded border px-3 transition-all duration-200 gap-2 ${triggerClassName}`}
+        className={`dropdown-trigger dropdown-trigger-colors flex w-full h-full min-h-[2.5rem] items-center justify-between rounded border px-3 transition-all duration-200 gap-2 cursor-pointer ${triggerClassName}`}
         onClick={() => setIsOpen((prev) => !prev)}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
@@ -113,7 +113,7 @@ export default function DropDown({
             <li key={option.value} className="mb-1 last:mb-0">
               <button
                 type="button"
-                className={`dropdown-option dropdown-option-colors dropdown-option-hover flex w-full items-center rounded-lg justify-between px-4 py-2 text-left transition-colors duration-150 ${optionClassName}`}
+                className={`dropdown-option dropdown-option-colors dropdown-option-hover flex w-full items-center rounded-lg justify-between px-4 py-2 text-left transition-colors duration-150 cursor-pointer ${optionClassName}`}
                 onClick={() => {
                   onChange(option.value);
                   setIsOpen(false);

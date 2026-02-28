@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
-import { HeartOff } from "lucide-react";
+import { Heart, HeartOff } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
 import { doc, deleteDoc } from "firebase/firestore";
 
@@ -25,6 +25,7 @@ export default function RemoveWishlistButton({
 }: RemoveWishlistButtonProps) {
   const { locale } = useLanguage();
   const [modalOpen, setModalOpen] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
 
   const handleRemove = async () => {
     const user = auth.currentUser;
@@ -38,7 +39,18 @@ export default function RemoveWishlistButton({
       );
 
       if (typeof window !== "undefined") {
-        (window as any).addToast?.({
+        (
+          window as Window & {
+            addToast?: (payload: {
+              message: string;
+              icon: typeof HeartOff;
+              bgColor: string;
+              textColor: string;
+              iconBgColor: string;
+              iconBorderColor: string;
+            }) => void;
+          }
+        ).addToast?.({
           message: `${album.title} ${t(locale, "removedFromWishlist")?.toLowerCase()}!`,
           icon: HeartOff,
           bgColor: "bg-yellow-100",
@@ -50,7 +62,18 @@ export default function RemoveWishlistButton({
     } catch (err) {
       console.error(err);
       if (typeof window !== "undefined") {
-        (window as any).addToast?.({
+        (
+          window as Window & {
+            addToast?: (payload: {
+              message: string;
+              icon: typeof HeartOff;
+              bgColor: string;
+              textColor: string;
+              iconBgColor: string;
+              iconBorderColor: string;
+            }) => void;
+          }
+        ).addToast?.({
           message: `${t(locale, "errorRemovedFromWishlist")?.toLowerCase()}.`,
           icon: HeartOff,
           bgColor: "bg-red-100",
@@ -68,8 +91,11 @@ export default function RemoveWishlistButton({
         <button
           className="flex items-center text-sm gap-2 px-2 py-1 w-full transition-all duration-200 cursor-pointer"
           onClick={() => setModalOpen(true)}
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
         >
-          <HeartOff size={15} /> {t(locale, "remove")}
+          {isHovering ? <HeartOff size={15} /> : <Heart size={15} />}
+          {t(locale, "remove")}
         </button>
       </div>
 

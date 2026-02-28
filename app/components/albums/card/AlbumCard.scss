@@ -1,9 +1,11 @@
 .album-card {
-  border: 1px solid var(--muted-white-black);
-  background-color: var(--white-black);
+  border: 1px solid var(--album-card-border);
+  background-color: var(--album-card-bg);
+  border-radius: 0.9rem;
   transition:
     box-shadow 0.2s ease,
-    transform 0.2s ease;
+    transform 0.2s ease,
+    border-color 0.2s ease;
 }
 
 @media (min-width: 768px) {
@@ -14,39 +16,82 @@
 }
 
 .buttons {
-  &__collection,
-  &__wishlist,
-  &__details {
-    border: 1px solid var(--medium-amber);
-    transition: background-color 0.2s ease;
-
+  &__collection {
+    border: 1px solid var(--btn-collection-border);
+    background: var(--btn-collection-bg);
+    color: var(--btn-collection-color);
     &:hover {
-      background-color: var(--soft-amber);
-      color: var(--hard-amber);
+      background-color: var(--btn-collection-hover-bg);
+      border-color: var(--btn-collection-hover-border);
+      color: var(--btn-collection-hover-color);
     }
   }
 
-  &__wishlist {
-    &:hover .buttons__wishlist__icon {
-      color: var(--rose-red);
-      fill: var(--rose-red);
-    }
+  &__collection__disabled {
+    border: 1px solid var(--btn-collection-disabled-border);
+    background: var(--btn-collection-disabled-bg);
+    color: var(--btn-collection-disabled-color);
+  }
 
-    &__icon {
-      &__disabled {
-        color: var(--rose-red);
-        fill: var(--rose-red);
-      }
+  &__wishlist {
+    border: 1px solid var(--btn-wishlist-border);
+    background: var(--btn-wishlist-bg);
+    color: var(--btn-wishlist-color);
+    &:hover {
+      background-color: var(--btn-wishlist-hover-bg);
+      border-color: var(--btn-wishlist-hover-border);
+      color: var(--btn-wishlist-hover-color);
+    }
+  }
+
+  &__wishlist__disabled {
+    border: 1px solid var(--btn-wishlist-disabled-border);
+    background: var(--btn-wishlist-disabled-bg);
+    color: var(--btn-wishlist-disabled-color);
+  }
+
+  &__details {
+    border: 1px solid var(--btn-details-border);
+    background: var(--btn-details-bg);
+    color: var(--btn-details-color);
+    &:hover {
+      background-color: var(--btn-details-hover-bg);
+      border-color: var(--btn-details-hover-border);
+      color: var(--btn-details-hover-color);
     }
   }
 
   &__remove {
-    border: 1px solid var(--medium-amber);
-    transition: background-color 0.2s ease;
+    border: 1px solid var(--btn-remove-border);
+    background: var(--btn-remove-bg);
+    color: var(--btn-remove-color);
     &:hover {
-      background-color: #d4183d;
-      border: 1px solid #ef1d26;
-      color: white;
+      background-color: var(--btn-remove-hover-bg);
+      border-color: var(--btn-remove-hover-border);
+      color: var(--btn-remove-hover-color);
     }
   }
+}
+
+/* Tags / badges */
+.album-card__details span.tag {
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 500;
+}
+
+.album-card__details span.genre {
+  background-color: var(--tag-genre-bg);
+  color: var(--tag-genre-color);
+}
+
+.album-card__details span.style {
+  background-color: var(--tag-style-bg);
+  color: var(--tag-style-color);
+}
+
+.album-card__details span.format {
+  background-color: var(--tag-format-bg);
+  color: var(--tag-format-color);
 }

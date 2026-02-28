@@ -1,3 +1,94 @@
+.message-modal-overlay {
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(4px);
+}
+
 .message-modal {
   background-color: var(--white-black);
+  border: 1px solid var(--muted-white-black);
+}
+
+.message-modal__message {
+  color: var(--muted-black);
+}
+
+.message-modal__actions {
+  margin-top: 0.2rem;
+}
+
+.message-modal__button {
+  border: 1px solid transparent;
+  font-weight: 600;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.message-modal__button--cancel {
+  border-color: var(--muted-white-black);
+  background: #ffffff;
+  color: #374151;
+
+  &:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+    color: #1f2937;
+  }
+}
+
+.message-modal__button--primary {
+  background: #2563eb;
+  border-color: #1d4ed8;
+
+  &:hover {
+    background: #1d4ed8;
+    border-color: #1e40af;
+  }
+}
+
+.message-modal__button--danger {
+  background: #dc2626;
+  border-color: #b91c1c;
+
+  &:hover {
+    background: #b91c1c;
+    border-color: #991b1b;
+  }
+}
+
+.message-modal__button--success {
+  background: #059669;
+  border-color: #047857;
+
+  &:hover {
+    background: #047857;
+    border-color: #065f46;
+  }
+}
+
+.message-modal__button--text-light {
+  color: #ffffff;
+}
+
+.message-modal__button--text-dark {
+  color: #111827;
+}
+
+.dark {
+  .message-modal__button--cancel {
+    background: rgba(39, 39, 42, 0.75);
+    border-color: #52525b;
+    color: #e4e4e7;
+
+    &:hover {
+      background: rgba(63, 63, 70, 0.75);
+      border-color: #71717a;
+    }
+  }
 }

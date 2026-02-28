@@ -4,6 +4,11 @@ body.album-search-modal-open {
 
 .search-container {
   background-color: var(--auth-background);
+  &__close {
+    &:hover {
+      color: #dc2626;
+    }
+  }
 }
 
 .search-toggle {

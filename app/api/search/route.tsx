@@ -1,7 +1,7 @@
 // ---------- In-memory cache ----------
 const cache = new Map<string, { results: any[]; timestamp: number }>();
-const CACHE_TTL = 1000 * 60 * 10; // 10 minutes
-const FETCH_BUFFER = 300; // ms delay before fetching
+const CACHE_TTL = 1000 * 60 * 1; // 1 minute
+const FETCH_BUFFER = 500; // ms delay before fetching
 const RATE_LIMIT = 55;
 const RATE_WINDOW_MS = 60_000;
 const requestTimestamps: number[] = [];
@@ -36,10 +36,23 @@ const waitForDiscogsSlot = async (): Promise<number> => {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const qRaw = (searchParams.get("q") ?? "").trim();
+  const rawInput = (searchParams.get("q") ?? "").trim();
   const token = process.env.DISCOGS_TOKEN;
+  const master_id = searchParams.get("master_id");
+  const id = searchParams.get("id");
 
-  if (!qRaw) return Response.json({ results: [], total: 0 });
+  if (!rawInput && !master_id && !id)
+    return Response.json({ results: [], total: 0 });
+
+  // ---------- Detect catno-only search with # ----------
+  let catnoOnly = false;
+  let qRaw = rawInput;
+
+  // If user starts with #, treat it as a catno search
+  if (rawInput.startsWith("#")) {
+    catnoOnly = true;
+    qRaw = rawInput.slice(1).trim(); // remove the '#' from the query
+  }
 
   // ---------- Helpers ----------
   const normalize = (str: string) =>
@@ -52,7 +65,8 @@ export async function GET(request: Request) {
   const q = normalize(qRaw);
 
   // ---------- Check cache ----------
-  const cached = cache.get(q);
+  const cacheKey = master_id || id || (catnoOnly ? `{${qRaw}}` : q);
+  const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return Response.json({
       results: cached.results,
@@ -68,46 +82,58 @@ export async function GET(request: Request) {
     lastTimeout = setTimeout(() => resolve(), FETCH_BUFFER);
   });
 
-  // ---------- Fetch only masters & releases ----------
-  const fetchSearch = async () => {
-    const types: ("master" | "release")[] = ["master", "release"];
-    const results: any[] = [];
+  try {
+    let results: any[] = [];
 
-    for (const type of types) {
-      const params = new URLSearchParams();
-      params.append("q", qRaw);
-      params.append("type", type);
-      params.append("per_page", "100");
-      params.append("sort", "have");
-      params.append("sort_order", "desc");
-
+    // ---------- Fetch by master_id or release id if provided ----------
+    if (master_id) {
       await waitForDiscogsSlot();
-      let res = await fetch(
-        `https://api.discogs.com/database/search?${params.toString()}`,
-        { headers: { Authorization: `Discogs token=${token}` } },
-      );
+      const res = await fetch(`https://api.discogs.com/masters/${master_id}`, {
+        headers: { Authorization: `Discogs token=${token}` },
+      });
+      if (res.ok) results.push(await res.json());
+    } else if (id) {
+      await waitForDiscogsSlot();
+      const res = await fetch(`https://api.discogs.com/releases/${id}`, {
+        headers: { Authorization: `Discogs token=${token}` },
+      });
+      if (res.ok) results.push(await res.json());
+    } else if (qRaw) {
+      // ---------- Text search ----------
+      const types: ("master" | "release")[] = ["master", "release"];
+      for (const type of types) {
+        const params = new URLSearchParams();
+        params.append("q", qRaw);
+        params.append("type", type);
+        params.append("per_page", "40");
+        params.append("sort", "have");
+        params.append("sort_order", "desc");
 
-      if (res.status === 429) {
-        const retryAfterHeader = res.headers.get("Retry-After");
-        const retryAfterMs =
-          (retryAfterHeader ? Number(retryAfterHeader) : 60) * 1000;
-        await sleep(Number.isFinite(retryAfterMs) ? retryAfterMs : 60_000);
+        // Only add catno if this is a catno-only search
+        if (catnoOnly) params.append("catno", qRaw);
+
         await waitForDiscogsSlot();
-        res = await fetch(
+        let res = await fetch(
           `https://api.discogs.com/database/search?${params.toString()}`,
           { headers: { Authorization: `Discogs token=${token}` } },
         );
+
+        if (res.status === 429) {
+          const retryAfterHeader = res.headers.get("Retry-After");
+          const retryAfterMs =
+            (retryAfterHeader ? Number(retryAfterHeader) : 60) * 1000;
+          await sleep(Number.isFinite(retryAfterMs) ? retryAfterMs : 60_000);
+          await waitForDiscogsSlot();
+          res = await fetch(
+            `https://api.discogs.com/database/search?${params.toString()}`,
+            { headers: { Authorization: `Discogs token=${token}` } },
+          );
+        }
+
+        const data = await res.json();
+        results.push(...(data.results ?? []));
       }
-
-      const data = await res.json();
-      results.push(...(data.results ?? []));
     }
-
-    return { results };
-  };
-
-  try {
-    const { results: allItems } = await fetchSearch();
 
     // ---------- Deduplicate ----------
     const dedupe = (items: any[]) => {
@@ -123,21 +149,34 @@ export async function GET(request: Request) {
       return Array.from(map.values());
     };
 
-    const items = dedupe(allItems);
+    const items = dedupe(results);
 
-    // ---------- Rank ----------
+    // ---------- Ranking ----------
+    const qCatno = qRaw.trim().toLowerCase();
     const rankResults = (items: any[]) =>
       items
         .map((r) => {
-          const artistNorm = normalize(r.artist || "");
+          const artistNorm = normalize(r.artist || r.artists?.[0]?.name || "");
           const titleNorm = normalize(r.title || "");
 
           let score = popularity(r);
 
-          if (artistNorm === q)
-            score += 10000; // exact artist match
-          else if (artistNorm.includes(q)) score += 5000; // partial artist match
-          if (titleNorm.includes(q)) score += 2000; // title match
+          // Huge boost for exact catno matches
+          if ((r.catno || "").trim().toLowerCase() === qCatno) score += 20000;
+
+          // Exact or partial title match
+          if (!catnoOnly) {
+            if (titleNorm === q) score += 15000;
+            else if (titleNorm.includes(q)) score += 2000;
+          }
+
+          // Exact or partial artist match, treat "Various" as wildcard
+          if (!catnoOnly) {
+            if (artistNorm === q) score += 10000;
+            else if (artistNorm.includes(q)) score += 5000;
+            else if (artistNorm === "various" || artistNorm === "va")
+              score += 5000;
+          }
 
           return { ...r, _score: score };
         })
@@ -146,7 +185,7 @@ export async function GET(request: Request) {
     const combined = rankResults(items).slice(0, 40);
 
     // ---------- Save to cache ----------
-    cache.set(q, { results: combined, timestamp: Date.now() });
+    cache.set(cacheKey, { results: combined, timestamp: Date.now() });
 
     return Response.json({
       results: combined,

@@ -30,15 +30,15 @@ export default function MessageModal({
 }: MessageModalProps) {
   const { locale } = useLanguage();
 
-  const bgColors: Record<ColorOption, string> = {
-    blue: "bg-blue-600",
-    red: "bg-red-600",
-    green: "bg-green-600",
+  const confirmToneClass: Record<ColorOption, string> = {
+    blue: "message-modal__button--primary",
+    red: "message-modal__button--danger",
+    green: "message-modal__button--success",
   };
 
-  const textColors: Record<TextColorOption, string> = {
-    white: "text-white",
-    black: "text-black",
+  const confirmTextClass: Record<TextColorOption, string> = {
+    white: "message-modal__button--text-light",
+    black: "message-modal__button--text-dark",
   };
 
   if (!open) return null;
@@ -46,20 +46,20 @@ export default function MessageModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 bg-[rgba(0,0,0,0.6)] flex items-center justify-center z-50"
+      className="message-modal-overlay fixed inset-0 flex items-center justify-center z-50"
       onClick={onCancel}
     >
       <div
-        className="message-modal p-6 m-4 rounded shadow-lg max-w-sm w-full"
+        className="message-modal p-6 m-4 rounded-xl shadow-lg max-w-sm w-full"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-semibold mb-2">{title}</h2>
-        <p className="mb-4">{message}</p>
+        <p className="mb-4 message-modal__message">{message}</p>
         {(onConfirm || onCancel) && (
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 message-modal__actions">
             {onCancel && (
               <button
-                className="px-4 py-2 rounded border cursor-pointer"
+                className="px-4 py-2 rounded border cursor-pointer message-modal__button message-modal__button--cancel"
                 onClick={onCancel}
               >
                 {t(locale, "cancel")}
@@ -67,7 +67,7 @@ export default function MessageModal({
             )}
             {onConfirm && (
               <button
-                className={`px-4 py-2 rounded cursor-pointer ${bgColors[background]} ${textColors[color]}`}
+                className={`px-4 py-2 rounded cursor-pointer message-modal__button ${confirmToneClass[background]} ${confirmTextClass[color]}`}
                 onClick={onConfirm}
               >
                 {t(locale, "confirm")}

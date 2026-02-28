@@ -79,6 +79,30 @@ type Translations = {
     noAlbumsFound: string;
     collectionCount: (visible: number, total: number) => string;
     albumCount: (count: number) => string;
+    unknownValue: string;
+    noResult: string;
+    albumDetailsReleased: string;
+    albumDetailsCountry: string;
+    albumDetailsCatalog: string;
+    albumDetailsFormatQty: string;
+    albumDetailsHave: string;
+    albumDetailsWant: string;
+    albumDetailsSeries: string;
+    albumDetailsSongs: string;
+    albumDetailsTotalDuration: string;
+    albumDetailsVinylRecords: string;
+    albumDetailsLabels: string;
+    albumDetailsNoCatNo: string;
+    albumDetailsRating: string;
+    albumDetailsRatingsCount: (count: number) => string;
+    albumDetailsTracklist: string;
+    albumDetailsArtists: string;
+    albumDetailsExtraArtists: string;
+    albumDetailsNotes: string;
+    albumDetailsTracks: string;
+    albumDetailsOtherTracks: string;
+    albumDetailsSide: (side: string) => string;
+    albumDetailsImageAria: (index: number) => string;
   };
 };
 
@@ -143,7 +167,7 @@ export const translations: Translations = {
     errorRemovedFromWishlist:
       "Something went wrong removing from your wishlist",
     noMatch:
-      "Can't find your result in this list? Try searching for the catalog number, scan the barcode or add it manually.",
+      "Can't find your album? Type # before the catalog number to search it directly, scan the barcode, or add it manually.",
     scanBarcode: "Scan Barcode",
     scanBarcodeInstruction:
       "Click the button below to activate your camera and scan a barcode",
@@ -169,6 +193,30 @@ export const translations: Translations = {
     noAlbumsFound: "No albums found.",
     collectionCount: (visible, total) => `${visible} of ${total} albums`,
     albumCount: (count) => `${count} ${count === 1 ? "album" : "albums"}`,
+    unknownValue: "Unknown",
+    noResult: "No results found",
+    albumDetailsReleased: "Released",
+    albumDetailsCountry: "Country",
+    albumDetailsCatalog: "Catalog",
+    albumDetailsFormatQty: "Format qty",
+    albumDetailsHave: "Have",
+    albumDetailsWant: "Want",
+    albumDetailsSeries: "Series",
+    albumDetailsSongs: "Songs",
+    albumDetailsTotalDuration: "Total duration",
+    albumDetailsVinylRecords: "Vinyl records",
+    albumDetailsLabels: "Labels",
+    albumDetailsNoCatNo: "No cat#",
+    albumDetailsRating: "Rating",
+    albumDetailsRatingsCount: (count) => `${count} ratings`,
+    albumDetailsTracklist: "Tracklist",
+    albumDetailsArtists: "Artists",
+    albumDetailsExtraArtists: "Extra Artists",
+    albumDetailsNotes: "Notes",
+    albumDetailsTracks: "Tracks",
+    albumDetailsOtherTracks: "Other tracks",
+    albumDetailsSide: (side) => `Side ${side}`,
+    albumDetailsImageAria: (index) => `Show image ${index}`,
   },
   nl: {
     welcome: "Beheer uw Vinyl Collectie",
@@ -219,8 +267,7 @@ export const translations: Translations = {
     errorRemovedFromCollection:
       "Er is iets misgegaan bij het verwijderen uit je collectie",
     toCollection: "Naar collectie",
-    moveToCollection: (albumTitle) =>
-      `Verplaats ${albumTitle} naar collectie`,
+    moveToCollection: (albumTitle) => `Verplaats ${albumTitle} naar collectie`,
     moveToCollectionMessage:
       "Wil je dit album verwijderen van je verlanglijstje en toevoegen aan je collectie",
     movedToCollection: "verplaatst naar je collectie",
@@ -233,7 +280,7 @@ export const translations: Translations = {
     errorRemovedFromWishlist:
       "Er is iets misgegaan bij het verwijderen uit je verlanglijst",
     noMatch:
-      "Resultaat staat niet in de lijst? Probeer te zoeken met het catalogusnummer, scan de barcode of voeg hem handmatig toe.",
+      "Kun je je album niet vinden? Typ # voor het catalogusnummer om er direct naar te zoeken, scan de barcode, of voeg het handmatig toe.",
     scanBarcode: "Barcode scannen",
     scanBarcodeInstruction:
       "Klik op de knop hieronder om je camera te activeren en een barcode te scannen",
@@ -259,16 +306,40 @@ export const translations: Translations = {
     noAlbumsFound: "Geen albums gevonden.",
     collectionCount: (visible, total) => `${visible} van ${total} albums`,
     albumCount: (count) => `${count} ${count === 1 ? "album" : "albums"}`,
+    unknownValue: "Onbekend",
+    noResult: "Geen resultaten gevonden",
+    albumDetailsReleased: "Uitgebracht",
+    albumDetailsCountry: "Land",
+    albumDetailsCatalog: "Catalogus",
+    albumDetailsFormatQty: "Format aantal",
+    albumDetailsHave: "Heb",
+    albumDetailsWant: "Wil",
+    albumDetailsSeries: "Serie",
+    albumDetailsSongs: "Nummers",
+    albumDetailsTotalDuration: "Totale duur",
+    albumDetailsVinylRecords: "Vinylplaten",
+    albumDetailsLabels: "Labels",
+    albumDetailsNoCatNo: "Geen cat#",
+    albumDetailsRating: "Beoordeling",
+    albumDetailsRatingsCount: (count) => `${count} beoordelingen`,
+    albumDetailsTracklist: "Tracklijst",
+    albumDetailsArtists: "Artiesten",
+    albumDetailsExtraArtists: "Extra artiesten",
+    albumDetailsNotes: "Notities",
+    albumDetailsTracks: "Nummers",
+    albumDetailsOtherTracks: "Overige nummers",
+    albumDetailsSide: (side) => `Kant ${side}`,
+    albumDetailsImageAria: (index) => `Toon afbeelding ${index}`,
   },
 };
 
 export const t = (
   locale: Locale,
   key: keyof Translations["en"],
-  ...args: any[]
+  ...args: unknown[]
 ): string => {
   const value = translations[locale][key];
   if (typeof value === "function")
-    return (value as (...args: any[]) => string)(...args);
+    return (value as (...args: unknown[]) => string)(...args);
   return value;
 };

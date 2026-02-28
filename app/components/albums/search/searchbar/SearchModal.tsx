@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import VinylSpinner from "../../../spinner/VinylSpinner";
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
 import AlbumCard from "../../card/AlbumCard";
 import Searchbar from "./Searchbar";
+import AlbumDetailsModal from "../../modal/AlbumDetailsModal";
+import { ArrowUp } from "lucide-react";
 
 import { auth, db } from "../../../../../lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
@@ -44,18 +46,39 @@ export default function SearchModal() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
   const [collectionIds, setCollectionIds] = useState<Set<string>>(new Set());
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [selectedAlbum, setSelectedAlbum] = useState<{
+    album: DiscogsRelease;
+    artist: string;
+    title: string;
+  } | null>(null);
 
+  const resultsRef = useRef<HTMLDivElement>(null);
   const PER_PAGE = 40;
   const { locale } = useLanguage();
 
   const popularityScore = (release: DiscogsRelease) =>
     (release.have || 0) + (release.want || 0);
 
-  // ✅ Fetch user's collection + wishlist once
+  useEffect(() => {
+    const container = resultsRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      setShowScrollTop(container.scrollTop > 500);
+    };
+
+    container.addEventListener("scroll", handleScroll);
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+    };
+  }, [searchResults]);
+
   useEffect(() => {
     const fetchUserData = async () => {
       const user = auth.currentUser;
@@ -70,7 +93,6 @@ export default function SearchModal() {
         );
 
         setCollectionIds(new Set(collectionSnap.docs.map((doc) => doc.id)));
-
         setWishlistIds(new Set(wishlistSnap.docs.map((doc) => doc.id)));
       } catch (err) {
         console.error(err);
@@ -98,7 +120,9 @@ export default function SearchModal() {
         setSearchNotice(t(locale, "searchTakingLonger"));
       }, 5000);
       try {
-        const queryUrl = `/api/search?q=${encodeURIComponent(searchQuery)}&page=${page}&per_page=${PER_PAGE}`;
+        const queryUrl = `/api/search?q=${encodeURIComponent(
+          searchQuery,
+        )}&page=${page}&per_page=${PER_PAGE}`;
         const res = await fetch(queryUrl);
         const data = await res.json();
         const results: DiscogsRelease[] = data.results ?? [];
@@ -180,64 +204,101 @@ export default function SearchModal() {
       )}
 
       {!searchLoading && searchResults.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          {searchResults.map((album) => {
-            const mainGenre = getMainGenre(album.genre);
-            const releaseType = getReleaseType(album.format, album.type);
-            const { artist, title } = splitDiscogsTitle(
-              album.title,
-              album.artist,
-            );
+        <div className="relative">
+          <div
+            ref={resultsRef}
+            className="mt-6 max-h-[40vh] md:max-h-[55vh] overflow-y-auto pr-2"
+          >
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {searchResults.map((album) => {
+                const mainGenre = getMainGenre(album.genre);
+                const releaseType = getReleaseType(album.format, album.type);
+                const { artist, title } = splitDiscogsTitle(
+                  album.title,
+                  album.artist,
+                );
 
-            const isInCollection = collectionIds.has(album.id.toString());
-            const isInWishlist = wishlistIds.has(album.id.toString());
+                const isInCollection = collectionIds.has(album.id.toString());
+                const isInWishlist = wishlistIds.has(album.id.toString());
 
-            return (
-              <AlbumCard
-                key={album.id}
-                album={album}
-                mainGenre={mainGenre}
-                releaseType={releaseType}
-                artist={artist}
-                title={title}
-                collectionAction={isInCollection ? "disabled" : "enabled"}
-                wishlistAction={isInWishlist ? "disabled" : "enabled"}
-                onAddedToCollection={(albumId) => {
-                  setCollectionIds((prev) => {
-                    const next = new Set(prev);
-                    next.add(albumId);
-                    return next;
-                  });
-                  setWishlistIds((prev) => {
-                    const next = new Set(prev);
-                    next.delete(albumId);
-                    return next;
-                  });
-                }}
-                onAddedToWishlist={(albumId) => {
-                  setWishlistIds((prev) => {
-                    const next = new Set(prev);
-                    next.add(albumId);
-                    return next;
-                  });
-                  setCollectionIds((prev) => {
-                    const next = new Set(prev);
-                    next.delete(albumId);
-                    return next;
-                  });
-                }}
-                buttons={{
-                  collection: true,
-                  wishlist: true,
-                  removeCollection: false,
-                  removeWishlist: false,
-                  viewDetails: false,
-                }}
-              />
-            );
-          })}
+                return (
+                  <AlbumCard
+                    key={album.id}
+                    album={album}
+                    mainGenre={mainGenre}
+                    releaseType={releaseType}
+                    artist={artist}
+                    title={title}
+                    onCardClick={() => {
+                      setSelectedAlbum({ album, artist, title });
+                    }}
+                    collectionAction={isInCollection ? "disabled" : "enabled"}
+                    wishlistAction={isInWishlist ? "disabled" : "enabled"}
+                    onAddedToCollection={(albumId) => {
+                      setCollectionIds((prev) => {
+                        const next = new Set(prev);
+                        next.add(albumId);
+                        return next;
+                      });
+                      setWishlistIds((prev) => {
+                        const next = new Set(prev);
+                        next.delete(albumId);
+                        return next;
+                      });
+                    }}
+                    onAddedToWishlist={(albumId) => {
+                      setWishlistIds((prev) => {
+                        const next = new Set(prev);
+                        next.add(albumId);
+                        return next;
+                      });
+                      setCollectionIds((prev) => {
+                        const next = new Set(prev);
+                        next.delete(albumId);
+                        return next;
+                      });
+                    }}
+                    buttons={{
+                      collection: true,
+                      wishlist: true,
+                      removeCollection: false,
+                      removeWishlist: false,
+                      viewDetails: false,
+                    }}
+                  />
+                );
+              })}
+            </div>
+
+            {!searchLoading && searchResults.length > 0 && (
+              <p className="text-center mt-6 pt-4 border-t border-gray-200 text-sm">
+                {t(locale, "noMatch")}
+              </p>
+            )}
+          </div>
+
+          {/* Scroll to top button */}
+          {showScrollTop && (
+            <button
+              className="absolute top-5 right-5 bg-slate-500 text-white w-12 h-12 rounded-full shadow hover:bg-slate-600 transition flex items-center justify-center cursor-pointer"
+              onClick={() =>
+                resultsRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+              }
+            >
+              <ArrowUp size={20} />
+            </button>
+          )}
         </div>
       )}
+
+      <AlbumDetailsModal
+        key={selectedAlbum?.album.id ?? 0}
+        open={Boolean(selectedAlbum)}
+        album={selectedAlbum?.album ?? null}
+        artist={selectedAlbum?.artist}
+        displayTitle={selectedAlbum?.title}
+        onClose={() => setSelectedAlbum(null)}
+      />
 
       {searchLoading && searchNotice && (
         <p className="text-center mt-3 text-sm text-amber-700">
@@ -248,7 +309,9 @@ export default function SearchModal() {
       {!searchLoading &&
         hasCompletedSearch &&
         searchResults.length === 0 &&
-        searchQuery && <p className="text-center mt-4">No results found.</p>}
+        searchQuery && (
+          <p className="text-center mt-4">{t(locale, "noResult")}.</p>
+        )}
     </>
   );
 }
