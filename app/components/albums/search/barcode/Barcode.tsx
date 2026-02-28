@@ -11,6 +11,7 @@ export default function Barcode() {
   const streamRef = useRef<MediaStream | null>(null);
 
   const [error, setError] = useState<string | null>(null);
+  const [scannedText, setScannedText] = useState<string | null>(null); // NEW
   const [isRunning, setIsRunning] = useState(false);
   const [hasScanned, setHasScanned] = useState(false);
 
@@ -18,6 +19,7 @@ export default function Barcode() {
     if (isRunning) return;
 
     setError(null);
+    setScannedText(null); // reset scanned text
     setIsRunning(true);
     setHasScanned(false);
 
@@ -25,7 +27,6 @@ export default function Barcode() {
     codeReaderRef.current = codeReader;
 
     try {
-      // Get camera stream
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" },
       });
@@ -42,23 +43,26 @@ export default function Barcode() {
         return;
       }
 
-      // Start decoding barcodes
       await codeReader.decodeFromVideoDevice(
         undefined,
         videoElement,
         async (result) => {
           if (result && !hasScanned) {
             setHasScanned(true);
-            const cleanBarcode = result.getText().replace(/\D/g, "");
+
+            const scanned = result.getText();
+            setScannedText(scanned); // set scanned text
+            const cleanBarcode = scanned.replace(/\D/g, "");
 
             try {
               const res = await fetch(`/api/search?barcode=${cleanBarcode}`);
               const data = await res.json();
 
-              if (data.found) {
-                router.push(`/album/${data.id}`);
+              if (data.results && data.results.length > 0) {
+                const releaseId = data.results[0].id;
+                router.push(`/album/${releaseId}`);
               } else {
-                setError("Album not in your collection.");
+                setError("Album not found.");
               }
             } catch {
               setError("Error fetching album.");
@@ -75,13 +79,11 @@ export default function Barcode() {
   };
 
   const stopScanner = () => {
-    // Stop all tracks
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
 
-    // Clear video element
     if (videoRef.current) videoRef.current.srcObject = null;
 
     setIsRunning(false);
@@ -93,6 +95,7 @@ export default function Barcode() {
         ref={videoRef}
         className="w-full max-w-md border border-gray-300 rounded"
       />
+
       {!isRunning ? (
         <button
           onClick={startScanner}
@@ -108,6 +111,8 @@ export default function Barcode() {
           Stop Scanner
         </button>
       )}
+
+      {scannedText && <p className="text-gray-700">Scanned: {scannedText}</p>}
       {error && <p className="text-red-500">{error}</p>}
     </div>
   );
