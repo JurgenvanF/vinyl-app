@@ -42,7 +42,8 @@ export default function AlbumSearchModal({
       }}
     >
       <div
-        className="search-container rounded-lg p-4 m-4 w-full max-w-3xl max-h-[80vh] overflow-y-hidden"
+        className={`search-container rounded-lg p-4 m-4 w-full max-w-3xl max-h-[80vh] 
+    ${mode === "barcode" || mode === "custom" ? "overflow-y-auto" : "overflow-y-hidden"}`}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4 gap-6">
