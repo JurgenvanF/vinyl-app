@@ -692,7 +692,7 @@ export default function AlbumDetailsModal({
                         />
 
                         <button
-                          className="absolute top-4 right-4 text-white text-2xl mix-blend-difference"
+                          className="absolute top-4 right-4 text-white text-2xl mix-blend-difference cursor-pointer"
                           onClick={() => setIsLightboxOpen(false)}
                         >
                           <X />
