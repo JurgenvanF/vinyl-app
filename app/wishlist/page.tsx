@@ -22,7 +22,7 @@ import AlbumSearchModal from "../components/albums/search/AlbumSearchModal";
 import AlbumDetailsModal from "../components/albums/modal/AlbumDetailsModal";
 import Searchbar from "../components/albums/search/searchbar/Searchbar";
 import DropDown from "../components/albums/search/searchbar/dropdown/DropDown";
-import { Plus, SlidersHorizontal } from "lucide-react";
+import { Plus, SlidersHorizontal, ArrowUp, ArrowDown } from "lucide-react";
 
 import "./wishlist.scss";
 
@@ -53,6 +53,7 @@ export default function WishlistPage() {
   const [searchValue, setSearchValue] = useState("");
   const [sortBy, setSortBy] = useState<WishlistSort>("recentlyAdded");
   const [modalOpen, setModalOpen] = useState(false);
+  const [releaseDateAsc, setReleaseDateAsc] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState<{
     album: {
       id: number;
@@ -347,6 +348,19 @@ export default function WishlistPage() {
             />
           </div>
         </div>
+        {sortBy === "releaseDate" && (
+          <button
+            onClick={() => setReleaseDateAsc((prev) => !prev)}
+            className="collection-container__sort flex items-center justify-center w-10 h-10 rounded border transition-colors cursor-pointer"
+            title="Toggle sort order"
+          >
+            {releaseDateAsc ? (
+              <ArrowUp size={18} className="text-gray-700" />
+            ) : (
+              <ArrowDown size={18} className="text-gray-700" />
+            )}
+          </button>
+        )}
       </div>
 
       {albumsLoading ? (

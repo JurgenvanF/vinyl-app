@@ -41,6 +41,17 @@
     color: var(--muted-black);
   }
 
+  &__sort {
+    border-color: var(--auth-input-background);
+    background-color: var(--auth-input-background);
+    color: var(--dropdown-trigger-text);
+
+    &:hover {
+      background: var(--dropdown-option-hover-bg);
+      color: var(--dropdown-option-hover-text);
+    }
+  }
+
   .wishlist-group-line {
     background-color: var(--group-separator);
   }
