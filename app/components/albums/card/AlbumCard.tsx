@@ -135,23 +135,30 @@ export default function AlbumCard({
         <p className="text-sm font-semibold line-clamp-1">{artist}</p>
         <p className="text-sm line-clamp-1">{title}</p>
 
-        {/* Tags & Year */}
+        {/* Tags */}
         <div className="flex flex-wrap gap-1 mt-2 items-center text-xs">
           {mainGenre && (
             <span className="bg-orange-500/20 px-2 py-0.5 rounded-full">
               {mainGenre}
             </span>
           )}
-          {album.format?.map((f, idx) => (
-            <span
-              key={`${f}-${idx}`}
-              className="bg-green-500/20 px-2 py-0.5 rounded-full"
-            >
-              {f}
-            </span>
-          ))}
-          {album.year && <span className="opacity-60">{album.year}</span>}
+
+          {Array.from(new Set(album.format ?? []))
+            .slice(0, 5)
+            .map((f, idx) => (
+              <span
+                key={`${f}-${idx}`}
+                className="bg-green-500/20 px-2 py-0.5 rounded-full"
+              >
+                {f}
+              </span>
+            ))}
         </div>
+
+        {/* Year */}
+        {album.year && (
+          <div className="mt-1 text-xs opacity-60">{album.year}</div>
+        )}
 
         {/* Catalog number */}
         {album.catno && album.catno.toLowerCase() !== "none" && (

@@ -278,16 +278,27 @@ export default function SearchModal() {
           </div>
 
           {/* Scroll to top button */}
-          {showScrollTop && (
-            <button
-              className="absolute top-5 right-5 bg-slate-500 text-white w-12 h-12 rounded-full shadow hover:bg-slate-600 transition flex items-center justify-center cursor-pointer"
-              onClick={() =>
-                resultsRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+          <button
+            className={`
+              absolute top-5 right-5
+              bg-slate-500 text-white
+              w-12 h-12 rounded-full shadow
+              hover:bg-slate-600
+              flex items-center justify-center
+              cursor-pointer
+              transition-all duration-300 ease-in-out
+              ${
+                showScrollTop
+                  ? "opacity-100 scale-100"
+                  : "opacity-0 scale-95 pointer-events-none"
               }
-            >
-              <ArrowUp size={20} />
-            </button>
-          )}
+              `}
+            onClick={() =>
+              resultsRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+            }
+          >
+            <ArrowUp size={20} />
+          </button>
         </div>
       )}
 
