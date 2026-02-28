@@ -40,8 +40,9 @@ export async function GET(request: Request) {
   const token = process.env.DISCOGS_TOKEN;
   const master_id = searchParams.get("master_id");
   const id = searchParams.get("id");
+  const barcode = searchParams.get("barcode");
 
-  if (!rawInput && !master_id && !id)
+  if (!rawInput && !master_id && !id && !barcode)
     return Response.json({ results: [], total: 0 });
 
   // ---------- Detect catno-only search with # ----------
@@ -98,6 +99,47 @@ export async function GET(request: Request) {
         headers: { Authorization: `Discogs token=${token}` },
       });
       if (res.ok) results.push(await res.json());
+    } else if (barcode) {
+      const cleanBarcode = barcode.replace(/\D/g, "");
+
+      await waitForDiscogsSlot();
+      const res = await fetch(
+        `https://api.discogs.com/database/search?barcode=${cleanBarcode}&type=release&per_page=1`,
+        {
+          headers: { Authorization: `Discogs token=${token}` },
+        },
+      );
+
+      const data = await res.json();
+      const release = data.results?.[0];
+
+      if (!release) {
+        return Response.json({ found: false });
+      }
+
+      const releaseId = String(release.id);
+
+      // 🔥 CHECK FIRESTORE HERE
+      const admin = await import("firebase-admin");
+
+      if (!admin.apps.length) {
+        admin.initializeApp({
+          credential: admin.credential.cert({
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+          }),
+        });
+      }
+
+      const db = admin.firestore();
+      const doc = await db.collection("details").doc(releaseId).get();
+
+      if (doc.exists) {
+        return Response.json({ found: true, id: releaseId });
+      }
+
+      return Response.json({ found: false });
     } else if (qRaw) {
       // ---------- Text search ----------
       const types: ("master" | "release")[] = ["master", "release"];
