@@ -101,32 +101,12 @@ export async function GET(request: Request) {
       if (res.ok) results.push(await res.json());
     } else if (barcode) {
       const cleanBarcode = barcode.replace(/\D/g, "");
-
-      // ---------- First, search Discogs ----------
       await waitForDiscogsSlot();
       const discogsRes = await fetch(
         `https://api.discogs.com/database/search?barcode=${cleanBarcode}&type=release&per_page=5`,
-        {
-          headers: { Authorization: `Discogs token=${token}` },
-        },
+        { headers: { Authorization: `Discogs token=${token}` } },
       );
       const discogsData = await discogsRes.json();
-
-      // ---------- If Discogs results are empty, fallback to MusicBrainz ----------
-      if (!discogsData.results || discogsData.results.length === 0) {
-        const musicbrainzRes = await fetch(
-          `https://musicbrainz.org/ws/2/release/?query=barcode:${cleanBarcode}&fmt=json&limit=5`,
-          {
-            headers: {
-              "User-Agent": "MijnNedbase/1.0 ( your-email@example.com )", // MusicBrainz requires a User-Agent
-            },
-          },
-        );
-        const musicbrainzData = await musicbrainzRes.json();
-        return Response.json(musicbrainzData);
-      }
-
-      // ---------- If Discogs has results, return Discogs JSON ----------
       return Response.json(discogsData);
     } else if (qRaw) {
       // ---------- Text search ----------
