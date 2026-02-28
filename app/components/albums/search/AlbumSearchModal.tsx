@@ -36,7 +36,7 @@ export default function AlbumSearchModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      className="backdrop-blur-xs fixed inset-0 bg-black/50 flex items-center justify-center z-50"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}

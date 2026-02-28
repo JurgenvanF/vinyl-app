@@ -95,6 +95,7 @@ export default function AlbumDetailsModal({
   const notesBoxRef = useRef<HTMLDivElement | null>(null);
   const [extraArtistsOverflow, setExtraArtistsOverflow] = useState(false);
   const [notesOverflow, setNotesOverflow] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const thumbDragRef = useRef<{
     dragging: boolean;
     startX: number;
@@ -655,17 +656,50 @@ export default function AlbumDetailsModal({
               <div className="w-full md:w-[260px] md:shrink-0">
                 <div className="relative group">
                   <div
-                    className="touch-pan-y select-none"
+                    className="touch-pan-y select-none cursor-zoom-in"
+                    onClick={() => setIsLightboxOpen(true)}
                     onPointerDown={onMainPointerDown}
                     onPointerUp={onMainPointerUp}
                   >
-                    <img
-                      src={images[imageIndex] || "/placeholder.png"}
-                      alt={displayTitle || album.title}
-                      className="rounded-xl w-full aspect-square object-contain shadow-lg"
-                      draggable={false}
-                    />
+                    <div
+                      className="touch-pan-y select-none"
+                      onPointerDown={onMainPointerDown}
+                      onPointerUp={onMainPointerUp}
+                    >
+                      <img
+                        src={images[imageIndex] || "/placeholder.png"}
+                        alt={displayTitle || album.title}
+                        className="rounded-xl w-full aspect-square object-contain shadow-lg"
+                        draggable={false}
+                      />
+                    </div>
                   </div>
+
+                  {isLightboxOpen && (
+                    <div
+                      className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
+                      onClick={() => setIsLightboxOpen(false)}
+                    >
+                      <div
+                        className="relative max-w-[95vw] max-h-[95vh] overflow-auto cursor-grab active:cursor-grabbing"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <img
+                          src={images[imageIndex] || "/placeholder.png"}
+                          alt={displayTitle || album.title}
+                          className="max-w-none max-h-none object-contain"
+                          draggable={false}
+                        />
+
+                        <button
+                          className="absolute top-4 right-4 text-white text-2xl mix-blend-difference"
+                          onClick={() => setIsLightboxOpen(false)}
+                        >
+                          <X />
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {images.length > 1 && (
                     <>
