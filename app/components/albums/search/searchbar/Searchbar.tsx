@@ -30,7 +30,7 @@ export default function Searchbar({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="search-input rounded pl-10 pr-10 py-2 w-full border border-transparent"
+        className="search-input rounded pl-10 pr-3 py-2 w-full border border-transparent md:pr-10"
       />
 
       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">

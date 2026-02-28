@@ -23,7 +23,7 @@ import AlbumDetailsModal from "../components/albums/modal/AlbumDetailsModal";
 import Searchbar from "../components/albums/search/searchbar/Searchbar";
 import DropDown from "../components/albums/search/searchbar/dropdown/DropDown";
 
-import { Plus, SlidersHorizontal } from "lucide-react";
+import { Plus, SlidersHorizontal, ArrowUp, ArrowDown } from "lucide-react";
 
 import "./collection.scss";
 
@@ -54,6 +54,7 @@ export default function Dashboard() {
   const [searchValue, setSearchValue] = useState("");
   const [sortBy, setSortBy] = useState<CollectionSort>("recentlyAdded");
   const [modalOpen, setModalOpen] = useState(false);
+  const [releaseDateAsc, setReleaseDateAsc] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState<{
     album: {
       id: number;
@@ -250,9 +251,17 @@ export default function Dashboard() {
       return sorted;
     }
 
-    sorted.sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+    // releaseDate sorting
+    if (sortBy === "releaseDate") {
+      sorted.sort((a, b) => {
+        if (releaseDateAsc) return (a.year ?? 0) - (b.year ?? 0);
+        return (b.year ?? 0) - (a.year ?? 0);
+      });
+      return sorted;
+    }
+
     return sorted;
-  }, [searchedAlbums, sortBy]);
+  }, [searchedAlbums, sortBy, releaseDateAsc]);
 
   const groupedAlbums = useMemo(() => {
     if (sortBy !== "artist" && sortBy !== "releaseDate") return [];
@@ -337,16 +346,28 @@ export default function Dashboard() {
             onClear={() => setSearchValue("")}
           />
         </div>
-        <div className="flex items-center w-[22%] min-[501px]:w-[40%] max-w-[225px] gap-4">
+        <div className="flex items-center w-[22%] min-[501px]:w-[40%] max-w-[225px] gap-2">
           <SlidersHorizontal size={20} className="hidden lg:inline" />
-          <div className="w-full h-full">
-            <DropDown
-              options={sortOptions}
-              value={sortBy}
-              onChange={(value) => setSortBy(value as CollectionSort)}
-            />
-          </div>
+
+          <DropDown
+            options={sortOptions}
+            value={sortBy}
+            onChange={(value) => setSortBy(value as CollectionSort)}
+          />
         </div>
+        {sortBy === "releaseDate" && (
+          <button
+            onClick={() => setReleaseDateAsc((prev) => !prev)}
+            className="collection-container__sort flex items-center justify-center w-10 h-10 rounded border transition-colors cursor-pointer"
+            title="Toggle sort order"
+          >
+            {releaseDateAsc ? (
+              <ArrowUp size={18} className="text-gray-700" />
+            ) : (
+              <ArrowDown size={18} className="text-gray-700" />
+            )}
+          </button>
+        )}
       </div>
 
       {albumsLoading ? (
