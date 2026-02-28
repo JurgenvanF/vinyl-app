@@ -12,7 +12,7 @@ export default function Barcode() {
   const [scannedText, setScannedText] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [hasScanned, setHasScanned] = useState(false);
-  const [jsonResult, setJsonResult] = useState<any>(null); // NEW
+  const [jsonResult, setJsonResult] = useState<any>(null);
 
   const startScanner = async () => {
     if (isRunning) return;
@@ -37,39 +37,60 @@ export default function Barcode() {
 
       try {
         await videoElement.play();
-      } catch (e) {
+      } catch {
         setError("Browser blocked camera autoplay. Tap Start again.");
         setIsRunning(false);
         return;
       }
 
-      await codeReader.decodeFromVideoDevice(
+      codeReader.decodeFromVideoDevice(
         undefined,
         videoElement,
         async (result) => {
-          if (!result) return;
-
-          // Prevent multiple scans
-          if (hasScanned) return;
+          if (!result || hasScanned) return;
           setHasScanned(true);
 
           const scanned = result.getText();
           setScannedText(scanned);
           const cleanBarcode = scanned.replace(/\D/g, "");
 
-          // Stop the scanner immediately
-          stopScanner();
+          // STOP scanner and release camera immediately
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((t) => t.stop());
+            streamRef.current = null;
+          }
+          if (videoRef.current) videoRef.current.srcObject = null;
+          codeReaderRef.current = null;
+          setIsRunning(false);
 
           try {
-            const res = await fetch(`/api/search?barcode=${cleanBarcode}`);
-            const data = await res.json();
-            setJsonResult(data);
+            // FIRST: Discogs
+            const discogsRes = await fetch(
+              `/api/search?barcode=${cleanBarcode}`,
+            );
+            const discogsData = await discogsRes.json();
+
+            if (discogsData.results && discogsData.results.length > 0) {
+              setJsonResult({ source: "Discogs", data: discogsData });
+            } else {
+              // FALLBACK: MusicBrainz
+              const mbRes = await fetch(
+                `https://musicbrainz.org/ws/2/release/?query=barcode:${cleanBarcode}&fmt=json&limit=5`,
+                {
+                  headers: {
+                    "User-Agent": "MijnNedbase/1.0 (email@example.com)",
+                  },
+                },
+              );
+              const mbData = await mbRes.json();
+              setJsonResult({ source: "MusicBrainz", data: mbData });
+            }
           } catch {
-            setError("Error fetching album.");
+            setError("Error fetching album data.");
           }
         },
       );
-    } catch (err) {
+    } catch {
       setError("Camera access denied or unavailable.");
       setIsRunning(false);
     }
@@ -82,6 +103,7 @@ export default function Barcode() {
     }
 
     if (videoRef.current) videoRef.current.srcObject = null;
+    codeReaderRef.current = null;
     setIsRunning(false);
   };
 
@@ -111,9 +133,14 @@ export default function Barcode() {
       {scannedText && <p className="text-gray-700">Scanned: {scannedText}</p>}
 
       {jsonResult && (
-        <pre className="text-sm text-gray-800 bg-gray-100 p-2 rounded max-w-md overflow-auto">
-          {JSON.stringify(jsonResult, null, 2)}
-        </pre>
+        <div className="flex flex-col items-start gap-2 max-w-md w-full">
+          <p className="text-gray-600 font-semibold">
+            Source: {jsonResult.source}
+          </p>
+          <pre className="text-sm text-gray-800 bg-gray-100 p-2 rounded overflow-auto">
+            {JSON.stringify(jsonResult.data, null, 2)}
+          </pre>
+        </div>
       )}
 
       {error && <p className="text-red-500">{error}</p>}
