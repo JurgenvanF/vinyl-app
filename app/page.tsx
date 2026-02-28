@@ -235,7 +235,7 @@ export default function AuthPage() {
         <div className="auth__container__buttons flex justify-center gap-4 mx-auto mb-6 p-2 rounded-full">
           <button
             onClick={() => switchForm("login")}
-            className={`px-6 py-2 rounded-full ${
+            className={`px-4 py-2 rounded-full ${
               formType === "login"
                 ? "auth__container__buttons__active w-1/2"
                 : "w-1/2 cursor-pointer"
@@ -245,7 +245,7 @@ export default function AuthPage() {
           </button>
           <button
             onClick={() => switchForm("register")}
-            className={`px-6 py-2 rounded-full ${
+            className={`px-4 py-2 rounded-full ${
               formType === "register"
                 ? "auth__container__buttons__active w-1/2"
                 : "w-1/2 cursor-pointer"
@@ -345,7 +345,7 @@ export default function AuthPage() {
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
-                autoComplete="new-password"
+                autoComplete="current-password"
                 placeholder={t(locale, "password")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
