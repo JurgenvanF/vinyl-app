@@ -25,6 +25,19 @@ export default function ThemeInitializer() {
   useEffect(() => {
     const saved = (localStorage.getItem("theme") as Theme) || "system";
     applyTheme(saved);
+
+    if (saved !== "system") return;
+
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = () => applyTheme("system");
+
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    }
+
+    media.addListener(handleChange);
+    return () => media.removeListener(handleChange);
   }, []);
 
   return null;

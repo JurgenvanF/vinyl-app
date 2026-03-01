@@ -41,6 +41,7 @@ import WishlistButton from "../card/buttons/WishlistButton";
 import ToCollectionButton from "../card/buttons/ToCollectionButton";
 import MessageModal from "../../modal/MessageModal";
 import VinylSpinner from "../../spinner/VinylSpinner";
+import { useThemePlaceholder } from "../../../../lib/useThemePlaceholder";
 import "./AlbumDetailsModal.scss";
 
 type DiscogsRelease = {
@@ -65,6 +66,8 @@ type AlbumDetailsModalProps = {
   album: DiscogsRelease | null;
   artist?: string;
   displayTitle?: string;
+  detailsOverride?: DiscogsReleaseDetails | null;
+  hideActions?: boolean;
   onClose: () => void;
 };
 
@@ -73,10 +76,13 @@ export default function AlbumDetailsModal({
   album,
   artist,
   displayTitle,
+  detailsOverride,
+  hideActions = false,
   onClose,
 }: AlbumDetailsModalProps) {
   const EXPANDBOX_PREVIEW_HEIGHT = 220;
   const { locale } = useLanguage();
+  const placeholderSrc = useThemePlaceholder();
   const [details, setDetails] = useState<DiscogsReleaseDetails | null>(null);
   const [imageIndex, setImageIndex] = useState(0);
   const [extraArtistsExpanded, setExtraArtistsExpanded] = useState(false);
@@ -105,6 +111,14 @@ export default function AlbumDetailsModal({
 
   useEffect(() => {
     if (!open || !album) return;
+
+    if (detailsOverride) {
+      setDetails(detailsOverride);
+      setImageIndex(0);
+      setExtraArtistsExpanded(false);
+      setNotesExpanded(false);
+      return;
+    }
 
     let active = true;
     setDetailsLoading(true);
@@ -144,10 +158,10 @@ export default function AlbumDetailsModal({
     return () => {
       active = false;
     };
-  }, [open, album]);
+  }, [open, album, detailsOverride]);
 
   useEffect(() => {
-    if (!open || !album) return;
+    if (!open || !album || hideActions) return;
     const user = auth.currentUser;
     if (!user) {
       setAlbumStateLoading(false);
@@ -197,7 +211,7 @@ export default function AlbumDetailsModal({
     return () => {
       active = false;
     };
-  }, [open, album]);
+  }, [open, album, hideActions]);
 
   useEffect(() => {
     document.body.classList.toggle("album-details-modal-open", open);
@@ -317,7 +331,9 @@ export default function AlbumDetailsModal({
     setMoveToCollectionOpen(false);
   };
 
-  const images = details?.images?.map((img) => img.uri) || [album.cover_image];
+  const images = details?.images?.map((img) => img.uri) || [
+    album.cover_image || placeholderSrc,
+  ];
   const toTitleCase = (value: string) =>
     value.replace(/\w\S*/g, (word) => {
       const first = word.charAt(0).toUpperCase();
@@ -529,10 +545,15 @@ export default function AlbumDetailsModal({
   const isVinylRelease =
     details?.format?.some((format) => /vinyl|lp|12"|10"|7"/i.test(format)) ??
     false;
+  const hasLetteredSides =
+    details?.tracklist?.some((track) =>
+      Boolean(getTrackSide(track.position)),
+    ) ?? false;
+  const groupByVinylSide = isVinylRelease && hasLetteredSides;
   const sideGroups =
     details?.tracklist?.reduce(
       (acc, track) => {
-        const side = isVinylRelease
+        const side = groupByVinylSide
           ? getTrackSide(track.position) || "Other"
           : "All";
         if (!acc[side]) acc[side] = [];
@@ -614,7 +635,7 @@ export default function AlbumDetailsModal({
       value: estimatedRecords,
     });
   }
-  const isLoading = detailsLoading || albumStateLoading;
+  const isLoading = detailsLoading || (!hideActions && albumStateLoading);
 
   return (
     <div
@@ -668,7 +689,7 @@ export default function AlbumDetailsModal({
                       onPointerUp={onMainPointerUp}
                     >
                       <img
-                        src={images[imageIndex] || "/placeholder.png"}
+                        src={images[imageIndex] || placeholderSrc}
                         alt={displayTitle || album.title}
                         className="rounded-xl w-full aspect-square object-contain shadow-lg"
                         draggable={false}
@@ -729,7 +750,7 @@ export default function AlbumDetailsModal({
                               {/* The zoomable image */}
                               <TransformComponent>
                                 <img
-                                  src={images[imageIndex] || "/placeholder.png"}
+                                  src={images[imageIndex] || placeholderSrc}
                                   alt={displayTitle || album.title}
                                   className="w-auto h-auto max-w-full max-h-[80vh] sm:max-h-[95vh] object-contain"
                                   draggable={false}
@@ -795,7 +816,7 @@ export default function AlbumDetailsModal({
                           )}
                         >
                           <img
-                            src={uri || "/placeholder.png"}
+                            src={uri || placeholderSrc}
                             alt={`Album image ${index + 1}`}
                             className="w-full h-full object-contain cursor-pointer"
                             draggable={false}
@@ -890,52 +911,54 @@ export default function AlbumDetailsModal({
                     </div>
                   )}
 
-                <div className="album-details-modal-actions">
-                  {albumState === "none" && (
-                    <>
-                      <CollectionButton
-                        album={album}
-                        action="enabled"
-                        onAdded={() => setAlbumState("collection")}
-                      />
-                      <WishlistButton
-                        album={album}
-                        action="enabled"
-                        onAdded={() => setAlbumState("wishlist")}
-                      />
-                    </>
-                  )}
+                {!hideActions && (
+                  <div className="album-details-modal-actions">
+                    {albumState === "none" && (
+                      <>
+                        <CollectionButton
+                          album={album}
+                          action="enabled"
+                          onAdded={() => setAlbumState("collection")}
+                        />
+                        <WishlistButton
+                          album={album}
+                          action="enabled"
+                          onAdded={() => setAlbumState("wishlist")}
+                        />
+                      </>
+                    )}
 
-                  {albumState === "collection" && (
-                    <button
-                      className="album-details-modal-action-btn album-details-modal-action-btn--danger"
-                      onClick={() => setRemoveCollectionOpen(true)}
-                    >
-                      <Trash2 size={15} /> {t(locale, "remove")}
-                    </button>
-                  )}
-
-                  {albumState === "wishlist" && (
-                    <>
-                      <ToCollectionButton
-                        onClick={() => setMoveToCollectionOpen(true)}
-                      />
+                    {albumState === "collection" && (
                       <button
                         className="album-details-modal-action-btn album-details-modal-action-btn--danger"
-                        onClick={() => setRemoveWishlistOpen(true)}
-                        onMouseEnter={() => setWishlistRemoveHover(true)}
-                        onMouseLeave={() => setWishlistRemoveHover(false)}
+                        onClick={() => setRemoveCollectionOpen(true)}
                       >
-                        {wishlistRemoveHover ? (
-                          <HeartOff size={15} />
-                        ) : (
-                          <Heart size={15} />
-                        )}
-                        {t(locale, "remove")}
+                        <Trash2 size={15} /> {t(locale, "remove")}
                       </button>
-                    </>
-                  )}
-                </div>
+                    )}
+
+                    {albumState === "wishlist" && (
+                      <>
+                        <ToCollectionButton
+                          onClick={() => setMoveToCollectionOpen(true)}
+                        />
+                        <button
+                          className="album-details-modal-action-btn album-details-modal-action-btn--danger"
+                          onClick={() => setRemoveWishlistOpen(true)}
+                          onMouseEnter={() => setWishlistRemoveHover(true)}
+                          onMouseLeave={() => setWishlistRemoveHover(false)}
+                        >
+                          {wishlistRemoveHover ? (
+                            <HeartOff size={15} />
+                          ) : (
+                            <Heart size={15} />
+                          )}
+                          {t(locale, "remove")}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1059,7 +1082,7 @@ export default function AlbumDetailsModal({
                         <div className="album-details-modal-artist-meta">
                           {a.role && (
                             <span className="album-details-modal-artist-pill">
-                              {a.role}
+                              {toTitleCase(a.role)}
                             </span>
                           )}
                         </div>
@@ -1113,39 +1136,43 @@ export default function AlbumDetailsModal({
           </>
         )}
 
-        <MessageModal
-          open={removeCollectionOpen}
-          title={`${t(locale, "remove")} ${album.title}?`}
-          message={`${t(locale, "confirmRemoveFromCollection")}?`}
-          background="red"
-          color="white"
-          onCancel={() => setRemoveCollectionOpen(false)}
-          onConfirm={() => {
-            void removeFromCollection();
-          }}
-        />
+        {!hideActions && (
+          <>
+            <MessageModal
+              open={removeCollectionOpen}
+              title={`${t(locale, "remove")} ${album.title}?`}
+              message={`${t(locale, "confirmRemoveFromCollection")}?`}
+              background="red"
+              color="white"
+              onCancel={() => setRemoveCollectionOpen(false)}
+              onConfirm={() => {
+                void removeFromCollection();
+              }}
+            />
 
-        <MessageModal
-          open={removeWishlistOpen}
-          title={`${t(locale, "remove")} ${album.title}?`}
-          message={`${t(locale, "confirmRemoveFromWishlist")}?`}
-          background="red"
-          color="white"
-          onCancel={() => setRemoveWishlistOpen(false)}
-          onConfirm={() => {
-            void removeFromWishlist();
-          }}
-        />
+            <MessageModal
+              open={removeWishlistOpen}
+              title={`${t(locale, "remove")} ${album.title}?`}
+              message={`${t(locale, "confirmRemoveFromWishlist")}?`}
+              background="red"
+              color="white"
+              onCancel={() => setRemoveWishlistOpen(false)}
+              onConfirm={() => {
+                void removeFromWishlist();
+              }}
+            />
 
-        <MessageModal
-          open={moveToCollectionOpen}
-          title={`${t(locale, "moveToCollection", album.title)}?`}
-          message={`${t(locale, "moveToCollectionMessage")}?`}
-          onCancel={() => setMoveToCollectionOpen(false)}
-          onConfirm={() => {
-            void moveToCollection();
-          }}
-        />
+            <MessageModal
+              open={moveToCollectionOpen}
+              title={`${t(locale, "moveToCollection", album.title)}?`}
+              message={`${t(locale, "moveToCollectionMessage")}?`}
+              onCancel={() => setMoveToCollectionOpen(false)}
+              onConfirm={() => {
+                void moveToCollection();
+              }}
+            />
+          </>
+        )}
       </div>
     </div>
   );

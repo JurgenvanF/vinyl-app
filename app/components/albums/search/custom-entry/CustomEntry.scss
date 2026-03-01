@@ -1,0 +1,73 @@
+.custom-entry {
+  &__panel {
+    background-color: var(--auth-background);
+    border: 1px solid var(--auth-border);
+  }
+
+  &__input {
+    background-color: var(--auth-input-background);
+    border: 1px solid var(--auth-input-border, var(--auth-border));
+    color: var(--auth-color);
+
+    &:focus {
+      outline: var(--auth-input-focus-outline);
+      border: 1px solid var(--auth-input-focus-border);
+    }
+
+    &:focus-visible {
+      box-shadow: 0 0 0 3px var(--auth-input-focus-shadow);
+    }
+
+    &::placeholder {
+      color: var(--auth-input-placeholder);
+    }
+  }
+
+  &__hint {
+    color: var(--auth-footer);
+  }
+
+  &__btn {
+    background-color: var(--auth-button-background);
+    border: 1px solid var(--auth-button-border, var(--auth-border));
+    color: var(--auth-button-color);
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &__btn-primary {
+    background-color: var(--add-btn-bg);
+    border: 1px solid var(--add-btn-border);
+    color: var(--add-btn-text);
+
+    &:hover {
+      background-color: var(--add-btn-bg-hover);
+    }
+  }
+
+  &__btn-seg {
+    background-color: var(--auth-button-background);
+    border: 1px solid var(--auth-button-border, var(--auth-border));
+    color: var(--auth-button-color);
+  }
+
+  &__btn-seg--active {
+    background: var(--nav-gradient);
+    color: var(--white-black);
+  }
+
+  &__error {
+    background: var(--scanner-red-50);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: var(--scanner-red-600);
+  }
+
+  &__thumb {
+    background-color: var(--scanner-bg);
+    border: 1px solid var(--scanner-border);
+  }
+}
+

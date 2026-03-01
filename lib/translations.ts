@@ -59,6 +59,66 @@ type Translations = {
     scanBarcodeInstruction: string;
     activateCamera: string;
     customEntry: string;
+    customEntryHelp: string;
+    required: string;
+    optionalDetails: string;
+    preview: string;
+    saveTo: string;
+    saveToCollection: string;
+    saveToWishlist: string;
+    select: string;
+    releaseType: string;
+    year: string;
+    styles: string;
+    formats: string;
+    coverImages: string;
+    coverImagesHint: string;
+    takePhoto: string;
+    noImageSelected: string;
+    coverSelected: string;
+    coverRequired: string;
+    releasedPlaceholder: string;
+    releasedInvalid: string;
+    primary: string;
+    set: string;
+    addValue: string;
+    yearOnly: string;
+    yearMonth: string;
+    fullDate: string;
+    releasedHelp: string;
+    countryHelp: string;
+    seriesPlaceholder: string;
+    seriesHelp: string;
+    notesPlaceholder: string;
+    notesHelp: string;
+    genreHelp: string;
+    mainGenre: string;
+    otherGenres: string;
+    stylesHelp: string;
+    formatsHelp: string;
+    images: string;
+    addImages: string;
+    label: string;
+    addLabel: string;
+    addExtraArtist: string;
+    side: string;
+    addSide: string;
+    role: string;
+    customEntryCommaSeparated: string;
+    customEntryText: string;
+    customEntryOptional: string;
+    customEntryPreviewCard: string;
+    customEntryPreviewHint: string;
+    customEntryMissingRequired: (fields: string) => string;
+    customEntryInvalidNumbers: (fields: string) => string;
+    customEntryConfirmTitle: (
+      albumTitle: string,
+      albumArtist: string,
+      target: string,
+    ) => string;
+    customEntryConfirmMessage: string;
+    customEntryAdded: (albumTitle: string, albumArtist: string) => string;
+    customEntrySaveError: string;
     albumName: string;
     artist: string;
     genre: string;
@@ -183,6 +243,70 @@ export const translations: Translations = {
       "Click the button below to activate your camera and scan a barcode",
     activateCamera: "Activate Camera",
     customEntry: "Custom Entry",
+    customEntryHelp:
+      "Add an album manually when it can't be found in search or barcode results.",
+    required: "Required",
+    optionalDetails: "Optional details",
+    preview: "Preview",
+    saveTo: "Save to",
+    saveToCollection: "Add to collection",
+    saveToWishlist: "Add to wishlist",
+    select: "Select",
+    releaseType: "Release type",
+    year: "Year",
+    styles: "Styles",
+    formats: "Formats",
+    coverImages: "Cover images",
+    coverImagesHint:
+      "Upload one or more images. The first image will be used as the cover; all images will show in the carousel.",
+    takePhoto: "Take photo",
+    noImageSelected: "No image selected",
+    coverSelected: "Cover selected",
+    coverRequired: "Cover image is required",
+    releasedPlaceholder: "YYYY or YYYY-MM or YYYY-MM-DD",
+    releasedInvalid: "Release date must be YYYY, YYYY-MM, or YYYY-MM-DD.",
+    primary: "Primary",
+    set: "Set",
+    addValue: "Add",
+    yearOnly: "Year",
+    yearMonth: "Year & month",
+    fullDate: "Full date",
+    releasedHelp:
+      "You can enter YYYY, YYYY-MM, or YYYY-MM-DD. Use the calendar for a full date.",
+    countryHelp: "Select the release country.",
+    seriesPlaceholder: "e.g. 'Now That's What I Call Music!'",
+    seriesHelp: "Only fill this in if the album is part of a series.",
+    notesPlaceholder: "Notes about this release (pressing, edition, etc.)",
+    notesHelp: "Optional. Keep it short; you can always edit later.",
+    genreHelp: "Top-level genre(s), e.g. Rock, Jazz.",
+    mainGenre: "Main genre",
+    otherGenres: "Other genres",
+    stylesHelp: "More specific style(s), e.g. Indie Rock, Hard Bop.",
+    formatsHelp: "Physical format tags, e.g. Vinyl, LP, 12\".",
+    images: "Images",
+    addImages: "Add images",
+    label: "Label",
+    addLabel: "Add label",
+    addExtraArtist: "Add extra artist",
+    side: "Side",
+    addSide: "Add side",
+    role: "Role",
+    customEntryCommaSeparated: "Comma-separated, e.g. Rock, Pop",
+    customEntryText: "Extra text",
+    customEntryOptional: "Optional",
+    customEntryPreviewCard: "Album card preview",
+    customEntryPreviewHint:
+      "This updates live so you can see what will show in your collection/wishlist.",
+    customEntryMissingRequired: (fields) => `Missing required fields: ${fields}`,
+    customEntryInvalidNumbers: (fields) =>
+      `Please use numbers for: ${fields}`,
+    customEntryConfirmTitle: (albumTitle, albumArtist, target) =>
+      `Add ${albumTitle} by ${albumArtist} to ${target}?`,
+    customEntryConfirmMessage:
+      "Are you sure you want to save this custom album?",
+    customEntryAdded: (albumTitle, albumArtist) =>
+      `Added ${albumTitle} by ${albumArtist}`,
+    customEntrySaveError: "Something went wrong saving this custom album.",
     albumName: "Album Name",
     artist: "Artist",
     genre: "Genre",
@@ -308,6 +432,72 @@ export const translations: Translations = {
       "Klik op de knop hieronder om je camera te activeren en een barcode te scannen",
     activateCamera: "Camera activeren",
     customEntry: "Handmatige invoer",
+    customEntryHelp:
+      "Voeg een album handmatig toe als het niet gevonden kan worden via zoeken of barcode.",
+    required: "Verplicht",
+    optionalDetails: "Optionele details",
+    preview: "Voorbeeld",
+    saveTo: "Opslaan in",
+    saveToCollection: "Toevoegen aan collectie",
+    saveToWishlist: "Toevoegen aan verlanglijst",
+    select: "Kies",
+    releaseType: "Release type",
+    year: "Jaar",
+    styles: "Stijlen",
+    formats: "Formats",
+    coverImages: "Omslagafbeeldingen",
+    coverImagesHint:
+      "Upload één of meerdere afbeeldingen. De eerste afbeelding wordt gebruikt als omslag; alle afbeeldingen verschijnen in de carrousel.",
+    takePhoto: "Foto maken",
+    noImageSelected: "Geen afbeelding gekozen",
+    coverSelected: "Omslag gekozen",
+    coverRequired: "Omslagafbeelding is verplicht",
+    releasedPlaceholder: "JJJJ of JJJJ-MM of JJJJ-MM-DD",
+    releasedInvalid: "Releasedatum moet JJJJ, JJJJ-MM of JJJJ-MM-DD zijn.",
+    primary: "Primair",
+    set: "Zet",
+    addValue: "Toevoegen",
+    yearOnly: "Jaar",
+    yearMonth: "Jaar & maand",
+    fullDate: "Volledige datum",
+    releasedHelp:
+      "Je kunt JJJJ, JJJJ-MM of JJJJ-MM-DD invoeren. Gebruik de kalender voor een volledige datum.",
+    countryHelp: "Selecteer het land van deze release.",
+    seriesPlaceholder: "bijv. 'Now That's What I Call Music!'",
+    seriesHelp: "Vul dit alleen in als het album onderdeel is van een serie.",
+    notesPlaceholder: "Notities over deze release (persing, editie, etc.)",
+    notesHelp: "Optioneel. Houd het kort; je kunt dit later aanpassen.",
+    genreHelp: "Hoofdgenre(s), bijv. Rock, Jazz.",
+    mainGenre: "Hoofdgenre",
+    otherGenres: "Overige genres",
+    stylesHelp: "Meer specifieke stijl(en), bijv. Indie Rock, Hard Bop.",
+    formatsHelp: "Fysieke format-tags, bijv. Vinyl, LP, 12\".",
+    images: "Afbeeldingen",
+    addImages: "Afbeeldingen toevoegen",
+    label: "Label",
+    addLabel: "Label toevoegen",
+    addExtraArtist: "Extra artiest toevoegen",
+    side: "Kant",
+    addSide: "Kant toevoegen",
+    role: "Rol",
+    customEntryCommaSeparated: "Gescheiden door komma's, bv. Rock, Pop",
+    customEntryText: "Extra tekst",
+    customEntryOptional: "Optioneel",
+    customEntryPreviewCard: "Voorbeeld albumkaart",
+    customEntryPreviewHint:
+      "Dit wordt direct bijgewerkt zodat je ziet wat er straks in je collectie/verlanglijst staat.",
+    customEntryMissingRequired: (fields) =>
+      `Verplichte velden ontbreken: ${fields}`,
+    customEntryInvalidNumbers: (fields) =>
+      `Gebruik cijfers voor: ${fields}`,
+    customEntryConfirmTitle: (albumTitle, albumArtist, target) =>
+      `Voeg ${albumTitle} van ${albumArtist} toe aan ${target}?`,
+    customEntryConfirmMessage:
+      "Weet je zeker dat je dit handmatige album wilt opslaan?",
+    customEntryAdded: (albumTitle, albumArtist) =>
+      `${albumTitle} van ${albumArtist} toegevoegd`,
+    customEntrySaveError:
+      "Er is iets misgegaan bij het opslaan van dit handmatige album.",
     albumName: "Albumnaam",
     artist: "Artiest",
     genre: "Genre",

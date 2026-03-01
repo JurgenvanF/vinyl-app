@@ -102,6 +102,10 @@ const aliasToISO: Record<string, string> = {
   usa: "US",
 };
 
+export const SUPPORTED_COUNTRY_ISOS = Array.from(
+  new Set([...Object.values(countryNameToISO), ...Object.values(aliasToISO)]),
+).sort((a, b) => a.localeCompare(b));
+
 function isoToFlag(code: string) {
   return code
     .toUpperCase()

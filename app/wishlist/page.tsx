@@ -118,7 +118,7 @@ export default function WishlistPage() {
 
           return {
             ...data,
-            cover_image: data.cover_image || "/placeholder.png",
+            cover_image: data.cover_image || "",
             artists: Array.isArray(data.artists)
               ? data.artists.filter(
                   (value): value is string => typeof value === "string",
@@ -385,7 +385,7 @@ export default function WishlistPage() {
                     key={album.id}
                     album={{
                       ...album,
-                      cover_image: album.cover_image || "/placeholder.png",
+                      cover_image: album.cover_image || "",
                       genre: album.genre?.length ? album.genre : undefined,
                       year: album.year ?? undefined,
                       catno: album.catno ?? undefined,
@@ -400,7 +400,7 @@ export default function WishlistPage() {
                         album: {
                           ...album,
                           artist: album.artist,
-                          cover_image: album.cover_image || "/placeholder.png",
+                          cover_image: album.cover_image || "",
                           genre: album.genre?.length ? album.genre : undefined,
                           year: album.year ?? undefined,
                           catno: album.catno ?? undefined,
@@ -427,7 +427,7 @@ export default function WishlistPage() {
               key={album.id}
               album={{
                 ...album,
-                cover_image: album.cover_image || "/placeholder.png",
+                cover_image: album.cover_image || "",
                 genre: album.genre?.length ? album.genre : undefined,
                 year: album.year ?? undefined,
                 catno: album.catno ?? undefined,
@@ -442,7 +442,7 @@ export default function WishlistPage() {
                   album: {
                     ...album,
                     artist: album.artist,
-                    cover_image: album.cover_image || "/placeholder.png",
+                    cover_image: album.cover_image || "",
                     genre: album.genre?.length ? album.genre : undefined,
                     year: album.year ?? undefined,
                     catno: album.catno ?? undefined,

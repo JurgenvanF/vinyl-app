@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { auth, db } from "../../../../lib/firebase";
+import { useThemePlaceholder } from "../../../../lib/useThemePlaceholder";
 import {
   doc,
   setDoc,
@@ -80,6 +81,7 @@ export default function AlbumCard({
   buttons,
 }: AlbumCardProps) {
   const { locale } = useLanguage();
+  const placeholderSrc = useThemePlaceholder();
 
   const [isInCollection, setIsInCollection] = useState(
     collectionAction === "disabled",
@@ -118,8 +120,8 @@ export default function AlbumCard({
       {/* Album Image */}
       <div className="album-card__image w-10/12 aspect-square rounded-xl overflow-hidden mt-4 relative">
         <img
-          src={album.cover_image || "/placeholder.png"}
-          alt={title}
+          src={album.cover_image || placeholderSrc}
+          alt=""
           className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
         />
       </div>
