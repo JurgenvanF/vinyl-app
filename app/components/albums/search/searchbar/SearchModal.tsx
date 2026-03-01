@@ -12,6 +12,8 @@ import { ArrowUp } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
+import "./SearchModal.scss";
+
 type DiscogsRelease = {
   id: number;
   title: string;
@@ -44,6 +46,9 @@ export default function SearchModal() {
   const [hasCompletedSearch, setHasCompletedSearch] = useState(false);
   const [searchNotice, setSearchNotice] = useState("");
   const [page, setPage] = useState(1);
+
+  const [showTopFade, setShowTopFade] = useState(false);
+  const [showBottomFade, setShowBottomFade] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
 
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -207,7 +212,16 @@ export default function SearchModal() {
         <div className="relative">
           <div
             ref={resultsRef}
-            className="mt-6 max-h-[40vh] md:max-h-[55vh] overflow-y-auto pr-2"
+            onScroll={() => {
+              const el = resultsRef.current;
+              if (!el) return;
+              setShowTopFade(el.scrollTop > 0);
+              setShowBottomFade(
+                el.scrollHeight > el.clientHeight &&
+                  el.scrollTop + el.clientHeight < el.scrollHeight,
+              );
+            }}
+            className="mt-6 max-h-[40vh] md:max-h-[55vh] overflow-y-auto pr-2 relative z-0"
           >
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {searchResults.map((album) => {
@@ -229,17 +243,13 @@ export default function SearchModal() {
                     releaseType={releaseType}
                     artist={artist}
                     title={title}
-                    onCardClick={() => {
-                      setSelectedAlbum({ album, artist, title });
-                    }}
+                    onCardClick={() =>
+                      setSelectedAlbum({ album, artist, title })
+                    }
                     collectionAction={isInCollection ? "disabled" : "enabled"}
                     wishlistAction={isInWishlist ? "disabled" : "enabled"}
                     onAddedToCollection={(albumId) => {
-                      setCollectionIds((prev) => {
-                        const next = new Set(prev);
-                        next.add(albumId);
-                        return next;
-                      });
+                      setCollectionIds((prev) => new Set([...prev, albumId]));
                       setWishlistIds((prev) => {
                         const next = new Set(prev);
                         next.delete(albumId);
@@ -247,11 +257,7 @@ export default function SearchModal() {
                       });
                     }}
                     onAddedToWishlist={(albumId) => {
-                      setWishlistIds((prev) => {
-                        const next = new Set(prev);
-                        next.add(albumId);
-                        return next;
-                      });
+                      setWishlistIds((prev) => new Set([...prev, albumId]));
                       setCollectionIds((prev) => {
                         const next = new Set(prev);
                         next.delete(albumId);
@@ -276,6 +282,15 @@ export default function SearchModal() {
               </p>
             )}
           </div>
+
+          {/* Top fade */}
+          {showTopFade && (
+            <div className="top-fade pointer-events-none absolute top-0 left-0 w-full h-8 z-10" />
+          )}
+          {/* Bottom fade */}
+          {showBottomFade && (
+            <div className="bottom-fade pointer-events-none absolute bottom-0 left-0 w-full h-8 z-10" />
+          )}
 
           {/* Scroll to top button */}
           <button

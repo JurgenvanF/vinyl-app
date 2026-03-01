@@ -1,0 +1,7 @@
+.top-fade {
+  background: linear-gradient(to bottom, var(--search-fade), transparent);
+}
+
+.bottom-fade {
+  background: linear-gradient(to top, var(--search-fade), transparent);
+}
