@@ -257,16 +257,29 @@ export default function Barcode() {
               <div className="scanner__overlay-bg absolute inset-0 animate-pulse pointer-events-none" />
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center text-center space-y-4">
-              <div className="scanner__empty-icon p-6 rounded-full shadow-inner">
-                <ScanBarcode size={60} />
+            <div className="flex flex-col items-center justify-center text-center p-4 sm:p-6 space-y-3 sm:space-y-4">
+              {/* Icon */}
+              <div className="scanner__empty-icon flex items-center justify-center rounded-full shadow-inner p-4 sm:p-6">
+                <ScanBarcode
+                  style={{
+                    width: "clamp(40px, 10vw, 60px)",
+                    height: "clamp(40px, 10vw, 60px)",
+                  }}
+                />
               </div>
 
-              <div>
-                <p className="scanner__title text-lg font-semibold">
+              {/* Text */}
+              <div className="space-y-1">
+                <p
+                  className="scanner__title font-semibold"
+                  style={{ fontSize: "clamp(0.9rem, 4vw, 1.125rem)" }}
+                >
                   {t(locale, "readyToScan")}
                 </p>
-                <p className="scanner__subtitle text-sm">
+                <p
+                  className="scanner__subtitle"
+                  style={{ fontSize: "clamp(0.75rem, 3vw, 0.875rem)" }}
+                >
                   {t(locale, "clickBelowToStartCamera")}
                 </p>
               </div>
