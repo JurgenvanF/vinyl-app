@@ -77,6 +77,9 @@ type Translations = {
     noImageSelected: string;
     coverSelected: string;
     coverRequired: string;
+    addArtist: string;
+    artistAdditional: string;
+    artistsHelp: string;
     releasedPlaceholder: string;
     releasedInvalid: string;
     primary: string;
@@ -103,10 +106,13 @@ type Translations = {
     addExtraArtist: string;
     side: string;
     addSide: string;
+    tracklistContinuous: string;
+    tracklistSides: string;
     role: string;
     customEntryCommaSeparated: string;
     customEntryText: string;
     customEntryOptional: string;
+    customEntryAlternative: string;
     customEntryPreviewCard: string;
     customEntryPreviewHint: string;
     customEntryMissingRequired: (fields: string) => string;
@@ -257,14 +263,16 @@ export const translations: Translations = {
     styles: "Styles",
     formats: "Formats",
     coverImages: "Cover images",
-    coverImagesHint:
-      "Upload one or more images. The first image will be used as the cover; all images will show in the carousel.",
+    coverImagesHint: "Upload one cover image.",
     takePhoto: "Take photo",
     noImageSelected: "No image selected",
     coverSelected: "Cover selected",
     coverRequired: "Cover image is required",
-    releasedPlaceholder: "YYYY or YYYY-MM or YYYY-MM-DD",
-    releasedInvalid: "Release date must be YYYY, YYYY-MM, or YYYY-MM-DD.",
+    addArtist: "Add artist",
+    artistAdditional: "Additional artist",
+    artistsHelp: "Add all main artists. The first artist is used for sorting.",
+    releasedPlaceholder: "DD-MM-YYYY, MM-YYYY or YYYY",
+    releasedInvalid: "Release date must be DD-MM-YYYY, MM-YYYY, or YYYY.",
     primary: "Primary",
     set: "Set",
     addValue: "Add",
@@ -272,7 +280,7 @@ export const translations: Translations = {
     yearMonth: "Year & month",
     fullDate: "Full date",
     releasedHelp:
-      "You can enter YYYY, YYYY-MM, or YYYY-MM-DD. Use the calendar for a full date.",
+      "Enter DD-MM-YYYY, MM-YYYY, or YYYY. Use the calendar button for a full date.",
     countryHelp: "Select the release country.",
     seriesPlaceholder: "e.g. 'Now That's What I Call Music!'",
     seriesHelp: "Only fill this in if the album is part of a series.",
@@ -282,7 +290,7 @@ export const translations: Translations = {
     mainGenre: "Main genre",
     otherGenres: "Other genres",
     stylesHelp: "More specific style(s), e.g. Indie Rock, Hard Bop.",
-    formatsHelp: "Physical format tags, e.g. Vinyl, LP, 12\".",
+    formatsHelp: 'Physical format tags, e.g. Vinyl, LP, 12".',
     images: "Images",
     addImages: "Add images",
     label: "Label",
@@ -290,16 +298,19 @@ export const translations: Translations = {
     addExtraArtist: "Add extra artist",
     side: "Side",
     addSide: "Add side",
+    tracklistContinuous: "All",
+    tracklistSides: "Sides",
     role: "Role",
     customEntryCommaSeparated: "Comma-separated, e.g. Rock, Pop",
     customEntryText: "Extra text",
     customEntryOptional: "Optional",
+    customEntryAlternative: "Alternative",
     customEntryPreviewCard: "Album card preview",
     customEntryPreviewHint:
       "This updates live so you can see what will show in your collection/wishlist.",
-    customEntryMissingRequired: (fields) => `Missing required fields: ${fields}`,
-    customEntryInvalidNumbers: (fields) =>
-      `Please use numbers for: ${fields}`,
+    customEntryMissingRequired: (fields) =>
+      `Missing required fields: ${fields}`,
+    customEntryInvalidNumbers: (fields) => `Please use numbers for: ${fields}`,
     customEntryConfirmTitle: (albumTitle, albumArtist, target) =>
       `Add ${albumTitle} by ${albumArtist} to ${target}?`,
     customEntryConfirmMessage:
@@ -446,14 +457,17 @@ export const translations: Translations = {
     styles: "Stijlen",
     formats: "Formats",
     coverImages: "Omslagafbeeldingen",
-    coverImagesHint:
-      "Upload één of meerdere afbeeldingen. De eerste afbeelding wordt gebruikt als omslag; alle afbeeldingen verschijnen in de carrousel.",
+    coverImagesHint: "Upload één cover afbeelding.",
     takePhoto: "Foto maken",
     noImageSelected: "Geen afbeelding gekozen",
     coverSelected: "Omslag gekozen",
     coverRequired: "Omslagafbeelding is verplicht",
-    releasedPlaceholder: "JJJJ of JJJJ-MM of JJJJ-MM-DD",
-    releasedInvalid: "Releasedatum moet JJJJ, JJJJ-MM of JJJJ-MM-DD zijn.",
+    addArtist: "Artiest toevoegen",
+    artistAdditional: "Extra artiest",
+    artistsHelp:
+      "Voeg alle hoofdartiesten toe. De eerste artiest wordt gebruikt voor sortering.",
+    releasedPlaceholder: "DD-MM-JJJJ, MM-JJJJ of JJJJ",
+    releasedInvalid: "Releasedatum moet DD-MM-JJJJ, MM-JJJJ of JJJJ zijn.",
     primary: "Primair",
     set: "Zet",
     addValue: "Toevoegen",
@@ -461,17 +475,17 @@ export const translations: Translations = {
     yearMonth: "Jaar & maand",
     fullDate: "Volledige datum",
     releasedHelp:
-      "Je kunt JJJJ, JJJJ-MM of JJJJ-MM-DD invoeren. Gebruik de kalender voor een volledige datum.",
+      "Vul DD-MM-JJJJ, MM-JJJJ of JJJJ in. Gebruik de kalenderknop voor een volledige datum.",
     countryHelp: "Selecteer het land van deze release.",
     seriesPlaceholder: "bijv. 'Now That's What I Call Music!'",
     seriesHelp: "Vul dit alleen in als het album onderdeel is van een serie.",
     notesPlaceholder: "Notities over deze release (persing, editie, etc.)",
-    notesHelp: "Optioneel. Houd het kort; je kunt dit later aanpassen.",
+    notesHelp: "Optioneel. Je kunt dit later aanpassen.",
     genreHelp: "Hoofdgenre(s), bijv. Rock, Jazz.",
     mainGenre: "Hoofdgenre",
     otherGenres: "Overige genres",
     stylesHelp: "Meer specifieke stijl(en), bijv. Indie Rock, Hard Bop.",
-    formatsHelp: "Fysieke format-tags, bijv. Vinyl, LP, 12\".",
+    formatsHelp: 'Fysieke format-tags, bijv. Vinyl, LP, 12".',
     images: "Afbeeldingen",
     addImages: "Afbeeldingen toevoegen",
     label: "Label",
@@ -479,17 +493,19 @@ export const translations: Translations = {
     addExtraArtist: "Extra artiest toevoegen",
     side: "Kant",
     addSide: "Kant toevoegen",
+    tracklistContinuous: "Alles",
+    tracklistSides: "Kanten",
     role: "Rol",
     customEntryCommaSeparated: "Gescheiden door komma's, bv. Rock, Pop",
     customEntryText: "Extra tekst",
     customEntryOptional: "Optioneel",
+    customEntryAlternative: "Alternatief",
     customEntryPreviewCard: "Voorbeeld albumkaart",
     customEntryPreviewHint:
       "Dit wordt direct bijgewerkt zodat je ziet wat er straks in je collectie/verlanglijst staat.",
     customEntryMissingRequired: (fields) =>
       `Verplichte velden ontbreken: ${fields}`,
-    customEntryInvalidNumbers: (fields) =>
-      `Gebruik cijfers voor: ${fields}`,
+    customEntryInvalidNumbers: (fields) => `Gebruik cijfers voor: ${fields}`,
     customEntryConfirmTitle: (albumTitle, albumArtist, target) =>
       `Voeg ${albumTitle} van ${albumArtist} toe aan ${target}?`,
     customEntryConfirmMessage:

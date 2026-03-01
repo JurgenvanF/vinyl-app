@@ -52,6 +52,7 @@ type AlbumCardProps = {
   releaseType?: string;
   artist?: string;
   title?: string;
+  interactive?: boolean;
   onCardClick?: () => void;
   collectionAction?: "enabled" | "disabled";
   wishlistAction?: "enabled" | "disabled";
@@ -73,6 +74,7 @@ export default function AlbumCard({
   releaseType,
   artist,
   title,
+  interactive = true,
   onCardClick,
   collectionAction = "enabled",
   wishlistAction = "enabled",
@@ -82,6 +84,7 @@ export default function AlbumCard({
 }: AlbumCardProps) {
   const { locale } = useLanguage();
   const placeholderSrc = useThemePlaceholder();
+  const isClickable = interactive && typeof onCardClick === "function";
 
   const [isInCollection, setIsInCollection] = useState(
     collectionAction === "disabled",
@@ -102,12 +105,14 @@ export default function AlbumCard({
 
   return (
     <div
-      className="album-card group flex flex-col items-center gap-2 border rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 max-w-[200px] cursor-pointer overflow-hidden"
-      onClick={onCardClick}
-      role={onCardClick ? "button" : undefined}
-      tabIndex={onCardClick ? 0 : undefined}
+      className={`album-card flex flex-col items-center gap-2 border rounded-xl shadow-sm transition-all duration-300 max-w-[200px] overflow-hidden ${
+        interactive ? "group hover:shadow-lg" : ""
+      } ${isClickable ? "cursor-pointer" : "cursor-default"}`}
+      onClick={isClickable ? onCardClick : undefined}
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
       onKeyDown={
-        onCardClick
+        isClickable
           ? (event) => {
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
@@ -122,7 +127,9 @@ export default function AlbumCard({
         <img
           src={album.cover_image || placeholderSrc}
           alt=""
-          className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
+          className={`w-full h-full object-cover rounded-xl transition-transform duration-300 ${
+            interactive ? "group-hover:scale-105" : ""
+          }`}
         />
       </div>
 
