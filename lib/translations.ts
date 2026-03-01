@@ -103,6 +103,16 @@ type Translations = {
     albumDetailsOtherTracks: string;
     albumDetailsSide: (side: string) => string;
     albumDetailsImageAria: (index: number) => string;
+    barcode: string;
+    readyToScan: string;
+    clickBelowToStartCamera: string;
+    startScanner: string;
+    stopScanner: string;
+    barcodeErrorNoAlbumFound: string;
+    barcodeErrorAutoplayBlocked: string;
+    barcodeErrorPreviewMountFailed: string;
+    barcodeErrorCameraDenied: string;
+    barcodeErrorFetchAlbumData: string;
   };
 };
 
@@ -217,6 +227,18 @@ export const translations: Translations = {
     albumDetailsOtherTracks: "Other tracks",
     albumDetailsSide: (side) => `Side ${side}`,
     albumDetailsImageAria: (index) => `Show image ${index}`,
+    barcode: "Barcode",
+    readyToScan: "Ready to scan",
+    clickBelowToStartCamera: "Click the button below to start the camera",
+    startScanner: "Activate Camera",
+    stopScanner: "Stop Camera",
+    barcodeErrorNoAlbumFound:
+      "No album found for this barcode in the database.",
+    barcodeErrorAutoplayBlocked:
+      "Browser blocked camera autoplay. Tap Start again.",
+    barcodeErrorPreviewMountFailed: "Camera preview failed to mount.",
+    barcodeErrorCameraDenied: "Camera access denied or unavailable.",
+    barcodeErrorFetchAlbumData: "Error fetching album data.",
   },
   nl: {
     welcome: "Beheer uw Vinyl Collectie",
@@ -330,6 +352,20 @@ export const translations: Translations = {
     albumDetailsOtherTracks: "Overige nummers",
     albumDetailsSide: (side) => `Kant ${side}`,
     albumDetailsImageAria: (index) => `Toon afbeelding ${index}`,
+    barcode: "Barcode",
+    readyToScan: "Klaar om te scannen",
+    clickBelowToStartCamera:
+      "Klik op de onderstaande knop om de camera te starten",
+    startScanner: "Activeer Camera",
+    stopScanner: "Stop Camera",
+    barcodeErrorNoAlbumFound:
+      "Geen album gevonden voor deze barcode in de database.",
+    barcodeErrorAutoplayBlocked:
+      "Je browser blokkeerde het automatisch starten van de camera. Tik opnieuw op Start.",
+    barcodeErrorPreviewMountFailed: "Cameraweergave kon niet worden geladen.",
+    barcodeErrorCameraDenied:
+      "Geen toegang tot camera of camera niet beschikbaar.",
+    barcodeErrorFetchAlbumData: "Fout bij het ophalen van albumgegevens.",
   },
 };
 

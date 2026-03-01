@@ -1,0 +1,55 @@
+.scanner {
+  &__card {
+    background-color: var(--scanner-bg);
+    border-color: var(--scanner-border);
+  }
+
+  &__overlay-border {
+    border-color: var(--scanner-orange-border);
+  }
+
+  &__overlay-bg {
+    background-color: var(--scanner-orange-overlay);
+  }
+
+  &__empty-icon {
+    background-color: var(--scanner-orange-100);
+    color: var(--scanner-orange-500);
+  }
+
+  &__title {
+    color: var(--scanner-text-primary);
+  }
+
+  &__subtitle {
+    color: var(--scanner-text-muted);
+  }
+
+  &__badge {
+    background-color: var(--scanner-badge-bg);
+    color: var(--scanner-text-primary);
+  }
+
+  &__error {
+    background-color: var(--scanner-red-50);
+    color: var(--scanner-red-500);
+  }
+
+  &__btn--start {
+    background-color: var(--scanner-start);
+    color: white;
+  }
+
+  &__btn--start:hover {
+    background-color: var(--scanner-start-hover);
+  }
+
+  &__btn--stop {
+    background-color: var(--scanner-red-500);
+    color: white;
+  }
+
+  &__btn--stop:hover {
+    background-color: var(--scanner-red-600);
+  }
+}

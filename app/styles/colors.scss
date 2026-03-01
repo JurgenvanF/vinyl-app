@@ -131,6 +131,30 @@
   --add-btn-text: #ffffff;
 
   --add-btn-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);
+
+  --scanner-bg: #ffffff;
+  --scanner-border: #e5e7eb;
+
+  --scanner-text-primary: #374151;
+  --scanner-text-secondary: #6b7280;
+  --scanner-text-muted: #9ca3af;
+
+  --scanner-badge-bg: #f3f4f6;
+
+  --scanner-orange-100: #ffedd5;
+  --scanner-orange-500: #f97316;
+  --scanner-orange-600: #ea580c;
+
+  --scanner-start: #fb923c;
+  --scanner-start-hover: #ea580c;
+
+  --scanner-orange-border: rgba(249, 115, 22, 0.7);
+
+  --scanner-orange-overlay: rgba(249, 115, 22, 0.05);
+
+  --scanner-red-50: #fef2f2;
+  --scanner-red-500: #ef4444;
+  --scanner-red-600: #dc2626;
 }
 
 .dark {
@@ -250,4 +274,28 @@
   --add-btn-text: #ffffff;
 
   --add-btn-shadow: 0 4px 18px rgba(249, 115, 22, 0.45);
+
+  --scanner-bg: #1f2937;
+  --scanner-border: #374151;
+
+  --scanner-text-primary: #e5e7eb;
+  --scanner-text-secondary: #9ca3af;
+  --scanner-text-muted: #6b7280;
+
+  --scanner-badge-bg: #374151;
+
+  --scanner-orange-100: #7c2d12;
+  --scanner-orange-500: #fb923c;
+  --scanner-orange-600: #f97316;
+  --scanner-orange-700: #c2410c;
+
+  --scanner-start: #f97316;
+  --scanner-start-hover: #c2410c;
+
+  --scanner-orange-border: rgba(251, 146, 60, 0.7);
+  --scanner-orange-overlay: rgba(251, 146, 60, 0.08);
+
+  --scanner-red-50: #451a1a;
+  --scanner-red-500: #f87171;
+  --scanner-red-600: #ef4444;
 }

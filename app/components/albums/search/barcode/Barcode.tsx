@@ -2,11 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
+import { useLanguage } from "../../../../../lib/LanguageContext";
+import { t } from "../../../../../lib/translations";
 import AlbumDetailsModal from "../../modal/AlbumDetailsModal";
 import VinylSpinner from "../../../spinner/VinylSpinner";
 import AlbumCard from "../../card/AlbumCard";
 import { auth, db } from "../../../../../lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
+import { Scan, ScanBarcode } from "lucide-react";
+
+import "./Barcode.scss";
 
 type DiscogsRelease = {
   id: number;
@@ -49,6 +54,7 @@ export default function Barcode() {
 
   const [collectionIds, setCollectionIds] = useState<Set<string>>(new Set());
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
+  const { locale } = useLanguage();
   const [selectedAlbum, setSelectedAlbum] = useState<{
     album: DiscogsRelease;
     artist: string;
@@ -66,7 +72,9 @@ export default function Barcode() {
   const getReleaseType = (formats?: string[], type?: string) => {
     if (type === "master") return "Album";
     if (!formats || formats.length === 0) return undefined;
-    const meaningful = formats.find((f) => /LP|Single|EP|CD|Compilation/i.test(f));
+    const meaningful = formats.find((f) =>
+      /LP|Single|EP|CD|Compilation/i.test(f),
+    );
     if (!meaningful) return undefined;
 
     if (/LP/i.test(meaningful)) return "Album";
@@ -115,13 +123,29 @@ export default function Barcode() {
       });
       streamRef.current = stream;
 
-      const videoElement = videoRef.current!;
+      if (!videoRef.current) {
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => resolve()),
+        );
+      }
+
+      const videoElement = videoRef.current;
+      if (!videoElement) {
+        stream.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        setError(t(locale, "barcodeErrorPreviewMountFailed"));
+        setIsRunning(false);
+        return;
+      }
       videoElement.srcObject = stream;
 
       try {
         await videoElement.play();
       } catch {
-        setError("Browser blocked camera autoplay. Tap Start again.");
+        stream.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        if (videoRef.current) videoRef.current.srcObject = null;
+        setError(t(locale, "barcodeErrorAutoplayBlocked"));
         setIsRunning(false);
         return;
       }
@@ -150,12 +174,14 @@ export default function Barcode() {
 
           try {
             setLookupLoading(true);
-            const res = await fetch(`/api/discogs-barcode?barcode=${cleanBarcode}`);
+            const res = await fetch(
+              `/api/discogs-barcode?barcode=${cleanBarcode}`,
+            );
             const data = (await res.json()) as { results?: DiscogsRelease[] };
             const results = data.results ?? [];
 
             if (results.length === 0) {
-              setError("No album found for this barcode.");
+              setError(t(locale, "barcodeErrorNoAlbumFound"));
               return;
             }
 
@@ -179,12 +205,15 @@ export default function Barcode() {
 
             if (uniqueResults.length === 1) {
               const only = uniqueResults[0];
-              const { artist, title } = splitDiscogsTitle(only.title, only.artist);
+              const { artist, title } = splitDiscogsTitle(
+                only.title,
+                only.artist,
+              );
               setSelectedAlbum({ album: only, artist, title });
             }
           } catch (err) {
             console.error(err);
-            setError("Error fetching album data.");
+            setError(t(locale, "barcodeErrorFetchAlbumData"));
           } finally {
             setLookupLoading(false);
           }
@@ -193,7 +222,7 @@ export default function Barcode() {
 
       scannerControlsRef.current = controls;
     } catch {
-      setError("Camera access denied or unavailable.");
+      setError(t(locale, "barcodeErrorCameraDenied"));
       setIsRunning(false);
     }
   };
@@ -216,35 +245,78 @@ export default function Barcode() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <video
-        ref={videoRef}
-        className="w-full max-w-md border border-gray-300 rounded"
-      />
+      <div className="scanner w-full max-w-md mx-auto space-y-4">
+        {/* Scanner Card */}
+        <div className="scanner__card relative border rounded-2xl shadow-lg overflow-hidden aspect-video flex items-center justify-center transition-all duration-300">
+          {isRunning ? (
+            <>
+              <video ref={videoRef} className="w-full h-full object-cover" />
 
-      {!isRunning ? (
-        <button
-          onClick={startScanner}
-          className="px-4 py-2 bg-orange-500 text-white rounded"
-        >
-          Start Scanner
-        </button>
-      ) : (
-        <button
-          onClick={stopScanner}
-          className="px-4 py-2 bg-red-500 text-white rounded"
-        >
-          Stop Scanner
-        </button>
-      )}
+              {/* Overlay */}
+              <div className="scanner__overlay-border absolute inset-0 border-4 rounded-2xl pointer-events-none" />
+              <div className="scanner__overlay-bg absolute inset-0 animate-pulse pointer-events-none" />
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center text-center space-y-4">
+              <div className="scanner__empty-icon p-6 rounded-full shadow-inner">
+                <ScanBarcode size={60} />
+              </div>
 
-      {scannedText && <p className="text-gray-700">Scanned: {scannedText}</p>}
-      {error && <p className="text-red-500">{error}</p>}
-
-      {lookupLoading && (
-        <div className="flex justify-center mt-2">
-          <VinylSpinner />
+              <div>
+                <p className="scanner__title text-lg font-semibold">
+                  {t(locale, "readyToScan")}
+                </p>
+                <p className="scanner__subtitle text-sm">
+                  {t(locale, "clickBelowToStartCamera")}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Buttons */}
+        <div className="flex justify-center">
+          {!isRunning ? (
+            <button
+              onClick={startScanner}
+              className="scanner__btn--start flex items-center gap-2 px-6 py-2.5 active:scale-95 transition-all duration-200 font-medium rounded-xl shadow-md cursor-pointer"
+            >
+              <Scan size={20} />
+              {t(locale, "startScanner")}
+            </button>
+          ) : (
+            <button
+              onClick={stopScanner}
+              className="scanner__btn--stop px-6 py-2.5 active:scale-95 transition-all duration-200 font-medium rounded-xl shadow-md cursor-pointer"
+            >
+              {t(locale, "stopScanner")}
+            </button>
+          )}
+        </div>
+
+        {/* Feedback Section */}
+        <div className="flex flex-col items-center gap-3 min-h-[24px]">
+          {scannedText && (
+            <p className="scanner__badge text-sm rounded-lg px-3 py-2 inline-block">
+              <span className="font-medium">{t(locale, "barcode")}:</span>{" "}
+              {scannedText}
+            </p>
+          )}
+
+          {error && (
+            <p className="scanner__error text-sm rounded-lg px-3 py-2 inline-block">
+              {error}
+            </p>
+          )}
+        </div>
+
+        {/* Loader */}
+        {lookupLoading && (
+          <div className="flex justify-center pt-2">
+            <VinylSpinner />
+          </div>
+        )}
+      </div>
 
       {!lookupLoading && scanResults.length > 0 && (
         <div className="w-full">
@@ -252,7 +324,10 @@ export default function Barcode() {
             {scanResults.map((album) => {
               const mainGenre = getMainGenre(album.genre);
               const releaseType = getReleaseType(album.format, album.type);
-              const { artist, title } = splitDiscogsTitle(album.title, album.artist);
+              const { artist, title } = splitDiscogsTitle(
+                album.title,
+                album.artist,
+              );
 
               const isInCollection = collectionIds.has(album.id.toString());
               const isInWishlist = wishlistIds.has(album.id.toString());
