@@ -5,6 +5,7 @@ import { auth, db } from "../../lib/firebase";
 import {
   collection,
   doc,
+  getDoc,
   onSnapshot,
   orderBy,
   query,
@@ -16,10 +17,12 @@ import { useLanguage } from "../../lib/LanguageContext";
 import { t } from "../../lib/translations";
 import { deriveArtists, derivePrimaryArtist } from "../../lib/artist";
 import { fetchDiscogsArtists } from "../../lib/discogsArtists";
+import type { DiscogsReleaseDetails } from "../../lib/discogsRelease";
 import VinylSpinner from "../components/spinner/VinylSpinner";
 import AlbumCard from "../components/albums/card/AlbumCard";
 import AlbumSearchModal from "../components/albums/search/AlbumSearchModal";
 import AlbumDetailsModal from "../components/albums/modal/AlbumDetailsModal";
+import CustomEntryModal from "../components/albums/search/custom-entry/CustomEntryModal";
 import Searchbar from "../components/albums/search/searchbar/Searchbar";
 import DropDown from "../components/albums/search/searchbar/dropdown/DropDown";
 import { Plus, SlidersHorizontal, ArrowUp, ArrowDown } from "lucide-react";
@@ -39,6 +42,8 @@ type AlbumFromFirestore = {
   catno?: string | null;
   master_id?: number | null;
   detailsRef?: string | null;
+  source?: string;
+  cloudinaryPublicIds?: string[];
 };
 
 type WishlistSort = "recentlyAdded" | "artist" | "albumName" | "releaseDate";
@@ -67,11 +72,68 @@ export default function WishlistPage() {
       have?: number;
       want?: number;
       detailsRef?: string | null;
+      source?: string;
+      cloudinaryPublicIds?: string[];
     };
     artist: string;
     title: string;
+    detailsOverride?: DiscogsReleaseDetails;
   } | null>(null);
+  const [customEditOpen, setCustomEditOpen] = useState(false);
+  const [customEditId, setCustomEditId] = useState<number | null>(null);
   const router = useRouter();
+
+  const refreshSelectedCustomAlbum = async (albumId: number) => {
+    if (!user) return;
+
+    try {
+      const baseRef = doc(db, "users", user.uid, "Wishlist", albumId.toString());
+      const [albumSnap, detailsSnap] = await Promise.all([
+        getDoc(baseRef),
+        getDoc(doc(baseRef, "details", "details")),
+      ]);
+
+      if (!albumSnap.exists()) return;
+      const data = albumSnap.data();
+      if (!data) return;
+
+      let detailsOverride: DiscogsReleaseDetails | undefined = undefined;
+      const maybeDetails = detailsSnap.data()?.details;
+      if (maybeDetails && typeof maybeDetails === "object") {
+        detailsOverride = maybeDetails as DiscogsReleaseDetails;
+      }
+
+      const normalizedAlbum = {
+        id: typeof data.id === "number" ? data.id : albumId,
+        title: typeof data.title === "string" ? data.title : "",
+        artist: typeof data.artist === "string" ? data.artist : undefined,
+        cover_image:
+          typeof data.cover_image === "string" ? data.cover_image : "",
+        genre: Array.isArray(data.genre)
+          ? data.genre.filter((v): v is string => typeof v === "string")
+          : undefined,
+        year: typeof data.year === "number" ? data.year : undefined,
+        catno: typeof data.catno === "string" ? data.catno : undefined,
+        master_id: typeof data.master_id === "number" ? data.master_id : undefined,
+        detailsRef: typeof data.detailsRef === "string" ? data.detailsRef : null,
+        source: typeof data.source === "string" ? data.source : "custom",
+        cloudinaryPublicIds: Array.isArray(data.cloudinaryPublicIds)
+          ? data.cloudinaryPublicIds.filter(
+              (value): value is string => typeof value === "string",
+            )
+          : undefined,
+      };
+
+      setSelectedAlbum((prev) => ({
+        album: normalizedAlbum,
+        artist: normalizedAlbum.artist ?? prev?.artist ?? "",
+        title: normalizedAlbum.title,
+        detailsOverride,
+      }));
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const sortOptions: { value: WishlistSort; label: string }[] = [
     { value: "recentlyAdded", label: t(locale, "recentlyAdded") },
@@ -85,12 +147,15 @@ export default function WishlistPage() {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       if (!currentUser) {
         setUser(null);
+        setAlbums([]);
+        setAlbumsLoading(false);
         setLoading(false);
         router.replace("/");
         return;
       }
 
       setUser(currentUser);
+      setAlbumsLoading(true);
       setLoading(false);
     });
 
@@ -99,13 +164,7 @@ export default function WishlistPage() {
 
   // Real-time listener for Wishlist
   useEffect(() => {
-    if (!user) {
-      setAlbums([]);
-      setAlbumsLoading(false);
-      return;
-    }
-
-    setAlbumsLoading(true);
+    if (!user) return;
 
     const wishlistRef = collection(db, "users", user.uid, "Wishlist");
     const q = query(wishlistRef, orderBy("addedAt", "desc"));
@@ -314,7 +373,26 @@ export default function WishlistPage() {
         album={selectedAlbum?.album ?? null}
         artist={selectedAlbum?.artist}
         displayTitle={selectedAlbum?.title}
+        detailsOverride={selectedAlbum?.detailsOverride}
+        onEditCustom={() => {
+          if (!selectedAlbum) return;
+          setCustomEditId(selectedAlbum.album.id);
+          setCustomEditOpen(true);
+        }}
         onClose={() => setSelectedAlbum(null)}
+      />
+
+      <CustomEntryModal
+        open={customEditOpen && typeof customEditId === "number"}
+        mode="edit"
+        existingId={customEditId ?? undefined}
+        existingTarget="wishlist"
+        onClose={() => {
+          const id = customEditId;
+          setCustomEditOpen(false);
+          setCustomEditId(null);
+          if (typeof id === "number") void refreshSelectedCustomAlbum(id);
+        }}
       />
 
       {albumsLoading ? (
@@ -395,7 +473,31 @@ export default function WishlistPage() {
                     releaseType={album.releaseType}
                     artist={album.artist}
                     title={album.title}
-                    onCardClick={() =>
+                    onCardClick={async () => {
+                      let detailsOverride: DiscogsReleaseDetails | undefined =
+                        undefined;
+                      if (album.source === "custom") {
+                        const user = auth.currentUser;
+                        if (user) {
+                          const detailsSnap = await getDoc(
+                            doc(
+                              db,
+                              "users",
+                              user.uid,
+                              "Wishlist",
+                              album.id.toString(),
+                              "details",
+                              "details",
+                            ),
+                          );
+                          const data = detailsSnap.data();
+                          if (data && typeof data.details === "object") {
+                            detailsOverride =
+                              data.details as DiscogsReleaseDetails;
+                          }
+                        }
+                      }
+
                       setSelectedAlbum({
                         album: {
                           ...album,
@@ -408,8 +510,9 @@ export default function WishlistPage() {
                         },
                         artist: album.artist,
                         title: album.title,
-                      })
-                    }
+                        detailsOverride,
+                      });
+                    }}
                     buttons={{
                       removeWishlist: true,
                       toCollection: true,
@@ -437,7 +540,30 @@ export default function WishlistPage() {
               releaseType={album.releaseType}
               artist={album.artist}
               title={album.title}
-              onCardClick={() =>
+              onCardClick={async () => {
+                let detailsOverride: DiscogsReleaseDetails | undefined =
+                  undefined;
+                if (album.source === "custom") {
+                  const user = auth.currentUser;
+                  if (user) {
+                    const detailsSnap = await getDoc(
+                      doc(
+                        db,
+                        "users",
+                        user.uid,
+                        "Wishlist",
+                        album.id.toString(),
+                        "details",
+                        "details",
+                      ),
+                    );
+                    const data = detailsSnap.data();
+                    if (data && typeof data.details === "object") {
+                      detailsOverride = data.details as DiscogsReleaseDetails;
+                    }
+                  }
+                }
+
                 setSelectedAlbum({
                   album: {
                     ...album,
@@ -450,8 +576,9 @@ export default function WishlistPage() {
                   },
                   artist: album.artist,
                   title: album.title,
-                })
-              }
+                  detailsOverride,
+                });
+              }}
               buttons={{
                 removeWishlist: true,
                 toCollection: true,

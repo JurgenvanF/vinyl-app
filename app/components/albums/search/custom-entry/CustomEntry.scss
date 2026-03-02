@@ -1,4 +1,33 @@
+.custom-entry__overlay {
+  background: transparent;
+  position: fixed;
+
+  &::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+body.custom-entry-modal-open {
+  overflow: hidden;
+}
+
 .custom-entry {
+  &__overlay {
+    background-color: transparent;
+    backdrop-filter: none;
+  }
+
   &__panel {
     background-color: var(--auth-background);
     border: 1px solid var(--auth-border);
@@ -81,9 +110,9 @@
       transition: all 0.15s ease;
 
       &:hover {
-        background: var(--btn-preview-hover-bg);
-        border-color: var(--btn-preview-hover-border);
-        color: var(--btn-preview-hover-color);
+        background: var(--btn-collection-hover-bg);
+        border-color: var(--btn-collection-hover-border);
+        color: var(--btn-collection-hover-color);
       }
 
       &:disabled {
@@ -145,7 +174,7 @@
   }
 
   &__thumb {
-    background-color: var(--scanner-bg);
-    border: 1px solid var(--scanner-border);
+    background-color: var(--album-card-bg);
+    border: 1px solid var(--album-card-border);
   }
 }

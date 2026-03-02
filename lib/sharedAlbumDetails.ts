@@ -2,8 +2,10 @@ import { db } from "./firebase";
 import {
   doc,
   getDoc,
+  increment,
   serverTimestamp,
   setDoc,
+  updateDoc,
 } from "firebase/firestore";
 import {
   DiscogsReleaseDetails,
@@ -75,4 +77,46 @@ export const ensureSharedAlbumDetails = async (
   );
 
   return { detailsRef, details };
+};
+
+export const incrementAlbumDetailsRefCount = async (detailsRef: string) => {
+  const sharedRef = doc(db, SHARED_DETAILS_COLLECTION, detailsRef);
+  await updateDoc(sharedRef, {
+    refCount: increment(1),
+    updatedAt: serverTimestamp(),
+  }).catch(async () => {
+    await setDoc(
+      sharedRef,
+      { refCount: 1, updatedAt: serverTimestamp() },
+      { merge: true },
+    );
+  });
+};
+
+export const decrementAlbumDetailsRefCountAndCleanup = async (
+  detailsRef: string,
+) => {
+  const sharedRef = doc(db, SHARED_DETAILS_COLLECTION, detailsRef);
+  try {
+    await updateDoc(sharedRef, {
+      refCount: increment(-1),
+      updatedAt: serverTimestamp(),
+    });
+  } catch {
+    return;
+  }
+
+  const snap = await getDoc(sharedRef);
+  if (!snap.exists()) return;
+  const data = snap.data() as { refCount?: unknown };
+  const count = typeof data.refCount === "number" ? data.refCount : 0;
+  if (count <= 0) {
+    if (typeof window !== "undefined") {
+      await fetch("/api/albumdetails/cleanup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ detailsRef }),
+      }).catch(() => undefined);
+    }
+  }
 };

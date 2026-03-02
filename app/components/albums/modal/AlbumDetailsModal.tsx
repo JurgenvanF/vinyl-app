@@ -10,6 +10,7 @@ import {
   Trash2,
   Heart,
   HeartOff,
+  Pencil,
 } from "lucide-react";
 import {
   DiscogsTrack,
@@ -27,8 +28,10 @@ import {
 import { deriveArtists, derivePrimaryArtist } from "../../../../lib/artist";
 import { fetchDiscogsArtists } from "../../../../lib/discogsArtists";
 import {
+  decrementAlbumDetailsRefCountAndCleanup,
   ensureSharedAlbumDetails,
   getSharedAlbumDetails,
+  incrementAlbumDetailsRefCount,
 } from "../../../../lib/sharedAlbumDetails";
 import { useLanguage } from "../../../../lib/LanguageContext";
 import { t } from "../../../../lib/translations";
@@ -59,6 +62,8 @@ type DiscogsRelease = {
   have?: number;
   want?: number;
   detailsRef?: string | null;
+  source?: string;
+  cloudinaryPublicIds?: string[];
 };
 
 type AlbumDetailsModalProps = {
@@ -68,6 +73,7 @@ type AlbumDetailsModalProps = {
   displayTitle?: string;
   detailsOverride?: DiscogsReleaseDetails | null;
   hideActions?: boolean;
+  onEditCustom?: () => void;
   onClose: () => void;
 };
 
@@ -78,6 +84,7 @@ export default function AlbumDetailsModal({
   displayTitle,
   detailsOverride,
   hideActions = false,
+  onEditCustom,
   onClose,
 }: AlbumDetailsModalProps) {
   const EXPANDBOX_PREVIEW_HEIGHT = 220;
@@ -245,26 +252,174 @@ export default function AlbumDetailsModal({
   const removeFromCollection = async () => {
     const user = auth.currentUser;
     if (!user) return;
-    await deleteDoc(
-      doc(db, "users", user.uid, "Collection", album.id.toString()),
-    );
+    if (album.source === "custom") {
+      const baseRef = doc(
+        db,
+        "users",
+        user.uid,
+        "Collection",
+        album.id.toString(),
+      );
+      const detailsSnap = await getDoc(
+        doc(baseRef, "details", "details"),
+      ).catch(() => null);
+      const storedPublicIds =
+        detailsSnap && "exists" in detailsSnap && detailsSnap.exists()
+          ? ((
+              (detailsSnap.data() as { cloudinaryPublicIds?: unknown })
+                .cloudinaryPublicIds as unknown[]
+            )?.filter(
+              (v): v is string => typeof v === "string" && v.length > 0,
+            ) ?? [])
+          : [];
+      await deleteDoc(doc(baseRef, "details", "details")).catch(
+        () => undefined,
+      );
+      await deleteDoc(doc(baseRef, "album", "album")).catch(() => undefined);
+      await deleteDoc(baseRef);
+      const ids =
+        Array.isArray(album.cloudinaryPublicIds) &&
+        album.cloudinaryPublicIds.length > 0
+          ? album.cloudinaryPublicIds
+          : storedPublicIds;
+      if (ids.length > 0) {
+        await fetch("/api/cloudinary/destroy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ publicIds: ids }),
+        }).catch(() => undefined);
+      }
+    } else {
+      const existingDetailsRef = album.detailsRef || undefined;
+      await deleteDoc(
+        doc(db, "users", user.uid, "Collection", album.id.toString()),
+      );
+      if (existingDetailsRef) {
+        await decrementAlbumDetailsRefCountAndCleanup(existingDetailsRef);
+      }
+    }
     setAlbumState("none");
     setRemoveCollectionOpen(false);
+    if (album.source === "custom") onClose();
   };
 
   const removeFromWishlist = async () => {
     const user = auth.currentUser;
     if (!user) return;
-    await deleteDoc(
-      doc(db, "users", user.uid, "Wishlist", album.id.toString()),
-    );
+    if (album.source === "custom") {
+      const baseRef = doc(
+        db,
+        "users",
+        user.uid,
+        "Wishlist",
+        album.id.toString(),
+      );
+      const detailsSnap = await getDoc(
+        doc(baseRef, "details", "details"),
+      ).catch(() => null);
+      const storedPublicIds =
+        detailsSnap && "exists" in detailsSnap && detailsSnap.exists()
+          ? ((
+              (detailsSnap.data() as { cloudinaryPublicIds?: unknown })
+                .cloudinaryPublicIds as unknown[]
+            )?.filter(
+              (v): v is string => typeof v === "string" && v.length > 0,
+            ) ?? [])
+          : [];
+      await deleteDoc(doc(baseRef, "details", "details")).catch(
+        () => undefined,
+      );
+      await deleteDoc(doc(baseRef, "album", "album")).catch(() => undefined);
+      await deleteDoc(baseRef);
+      const ids =
+        Array.isArray(album.cloudinaryPublicIds) &&
+        album.cloudinaryPublicIds.length > 0
+          ? album.cloudinaryPublicIds
+          : storedPublicIds;
+      if (ids.length > 0) {
+        await fetch("/api/cloudinary/destroy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ publicIds: ids }),
+        }).catch(() => undefined);
+      }
+    } else {
+      const existingDetailsRef = album.detailsRef || undefined;
+      await deleteDoc(
+        doc(db, "users", user.uid, "Wishlist", album.id.toString()),
+      );
+      if (existingDetailsRef) {
+        await decrementAlbumDetailsRefCountAndCleanup(existingDetailsRef);
+      }
+    }
     setAlbumState("none");
     setRemoveWishlistOpen(false);
+    if (album.source === "custom") onClose();
   };
 
   const moveToCollection = async () => {
     const user = auth.currentUser;
     if (!user) return;
+
+    if (album.source === "custom") {
+      const wishlistRef = doc(
+        db,
+        "users",
+        user.uid,
+        "Wishlist",
+        album.id.toString(),
+      );
+      const wishlistSnap = await getDoc(wishlistRef);
+      const wishlistData = wishlistSnap.data();
+      const detailsSnap = await getDoc(doc(wishlistRef, "details", "details"));
+      const albumSnap = await getDoc(doc(wishlistRef, "album", "album"));
+
+      await setDoc(
+        doc(db, "users", user.uid, "Collection", album.id.toString()),
+        {
+          ...(wishlistData ?? {}),
+          addedAt: serverTimestamp(),
+        },
+      );
+      await setDoc(
+        doc(
+          db,
+          "users",
+          user.uid,
+          "Collection",
+          album.id.toString(),
+          "details",
+          "details",
+        ),
+        detailsSnap.data() ?? {},
+        { merge: true },
+      );
+      await setDoc(
+        doc(
+          db,
+          "users",
+          user.uid,
+          "Collection",
+          album.id.toString(),
+          "album",
+          "album",
+        ),
+        albumSnap.data() ?? {},
+        { merge: true },
+      );
+
+      await deleteDoc(doc(wishlistRef, "details", "details")).catch(
+        () => undefined,
+      );
+      await deleteDoc(doc(wishlistRef, "album", "album")).catch(
+        () => undefined,
+      );
+      await deleteDoc(wishlistRef).catch(() => undefined);
+
+      setAlbumState("collection");
+      setMoveToCollectionOpen(false);
+      return;
+    }
 
     const splitDiscogsTitle = (fullTitle: string, rawArtist?: string) => {
       if (rawArtist) return { artist: rawArtist, title: fullTitle };
@@ -291,6 +446,9 @@ export default function AlbumDetailsModal({
         ? wishlistDocSnap.data()?.detailsRef
         : album.detailsRef || undefined;
     await deleteDoc(wishlistDocRef);
+    if (existingDetailsRef) {
+      await decrementAlbumDetailsRefCountAndCleanup(existingDetailsRef);
+    }
 
     const discogsArtistResult = await fetchDiscogsArtists({
       id: album.id,
@@ -307,6 +465,7 @@ export default function AlbumDetailsModal({
       resultType: album.type,
       detailsRef: existingDetailsRef,
     });
+    await incrementAlbumDetailsRefCount(detailsRef);
 
     await setDoc(
       doc(db, "users", user.uid, "Collection", album.id.toString()),
@@ -929,17 +1088,36 @@ export default function AlbumDetailsModal({
                     )}
 
                     {albumState === "collection" && (
-                      <button
-                        className="album-details-modal-action-btn album-details-modal-action-btn--danger"
-                        onClick={() => setRemoveCollectionOpen(true)}
-                      >
-                        <Trash2 size={15} /> {t(locale, "remove")}
-                      </button>
+                      <>
+                        {album.source === "custom" && onEditCustom && (
+                          <button
+                            className="album-details-modal-action-btn"
+                            onClick={onEditCustom}
+                          >
+                            <Pencil size={15} /> {t(locale, "edit")}
+                          </button>
+                        )}
+                        <button
+                          className="album-details-modal-action-btn album-details-modal-action-btn--danger"
+                          onClick={() => setRemoveCollectionOpen(true)}
+                        >
+                          <Trash2 size={15} /> {t(locale, "remove")}
+                        </button>
+                      </>
                     )}
 
                     {albumState === "wishlist" && (
                       <>
+                        {album.source === "custom" && onEditCustom && (
+                          <button
+                            className="album-details-modal-action-btn"
+                            onClick={onEditCustom}
+                          >
+                            <Pencil size={15} /> {t(locale, "edit")}
+                          </button>
+                        )}
                         <ToCollectionButton
+                          variant="modal"
                           onClick={() => setMoveToCollectionOpen(true)}
                         />
                         <button

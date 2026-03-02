@@ -7,7 +7,10 @@ import { auth, db } from "../../../../../lib/firebase";
 import { doc, setDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import { deriveArtists, derivePrimaryArtist } from "../../../../../lib/artist";
 import { fetchDiscogsArtists } from "../../../../../lib/discogsArtists";
-import { ensureSharedAlbumDetails } from "../../../../../lib/sharedAlbumDetails";
+import {
+  ensureSharedAlbumDetails,
+  incrementAlbumDetailsRefCount,
+} from "../../../../../lib/sharedAlbumDetails";
 
 type DiscogsRelease = {
   id: number;
@@ -93,6 +96,7 @@ export default function CollectionButton({
       masterId: album.master_id,
       resultType: album.type,
     });
+    await incrementAlbumDetailsRefCount(detailsRef);
 
     try {
       await setDoc(

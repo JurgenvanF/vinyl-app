@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Calendar, Camera, Plus, Trash2 } from "lucide-react";
+import { Calendar, Plus, Trash2 } from "lucide-react";
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
 import {
@@ -9,20 +9,19 @@ import {
   SUPPORTED_COUNTRY_ISOS,
 } from "../../../../../lib/countryFlags";
 import { useThemePlaceholder } from "../../../../../lib/useThemePlaceholder";
-import { auth, db, storage } from "../../../../../lib/firebase";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
-import {
-  getDownloadURL,
-  ref as storageRef,
-  uploadBytes,
-} from "firebase/storage";
+import { auth, db } from "../../../../../lib/firebase";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import AlbumCard from "../../card/AlbumCard";
 import AlbumDetailsModal from "../../modal/AlbumDetailsModal";
 import MessageModal from "../../../modal/MessageModal";
 import ActionBar from "./components/ActionBar";
 import SectionPanel from "./components/SectionPanel";
 import ValueListEditor from "./components/ValueListEditor";
-import { parseReleasedInputToISO, toReleasedDisplay } from "./customEntryDate";
+import {
+  parseReleasedInputToISO,
+  toReleasedDisplay,
+  toReleasedInputDisplay,
+} from "./customEntryDate";
 import type {
   CustomExtraArtist,
   CustomLabel,
@@ -32,6 +31,7 @@ import type {
   SaveTarget,
   TracklistMode,
 } from "./customEntryTypes";
+import VinylSpinner from "../../../spinner/VinylSpinner";
 import type {
   DiscogsArtist,
   DiscogsImage,
@@ -48,11 +48,70 @@ const createCustomAlbumId = () => {
   return -1 * (now + jitter);
 };
 
-export default function CustomEntry() {
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB
+
+type CustomEntryProps = {
+  mode?: "create" | "edit";
+  existingId?: number;
+  existingTarget?: SaveTarget;
+  onDone?: () => void;
+  onCreated?: (target: SaveTarget, id: number) => void;
+};
+
+const uploadToCloudinary = async ({
+  file,
+  folder,
+  publicId,
+}: {
+  file: File;
+  folder: string;
+  publicId?: string;
+}) => {
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+  if (!cloudName || !uploadPreset) {
+    throw new Error("Missing Cloudinary env vars");
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", uploadPreset);
+  formData.append("folder", folder);
+  if (publicId) formData.append("public_id", publicId);
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    { method: "POST", body: formData },
+  );
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    throw new Error(`Cloudinary upload failed: ${text || response.status}`);
+  }
+
+  return (await response.json()) as {
+    secure_url: string;
+    public_id: string;
+    version: number;
+    width: number;
+    height: number;
+    bytes: number;
+    format: string;
+  };
+};
+
+export default function CustomEntry({
+  mode = "create",
+  existingId,
+  existingTarget,
+  onDone,
+  onCreated,
+}: CustomEntryProps) {
   const { locale } = useLanguage();
   const placeholderSrc = useThemePlaceholder();
 
-  const [saveTarget, setSaveTarget] = useState<SaveTarget>("collection");
+  const [saveTarget, setSaveTarget] = useState<SaveTarget>(
+    existingTarget ?? "collection",
+  );
   const [title, setTitle] = useState("");
   const [artists, setArtists] = useState<string[]>([""]);
   const [releaseType, setReleaseType] = useState("");
@@ -64,7 +123,6 @@ export default function CustomEntry() {
   const [catno, setCatno] = useState("");
 
   const [releasedInput, setReleasedInput] = useState<string>("");
-  const datePickerRef = useRef<HTMLInputElement | null>(null);
   const [countryISO, setCountryISO] = useState("");
   const [series, setSeries] = useState("");
   const [notes, setNotes] = useState("");
@@ -82,20 +140,28 @@ export default function CustomEntry() {
     { side: "B", tracks: [{ title: "", duration: "" }] },
   ]);
   const [coverImage, setCoverImage] = useState<LocalImage | null>(null);
+  const [existingCoverUrl, setExistingCoverUrl] = useState<string>("");
+  const [existingCoverPublicId, setExistingCoverPublicId] =
+    useState<string>("");
   const [extraImages, setExtraImages] = useState<LocalImage[]>([]);
+  const [existingExtraAssets, setExistingExtraAssets] = useState<
+    Array<{ url: string; publicId?: string }>
+  >([]);
   const imagesRef = useRef<{ cover: LocalImage | null; extra: LocalImage[] }>({
     cover: null,
     extra: [],
   });
+  const removedCloudinaryPublicIdsRef = useRef(new Set<string>());
   const coverLibraryInputRef = useRef<HTMLInputElement | null>(null);
-  const coverCameraInputRef = useRef<HTMLInputElement | null>(null);
   const extraLibraryInputRef = useRef<HTMLInputElement | null>(null);
-  const extraCameraInputRef = useRef<HTMLInputElement | null>(null);
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [loadingExisting, setLoadingExisting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const loadedExistingKeyRef = useRef<string | null>(null);
+  const loadExistingSeqRef = useRef(0);
 
   useEffect(() => {
     imagesRef.current = { cover: coverImage, extra: extraImages };
@@ -108,6 +174,228 @@ export default function CustomEntry() {
       for (const img of current.extra) URL.revokeObjectURL(img.previewUrl);
     };
   }, []);
+
+  useEffect(() => {
+    if (mode !== "edit" || typeof existingId !== "number") return;
+    const user = auth.currentUser;
+    if (!user) return;
+    const destination =
+      (existingTarget ?? saveTarget) === "collection"
+        ? "Collection"
+        : "Wishlist";
+
+    const loadKey = `${user.uid}:${destination}:${existingId}`;
+    if (loadedExistingKeyRef.current === loadKey) return;
+
+    const seq = ++loadExistingSeqRef.current;
+    let active = true;
+    setLoadingExisting(true);
+    setFormError(null);
+
+    const load = async () => {
+      try {
+        const albumRef = doc(
+          db,
+          "users",
+          user.uid,
+          destination,
+          existingId.toString(),
+        );
+        const [albumSnap, detailsSnap] = await Promise.all([
+          getDoc(albumRef),
+          getDoc(doc(albumRef, "details", "details")),
+        ]);
+        const albumData = albumSnap.data();
+        const detailsData = detailsSnap.data();
+        const details =
+          detailsData &&
+          typeof detailsData.details === "object" &&
+          detailsData.details !== null
+            ? (detailsData.details as DiscogsReleaseDetails)
+            : undefined;
+
+        if (!active || loadExistingSeqRef.current !== seq) return;
+        if (!albumSnap.exists()) {
+          setFormError(t(locale, "customEntryLoadError"));
+          return;
+        }
+
+        setTitle(typeof albumData?.title === "string" ? albumData.title : "");
+        if (Array.isArray(albumData?.artists) && albumData.artists.length > 0) {
+          setArtists(
+            albumData.artists.filter(
+              (value: unknown): value is string =>
+                typeof value === "string" && value.trim().length > 0,
+            ),
+          );
+        } else if (typeof albumData?.artist === "string" && albumData.artist) {
+          setArtists(
+            albumData.artist
+              .split("&")
+              .map((s: string) => s.trim())
+              .filter(Boolean),
+          );
+        }
+
+        setReleaseType(
+          typeof albumData?.releaseType === "string"
+            ? albumData.releaseType
+            : "",
+        );
+        setCatno(typeof albumData?.catno === "string" ? albumData.catno : "");
+
+        const coverUrl =
+          typeof albumData?.cover_image === "string"
+            ? albumData.cover_image
+            : "";
+        setExistingCoverUrl(coverUrl);
+
+        const storedPublicIds = Array.isArray(albumData?.cloudinaryPublicIds)
+          ? albumData.cloudinaryPublicIds.filter(
+              (value: unknown): value is string => typeof value === "string",
+            )
+          : Array.isArray(detailsData?.cloudinaryPublicIds)
+            ? detailsData.cloudinaryPublicIds.filter(
+                (value: unknown): value is string => typeof value === "string",
+              )
+            : [];
+        setExistingCoverPublicId(
+          typeof storedPublicIds[0] === "string" ? storedPublicIds[0] : "",
+        );
+
+        setCountryISO(
+          typeof details?.country === "string" ? details.country : "",
+        );
+        setSeries(typeof details?.series === "string" ? details.series : "");
+        setNotes(typeof details?.notes === "string" ? details.notes : "");
+        setReleasedInput(
+          typeof details?.released === "string"
+            ? toReleasedInputDisplay(details.released)
+            : "",
+        );
+        setQtyInput(
+          typeof details?.qty === "number" && Number.isFinite(details.qty)
+            ? String(details.qty)
+            : "1",
+        );
+
+        const genres = Array.isArray(details?.genre)
+          ? details.genre
+          : Array.isArray(albumData?.genre)
+            ? albumData.genre
+            : [];
+        const genreStrings = genres.filter(
+          (value: unknown): value is string =>
+            typeof value === "string" && value.trim().length > 0,
+        );
+        setMainGenre(genreStrings[0] ?? "");
+        setOtherGenres(genreStrings.slice(1));
+
+        setStyles(
+          Array.isArray(details?.style)
+            ? details.style.filter((v) => typeof v === "string")
+            : [],
+        );
+        setFormats(
+          Array.isArray(details?.format)
+            ? details.format.filter((v) => typeof v === "string")
+            : ["Vinyl", "LP"],
+        );
+
+        setLabels(
+          Array.isArray(details?.labels)
+            ? details.labels
+                .map((label) => ({
+                  name: typeof label?.name === "string" ? label.name : "",
+                }))
+                .filter((l) => l.name)
+            : [],
+        );
+
+        setExtraArtists(
+          Array.isArray(details?.extraartists)
+            ? details.extraartists
+                .map((artist) => ({
+                  name: typeof artist?.name === "string" ? artist.name : "",
+                  role: typeof artist?.role === "string" ? artist.role : "",
+                }))
+                .filter((a) => a.name)
+            : [],
+        );
+
+        const tracklist = Array.isArray(details?.tracklist)
+          ? details.tracklist
+          : [];
+        const hasSides = tracklist.some((tr) =>
+          typeof tr?.position === "string"
+            ? /^[A-Za-z]/.test(tr.position)
+            : false,
+        );
+
+        if (hasSides) {
+          setTracklistMode("sides");
+          const grouped = new Map<string, CustomTrackDraft[]>();
+          for (const tr of tracklist) {
+            const pos = typeof tr.position === "string" ? tr.position : "";
+            const side = pos.trim().charAt(0).toUpperCase() || "A";
+            const list = grouped.get(side) ?? [];
+            list.push({
+              title: typeof tr.title === "string" ? tr.title : "",
+              duration: typeof tr.duration === "string" ? tr.duration : "",
+            });
+            grouped.set(side, list);
+          }
+          const nextSides: CustomSideDraft[] = Array.from(
+            grouped.entries(),
+          ).map(([side, tracks]) => ({
+            side,
+            tracks: tracks.length ? tracks : [{ title: "", duration: "" }],
+          }));
+          setSides(
+            nextSides.length
+              ? nextSides
+              : [{ side: "A", tracks: [{ title: "", duration: "" }] }],
+          );
+        } else {
+          setTracklistMode("continuous");
+          const nextTracks: CustomTrackDraft[] = tracklist.map((tr) => ({
+            title: typeof tr.title === "string" ? tr.title : "",
+            duration: typeof tr.duration === "string" ? tr.duration : "",
+          }));
+          setTracks(
+            nextTracks.length ? nextTracks : [{ title: "", duration: "" }],
+          );
+        }
+
+        const images = Array.isArray(details?.images) ? details.images : [];
+        const extra = images
+          .map((img) => (typeof img?.uri === "string" ? img.uri : ""))
+          .filter((u: string) => u.length > 0)
+          .slice(1)
+          .map((url: string, index: number) => ({
+            url,
+            publicId: storedPublicIds[index + 1],
+          }));
+        setExistingExtraAssets(extra);
+
+        loadedExistingKeyRef.current = loadKey;
+      } catch (error) {
+        console.error(error);
+        if (!active || loadExistingSeqRef.current !== seq) return;
+        setFormError(t(locale, "customEntryLoadError"));
+      } finally {
+        if (active && loadExistingSeqRef.current === seq) {
+          setLoadingExisting(false);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, [existingId, existingTarget, locale, mode, saveTarget]);
 
   const releasedParsed = useMemo(
     () => parseReleasedInputToISO(releasedInput),
@@ -133,7 +421,8 @@ export default function CustomEntry() {
     return Number.isFinite(parsed) ? parsed : undefined;
   }, [qtyInput]);
 
-  const coverPreview = coverImage?.previewUrl || placeholderSrc;
+  const coverPreview =
+    coverImage?.previewUrl || existingCoverUrl || placeholderSrc;
 
   const genreList = useMemo(() => {
     const primary = mainGenre.trim();
@@ -214,7 +503,8 @@ export default function CustomEntry() {
             .filter((track) => track.title);
 
     const allPreviewUris = [
-      coverImage?.previewUrl,
+      coverImage?.previewUrl || existingCoverUrl,
+      ...existingExtraAssets.map((asset) => asset.url),
       ...extraImages.map((img) => img.previewUrl),
     ].filter(
       (value): value is string => typeof value === "string" && value.length > 0,
@@ -248,6 +538,8 @@ export default function CustomEntry() {
   }, [
     cleanedArtists,
     coverImage,
+    existingCoverUrl,
+    existingExtraAssets,
     countryISO,
     extraArtists,
     extraImages,
@@ -269,6 +561,12 @@ export default function CustomEntry() {
   const onSelectCoverImage = (files: FileList | null) => {
     const file = files?.[0];
     if (!file) return;
+    if (file.size > MAX_IMAGE_BYTES) {
+      setFormError(
+        `Image is too large (max ${Math.round(MAX_IMAGE_BYTES / 1024 / 1024)}MB).`,
+      );
+      return;
+    }
     setCoverImage((prev) => {
       if (prev) URL.revokeObjectURL(prev.previewUrl);
       return { file, previewUrl: URL.createObjectURL(file) };
@@ -284,9 +582,15 @@ export default function CustomEntry() {
 
   const onSelectExtraImages = (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    if (Array.from(files).some((f) => f.size > MAX_IMAGE_BYTES)) {
+      setFormError(
+        `One or more images are too large (max ${Math.round(MAX_IMAGE_BYTES / 1024 / 1024)}MB).`,
+      );
+    }
     setExtraImages((prev) => {
       const next = [...prev];
       for (const file of Array.from(files)) {
+        if (file.size > MAX_IMAGE_BYTES) continue;
         next.push({ file, previewUrl: URL.createObjectURL(file) });
       }
       return next;
@@ -307,7 +611,9 @@ export default function CustomEntry() {
     if (!title.trim()) missing.push(t(locale, "title"));
     if (cleanedArtists.length === 0) missing.push(t(locale, "artist"));
     if (!releaseType.trim()) missing.push(t(locale, "releaseType"));
-    if (!coverImage) missing.push(t(locale, "coverImage"));
+    if (mode === "create" && !coverImage) missing.push(t(locale, "coverImage"));
+    if (mode === "edit" && !coverImage && !existingCoverUrl)
+      missing.push(t(locale, "coverImage"));
 
     const numericIssues: string[] = [];
     if (qtyInput.trim() && qty === undefined)
@@ -381,81 +687,156 @@ export default function CustomEntry() {
 
     setSubmitting(true);
     setFormError(null);
+    setConfirmOpen(false);
 
-    const customId = createCustomAlbumId();
-    const detailsRef = `c_${Math.abs(customId)}`;
+    const customId =
+      mode === "edit" && typeof existingId === "number"
+        ? existingId
+        : createCustomAlbumId();
+    const customKey = `custom__${Math.abs(customId)}`;
+    const cloudinaryFolder = `custom-albums/${user.uid}/${customKey}`;
 
     try {
-      const uploadedUris: string[] = [];
+      const destination =
+        (mode === "edit" ? (existingTarget ?? saveTarget) : saveTarget) ===
+        "collection"
+          ? "Collection"
+          : "Wishlist";
+
+      let coverUrl = existingCoverUrl;
+      let coverPublicId = existingCoverPublicId;
+      const extraAssets: Array<{ url: string; publicId: string }> = [
+        ...existingExtraAssets
+          .filter((e) => e.url && e.publicId)
+          .map((e) => ({ url: e.url, publicId: e.publicId as string })),
+      ];
 
       if (coverImage) {
-        const safeName = coverImage.file.name.replaceAll("/", "_");
-        const objectRef = storageRef(
-          storage,
-          `users/${user.uid}/custom-albums/${detailsRef}/cover-${safeName}`,
-        );
-        await uploadBytes(objectRef, coverImage.file);
-        uploadedUris.push(await getDownloadURL(objectRef));
+        const coverUpload = await uploadToCloudinary({
+          file: coverImage.file,
+          folder: cloudinaryFolder,
+          publicId: "cover",
+        });
+        coverUrl = coverUpload.secure_url;
+        coverPublicId = coverUpload.public_id;
       }
 
       for (let index = 0; index < extraImages.length; index++) {
         const img = extraImages[index];
-        const safeName = img.file.name.replaceAll("/", "_");
-        const objectRef = storageRef(
-          storage,
-          `users/${user.uid}/custom-albums/${detailsRef}/extra-${index}-${safeName}`,
-        );
-        await uploadBytes(objectRef, img.file);
-        uploadedUris.push(await getDownloadURL(objectRef));
+        const upload = await uploadToCloudinary({
+          file: img.file,
+          folder: cloudinaryFolder,
+          publicId: `extra-${Date.now()}-${index + 1}`,
+        });
+        extraAssets.push({
+          url: upload.secure_url,
+          publicId: upload.public_id,
+        });
       }
+
+      if (!coverUrl) {
+        setFormError(t(locale, "coverRequired"));
+        return;
+      }
+
+      const extraUrls = extraAssets.map((a) => a.url);
+      const cloudinaryPublicIds = [
+        coverPublicId,
+        ...extraAssets.map((a) => a.publicId),
+      ].filter((v): v is string => typeof v === "string" && v.length > 0);
+
+      const removedPublicIds = Array.from(
+        removedCloudinaryPublicIdsRef.current,
+      );
+      const publicIdsToDestroy = removedPublicIds.filter(
+        (id) => !cloudinaryPublicIds.includes(id),
+      );
 
       const storedDetails: DiscogsReleaseDetails = {
         ...previewDetails,
-        images: uploadedUris.map((uri, index) => ({
-          type: index === 0 ? "primary" : "secondary",
-          uri,
-          width: 0,
-          height: 0,
-        })),
+        images: [
+          {
+            type: "primary",
+            uri: coverUrl,
+            width: 0,
+            height: 0,
+          },
+          ...extraUrls.map((uri) => ({
+            type: "secondary" as const,
+            uri,
+            width: 0,
+            height: 0,
+          })),
+        ],
       };
 
+      const storedArtists = cleanedArtists;
+      const storedArtistDisplay = storedArtists.join(" & ");
+
+      const albumDocRef = doc(
+        db,
+        "users",
+        user.uid,
+        destination,
+        customId.toString(),
+      );
+
+      const albumPayload = {
+        id: customId,
+        title: title.trim(),
+        artist: storedArtistDisplay,
+        artists: storedArtists,
+        primaryArtist: storedArtists[0] || "",
+        cover_image: coverUrl,
+        cloudinaryPublicIds,
+        releaseType: releaseType.trim() || null,
+        genre: genreList,
+        year: year ?? null,
+        catno: catno.trim() || null,
+        master_id: null,
+        source: "custom",
+      };
+
+      // Top-level doc (required for current collection/wishlist list + filters)
       await setDoc(
-        doc(db, "AlbumDetails", detailsRef),
+        albumDocRef,
+        mode === "edit"
+          ? { ...albumPayload, updatedAt: serverTimestamp() }
+          : { ...albumPayload, addedAt: serverTimestamp() },
+        { merge: true },
+      );
+
+      // Also store as nested docs for the requested structure
+      await setDoc(
+        doc(albumDocRef, "album", "album"),
+        {
+          ...albumPayload,
+          extra_images: extraUrls,
+          customKey,
+          cloudinaryPublicIds,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
+      await setDoc(
+        doc(albumDocRef, "details", "details"),
         {
           details: storedDetails,
-          custom: true,
-          createdBy: user.uid,
-          createdAt: serverTimestamp(),
+          customKey,
+          cloudinaryPublicIds,
           updatedAt: serverTimestamp(),
         },
         { merge: true },
       );
 
-      const destination =
-        saveTarget === "collection" ? "Collection" : "Wishlist";
-      const storedArtists = cleanedArtists;
-      const storedArtistDisplay = storedArtists.join(" & ");
-      await setDoc(
-        doc(db, "users", user.uid, destination, customId.toString()),
-        {
-          id: customId,
-          title: title.trim(),
-          artist: storedArtistDisplay,
-          artists: storedArtists,
-          primaryArtist: storedArtists[0] || "",
-          cover_image: uploadedUris[0] || "",
-          releaseType: releaseType.trim() || null,
-          genre: genreList,
-          year: year ?? null,
-          catno: catno.trim() || null,
-          master_id: null,
-          detailsRef,
-          addedAt: serverTimestamp(),
-          source: "custom",
-        },
-      );
-
-      setConfirmOpen(false);
+      if (publicIdsToDestroy.length > 0) {
+        void fetch("/api/cloudinary/destroy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ publicIds: publicIdsToDestroy }),
+        }).catch(() => undefined);
+      }
+      removedCloudinaryPublicIdsRef.current.clear();
 
       if (typeof window !== "undefined") {
         (
@@ -470,18 +851,36 @@ export default function CustomEntry() {
             }) => void;
           }
         ).addToast?.({
-          message: t(
-            locale,
-            "customEntryAdded",
-            title.trim(),
-            cleanedArtists.join(" & "),
-          ),
+          message:
+            mode === "edit"
+              ? t(
+                  locale,
+                  "customEntryUpdated",
+                  title.trim(),
+                  cleanedArtists.join(" & "),
+                )
+              : t(
+                  locale,
+                  "customEntryAdded",
+                  title.trim(),
+                  cleanedArtists.join(" & "),
+                ),
           icon: Plus,
           bgColor: "bg-green-100",
           textColor: "text-green-900",
           iconBgColor: "bg-green-200",
           iconBorderColor: "border-green-400",
         });
+      }
+
+      if (mode === "edit") {
+        onDone?.();
+        return;
+      }
+
+      if (onCreated) {
+        onCreated(saveTarget, customId);
+        return;
       }
 
       setTitle("");
@@ -509,10 +908,13 @@ export default function CustomEntry() {
         if (prev) URL.revokeObjectURL(prev.previewUrl);
         return null;
       });
+      setExistingCoverUrl("");
+      setExistingCoverPublicId("");
       setExtraImages((prev) => {
         for (const img of prev) URL.revokeObjectURL(img.previewUrl);
         return [];
       });
+      setExistingExtraAssets([]);
     } catch (error) {
       console.error(error);
       setFormError(t(locale, "customEntrySaveError"));
@@ -528,11 +930,22 @@ export default function CustomEntry() {
 
   return (
     <div className="custom-entry flex flex-col gap-6">
+      {(submitting || loadingExisting) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center custom-entry__overlay">
+          <VinylSpinner />
+        </div>
+      )}
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h3 className="text-lg font-semibold">{t(locale, "customEntry")}</h3>
+          <h3 className="text-lg font-semibold">
+            {mode === "edit"
+              ? t(locale, "customEntryEditTitle")
+              : t(locale, "customEntry")}
+          </h3>
           <p className="text-sm custom-entry__hint">
-            {t(locale, "customEntryHelp")}
+            {mode === "edit"
+              ? t(locale, "customEntryEditHelp")
+              : t(locale, "customEntryHelp")}
           </p>
         </div>
       </div>
@@ -659,28 +1072,11 @@ export default function CustomEntry() {
                   </span>
                 </button>
 
-                <button
-                  type="button"
-                  className="h-9 w-9 rounded cursor-pointer flex items-center justify-center custom-entry__btn__add sm:hidden"
-                  onClick={() => coverCameraInputRef.current?.click()}
-                  title={t(locale, "takePhoto")}
-                >
-                  <Camera size={16} />
-                </button>
-
                 <input
                   ref={coverLibraryInputRef}
                   className="hidden"
                   type="file"
-                  accept="image/*"
-                  onChange={(e) => onSelectCoverImage(e.target.files)}
-                />
-                <input
-                  ref={coverCameraInputRef}
-                  className="hidden"
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
+                  accept="image/jpeg,image/png,image/webp"
                   onChange={(e) => onSelectCoverImage(e.target.files)}
                 />
               </div>
@@ -697,20 +1093,34 @@ export default function CustomEntry() {
                 <p className="text-sm font-medium truncate">
                   {coverImage
                     ? coverImage.file.name
-                    : t(locale, "noImageSelected")}
+                    : existingCoverUrl
+                      ? t(locale, "currentCover")
+                      : t(locale, "noImageSelected")}
                 </p>
                 <p className="text-xs custom-entry__hint">
                   {coverImage
                     ? t(locale, "coverSelected")
-                    : t(locale, "coverRequired")}
+                    : existingCoverUrl
+                      ? t(locale, "coverSelected")
+                      : t(locale, "coverRequired")}
                 </p>
               </div>
 
-              {coverImage && (
+              {(coverImage || existingCoverUrl) && (
                 <button
                   type="button"
                   className="h-9 w-9 rounded cursor-pointer flex items-center justify-center custom-entry__btn__delete"
-                  onClick={clearCoverImage}
+                  onClick={() => {
+                    if (coverImage) clearCoverImage();
+                    if (existingCoverUrl) {
+                      setExistingCoverUrl("");
+                      const id = existingCoverPublicId;
+                      setExistingCoverPublicId("");
+                      if (id) {
+                        removedCloudinaryPublicIdsRef.current.add(id);
+                      }
+                    }
+                  }}
                   title={t(locale, "remove")}
                 >
                   <Trash2 size={16} />
@@ -739,15 +1149,6 @@ export default function CustomEntry() {
                   </span>
                 </button>
 
-                <button
-                  type="button"
-                  className="h-9 w-9 rounded cursor-pointer flex items-center justify-center custom-entry__btn__add sm:hidden"
-                  onClick={() => extraCameraInputRef.current?.click()}
-                  title={t(locale, "takePhoto")}
-                >
-                  <Camera size={16} />
-                </button>
-
                 <input
                   ref={extraLibraryInputRef}
                   className="hidden"
@@ -756,23 +1157,44 @@ export default function CustomEntry() {
                   multiple
                   onChange={(e) => onSelectExtraImages(e.target.files)}
                 />
-                <input
-                  ref={extraCameraInputRef}
-                  className="hidden"
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={(e) => onSelectExtraImages(e.target.files)}
-                />
               </div>
             </div>
 
-            {extraImages.length === 0 ? (
+            {existingExtraAssets.length === 0 && extraImages.length === 0 ? (
               <p className="text-xs custom-entry__hint">
                 {t(locale, "customEntryOptional")}
               </p>
             ) : (
               <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-3">
+                {existingExtraAssets.map((asset) => (
+                  <div
+                    key={asset.url}
+                    className="relative rounded-lg overflow-hidden custom-entry__thumb"
+                  >
+                    <img
+                      src={asset.url}
+                      alt="Extra"
+                      className="w-full aspect-square object-cover"
+                    />
+                    <button
+                      type="button"
+                      className="absolute top-1 right-1 h-7 w-7 rounded flex items-center justify-center custom-entry__btn__delete"
+                      onClick={() => {
+                        setExistingExtraAssets((prev) =>
+                          prev.filter((p) => p.url !== asset.url),
+                        );
+                        if (asset.publicId) {
+                          removedCloudinaryPublicIdsRef.current.add(
+                            asset.publicId,
+                          );
+                        }
+                      }}
+                      title={t(locale, "remove")}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
                 {extraImages.map((img, index) => (
                   <div
                     key={img.previewUrl}
@@ -812,28 +1234,17 @@ export default function CustomEntry() {
                     inputMode="numeric"
                     autoComplete="off"
                   />
-                  <button
-                    type="button"
-                    className="h-10 w-10 rounded cursor-pointer flex items-center justify-center custom-entry__btn__add"
-                    onClick={() => {
-                      const input = datePickerRef.current;
-                      if (!input) return;
-                      if (typeof input.showPicker === "function")
-                        input.showPicker();
-                      else input.click();
-                    }}
-                    title={t(locale, "fullDate")}
-                  >
+                  <div className="relative h-10 w-10 rounded cursor-pointer flex items-center justify-center custom-entry__btn__add">
                     <Calendar size={16} />
-                  </button>
-                  <input
-                    ref={datePickerRef}
-                    className="hidden"
-                    type="date"
-                    onChange={(e) =>
-                      setReleasedInput(toReleasedDisplay(e.target.value))
-                    }
-                  />
+                    <input
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      type="date"
+                      aria-label={t(locale, "fullDate")}
+                      onChange={(e) =>
+                        setReleasedInput(toReleasedDisplay(e.target.value))
+                      }
+                    />
+                  </div>
                 </div>
                 <span className="text-xs custom-entry__hint">
                   {t(locale, "releasedHelp")}
@@ -958,7 +1369,7 @@ export default function CustomEntry() {
                     />
                     <button
                       type="button"
-                      className="h-10 px-3 rounded cursor-pointer flex items-center justify-center custom-entry__btn__remove"
+                      className="h-10 px-3 rounded cursor-pointer flex items-center justify-center custom-entry__btn__delete"
                       onClick={() =>
                         setOtherGenres((prev) =>
                           prev.filter((_, i) => i !== index),
@@ -1155,7 +1566,7 @@ export default function CustomEntry() {
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     type="button"
-                    className={`h-10 px-5 rounded-xl flex items-center justify-center gap-2 tracklist__btn ${
+                    className={`h-10 px-5 rounded-xl flex items-center justify-center gap-2 cursor-pointer tracklist__btn ${
                       tracklistMode === "continuous"
                         ? "tracklist__btn--active"
                         : ""
@@ -1167,7 +1578,7 @@ export default function CustomEntry() {
 
                   <button
                     type="button"
-                    className={`h-10 px-5 rounded-xl flex items-center justify-center gap-2 tracklist__btn ${
+                    className={`h-10 px-5 rounded-xl flex items-center justify-center gap-2 cursor-pointer tracklist__btn ${
                       tracklistMode === "sides" ? "tracklist__btn--active" : ""
                     }`}
                     onClick={() => setTracklistMode("sides")}
@@ -1417,11 +1828,13 @@ export default function CustomEntry() {
 
       <ActionBar
         locale={locale}
+        mode={mode}
         saveTarget={saveTarget}
         setSaveTarget={setSaveTarget}
         onOpenPreview={() => setPreviewOpen(true)}
         onSubmit={submit}
         submitting={submitting}
+        lockTarget={mode === "edit"}
       />
 
       <AlbumDetailsModal
@@ -1436,18 +1849,27 @@ export default function CustomEntry() {
 
       <MessageModal
         open={confirmOpen}
-        title={t(
-          locale,
-          "customEntryConfirmTitle",
-          title.trim() || t(locale, "title"),
-          artistDisplay.trim() || t(locale, "artist"),
-          saveTarget === "collection"
-            ? t(locale, "collection")
-            : t(locale, "wishlist"),
-        )}
+        title={
+          mode === "edit"
+            ? t(
+                locale,
+                "customEntryUpdateConfirmTitle",
+                title.trim() || t(locale, "title"),
+                artistDisplay.trim() || t(locale, "artist"),
+              )
+            : t(
+                locale,
+                "customEntryConfirmTitle",
+                title.trim() || t(locale, "title"),
+                artistDisplay.trim() || t(locale, "artist"),
+                saveTarget === "collection"
+                  ? t(locale, "collection")
+                  : t(locale, "wishlist"),
+              )
+        }
         message={t(locale, "customEntryConfirmMessage")}
-        background="green"
-        color="black"
+        background="blue"
+        color="white"
         onCancel={() => setConfirmOpen(false)}
         onConfirm={() => {
           if (submitting) return;

@@ -1,28 +1,32 @@
 "use client";
 
-import { Eye, Plus, Heart } from "lucide-react";
+import { Eye, Plus, Heart, Save } from "lucide-react";
 import { t } from "../../../../../../lib/translations";
 import type { SaveTarget } from "../customEntryTypes";
 
 type ActionBarProps = {
   locale: "en" | "nl";
+  mode: "create" | "edit";
   saveTarget: SaveTarget;
   setSaveTarget: (target: SaveTarget) => void;
   onOpenPreview: () => void;
   onSubmit: () => void;
   submitting: boolean;
+  lockTarget?: boolean;
 };
 
 export default function ActionBar({
   locale,
+  mode,
   saveTarget,
   setSaveTarget,
   onOpenPreview,
   onSubmit,
   submitting,
+  lockTarget = false,
 }: ActionBarProps) {
   const handleSave = (target: SaveTarget) => {
-    setSaveTarget(target);
+    if (!lockTarget) setSaveTarget(target);
     onSubmit();
   };
 
@@ -40,31 +44,45 @@ export default function ActionBar({
       </button>
 
       {/* Save buttons */}
-      <div className="buttons flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-        <button
-          type="button"
-          onClick={() => handleSave("collection")}
-          disabled={submitting}
-          className={`buttons__collection h-11 px-5 rounded-xl cursor-pointer flex items-center justify-center gap-2 custom-entry__btn w-full sm:w-auto ${
-            saveTarget === "collection" ? "custom-entry__btn-primary" : ""
-          }`}
-        >
-          <Plus size={18} />
-          {t(locale, "saveToCollection")}
-        </button>
+      {mode === "edit" ? (
+        <div className="buttons flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => handleSave(saveTarget)}
+            disabled={submitting}
+            className="buttons__collection h-11 px-5 rounded-xl cursor-pointer flex items-center justify-center gap-2 custom-entry__btn w-full sm:w-auto custom-entry__btn-primary"
+          >
+            <Save size={18} />
+            {t(locale, "update")}
+          </button>
+        </div>
+      ) : (
+        <div className="buttons flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => handleSave("collection")}
+            disabled={submitting}
+            className={`buttons__collection h-11 px-5 rounded-xl cursor-pointer flex items-center justify-center gap-2 custom-entry__btn w-full sm:w-auto ${
+              saveTarget === "collection" ? "custom-entry__btn-primary" : ""
+            }`}
+          >
+            <Plus size={18} />
+            {t(locale, "saveToCollection")}
+          </button>
 
-        <button
-          type="button"
-          onClick={() => handleSave("wishlist")}
-          disabled={submitting}
-          className={`buttons__wishlist h-11 px-5 rounded-xl cursor-pointer flex items-center justify-center gap-2 custom-entry__btn w-full sm:w-auto ${
-            saveTarget === "wishlist" ? "custom-entry__btn-primary" : ""
-          }`}
-        >
-          <Heart size={18} />
-          {t(locale, "saveToWishlist")}
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => handleSave("wishlist")}
+            disabled={submitting}
+            className={`buttons__wishlist h-11 px-5 rounded-xl cursor-pointer flex items-center justify-center gap-2 custom-entry__btn w-full sm:w-auto ${
+              saveTarget === "wishlist" ? "custom-entry__btn-primary" : ""
+            }`}
+          >
+            <Heart size={18} />
+            {t(locale, "saveToWishlist")}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useLanguage } from "../../../../lib/LanguageContext";
 import { t } from "../../../../lib/translations";
 import AlbumSearchToggle, { SearchMode } from "./AlbumSearchToggle";
@@ -22,6 +23,8 @@ export default function AlbumSearchModal({
   onClose,
 }: AlbumSearchModalProps) {
   const { locale } = useLanguage();
+  const router = useRouter();
+  const pathname = usePathname();
   const [mode, setMode] = useState<SearchMode>("search");
 
   useEffect(() => {
@@ -67,7 +70,13 @@ export default function AlbumSearchModal({
           <Barcode />
         </div>
         <div className={mode === "custom" ? "" : "hidden"}>
-          <CustomEntry />
+          <CustomEntry
+            onCreated={(target) => {
+              onClose();
+              const next = target === "collection" ? "/collection" : "/wishlist";
+              if (pathname !== next) router.push(next);
+            }}
+          />
         </div>
       </div>
     </div>

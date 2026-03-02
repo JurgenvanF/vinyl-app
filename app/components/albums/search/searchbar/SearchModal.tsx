@@ -301,7 +301,7 @@ export default function SearchModal() {
               hover:bg-slate-600
               flex items-center justify-center
               cursor-pointer
-              transition-all duration-300 ease-in-out
+              transition-all duration-300 ease-in-out z-100
               ${
                 showScrollTop
                   ? "opacity-100 scale-100"

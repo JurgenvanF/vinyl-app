@@ -5,6 +5,15 @@ export const toReleasedDisplay = (iso: string) => {
   return `${dd}-${mm}-${yyyy}`;
 };
 
+export const toReleasedInputDisplay = (isoLike: string) => {
+  const trimmed = isoLike.trim();
+  if (!trimmed) return "";
+  if (/^\d{4}$/.test(trimmed)) return trimmed;
+  const month = trimmed.match(/^(\d{4})-(\d{2})$/);
+  if (month) return `${month[2]}-${month[1]}`;
+  return toReleasedDisplay(trimmed);
+};
+
 export const parseReleasedInputToISO = (raw: string) => {
   const input = raw.trim();
   if (!input) return { iso: "", year: undefined, valid: true as const };
@@ -62,4 +71,3 @@ export const parseReleasedInputToISO = (raw: string) => {
 
   return { iso: "", year: undefined, valid: false as const };
 };
-

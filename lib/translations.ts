@@ -66,6 +66,7 @@ type Translations = {
     saveTo: string;
     saveToCollection: string;
     saveToWishlist: string;
+    update: string;
     select: string;
     releaseType: string;
     year: string;
@@ -77,6 +78,7 @@ type Translations = {
     noImageSelected: string;
     coverSelected: string;
     coverRequired: string;
+    currentCover: string;
     addArtist: string;
     artistAdditional: string;
     artistsHelp: string;
@@ -115,6 +117,8 @@ type Translations = {
     customEntryAlternative: string;
     customEntryPreviewCard: string;
     customEntryPreviewHint: string;
+    customEntryEditTitle: string;
+    customEntryEditHelp: string;
     customEntryMissingRequired: (fields: string) => string;
     customEntryInvalidNumbers: (fields: string) => string;
     customEntryConfirmTitle: (
@@ -122,9 +126,16 @@ type Translations = {
       albumArtist: string,
       target: string,
     ) => string;
+    customEntryUpdateConfirmTitle: (
+      albumTitle: string,
+      albumArtist: string,
+    ) => string;
     customEntryConfirmMessage: string;
     customEntryAdded: (albumTitle: string, albumArtist: string) => string;
+    customEntryUpdated: (albumTitle: string, albumArtist: string) => string;
+    customEntryLoadError: string;
     customEntrySaveError: string;
+    edit: string;
     albumName: string;
     artist: string;
     genre: string;
@@ -257,6 +268,7 @@ export const translations: Translations = {
     saveTo: "Save to",
     saveToCollection: "Add to collection",
     saveToWishlist: "Add to wishlist",
+    update: "Update",
     select: "Select",
     releaseType: "Release type",
     year: "Year",
@@ -268,6 +280,7 @@ export const translations: Translations = {
     noImageSelected: "No image selected",
     coverSelected: "Cover selected",
     coverRequired: "Cover image is required",
+    currentCover: "Current cover",
     addArtist: "Add artist",
     artistAdditional: "Additional artist",
     artistsHelp: "Add all main artists. The first artist is used for sorting.",
@@ -285,7 +298,7 @@ export const translations: Translations = {
     seriesPlaceholder: "e.g. 'Now That's What I Call Music!'",
     seriesHelp: "Only fill this in if the album is part of a series.",
     notesPlaceholder: "Notes about this release (pressing, edition, etc.)",
-    notesHelp: "Optional. Keep it short; you can always edit later.",
+    notesHelp: "Optional. You can always edit later.",
     genreHelp: "Top-level genre(s), e.g. Rock, Jazz.",
     mainGenre: "Main genre",
     otherGenres: "Other genres",
@@ -308,16 +321,24 @@ export const translations: Translations = {
     customEntryPreviewCard: "Album card preview",
     customEntryPreviewHint:
       "This updates live so you can see what will show in your collection/wishlist.",
+    customEntryEditTitle: "Edit album",
+    customEntryEditHelp: "Update the fields below to edit this custom album.",
     customEntryMissingRequired: (fields) =>
       `Missing required fields: ${fields}`,
     customEntryInvalidNumbers: (fields) => `Please use numbers for: ${fields}`,
     customEntryConfirmTitle: (albumTitle, albumArtist, target) =>
       `Add ${albumTitle} by ${albumArtist} to ${target}?`,
+    customEntryUpdateConfirmTitle: (albumTitle, albumArtist) =>
+      `Update ${albumTitle} by ${albumArtist}?`,
     customEntryConfirmMessage:
       "Are you sure you want to save this custom album?",
     customEntryAdded: (albumTitle, albumArtist) =>
       `Added ${albumTitle} by ${albumArtist}`,
+    customEntryUpdated: (albumTitle, albumArtist) =>
+      `Updated ${albumTitle} by ${albumArtist}`,
+    customEntryLoadError: "Something went wrong loading this custom album.",
     customEntrySaveError: "Something went wrong saving this custom album.",
+    edit: "Edit",
     albumName: "Album Name",
     artist: "Artist",
     genre: "Genre",
@@ -451,6 +472,7 @@ export const translations: Translations = {
     saveTo: "Opslaan in",
     saveToCollection: "Toevoegen aan collectie",
     saveToWishlist: "Toevoegen aan verlanglijst",
+    update: "Bijwerken",
     select: "Kies",
     releaseType: "Release type",
     year: "Jaar",
@@ -462,6 +484,7 @@ export const translations: Translations = {
     noImageSelected: "Geen afbeelding gekozen",
     coverSelected: "Omslag gekozen",
     coverRequired: "Omslagafbeelding is verplicht",
+    currentCover: "Huidige omslag",
     addArtist: "Artiest toevoegen",
     artistAdditional: "Extra artiest",
     artistsHelp:
@@ -503,17 +526,27 @@ export const translations: Translations = {
     customEntryPreviewCard: "Voorbeeld albumkaart",
     customEntryPreviewHint:
       "Dit wordt direct bijgewerkt zodat je ziet wat er straks in je collectie/verlanglijst staat.",
+    customEntryEditTitle: "Album bewerken",
+    customEntryEditHelp:
+      "Werk de velden hieronder bij om dit handmatige album te bewerken.",
     customEntryMissingRequired: (fields) =>
       `Verplichte velden ontbreken: ${fields}`,
     customEntryInvalidNumbers: (fields) => `Gebruik cijfers voor: ${fields}`,
     customEntryConfirmTitle: (albumTitle, albumArtist, target) =>
       `Voeg ${albumTitle} van ${albumArtist} toe aan ${target}?`,
+    customEntryUpdateConfirmTitle: (albumTitle, albumArtist) =>
+      `Werk ${albumTitle} van ${albumArtist} bij?`,
     customEntryConfirmMessage:
       "Weet je zeker dat je dit handmatige album wilt opslaan?",
     customEntryAdded: (albumTitle, albumArtist) =>
       `${albumTitle} van ${albumArtist} toegevoegd`,
+    customEntryUpdated: (albumTitle, albumArtist) =>
+      `${albumTitle} van ${albumArtist} bijgewerkt`,
+    customEntryLoadError:
+      "Er is iets misgegaan bij het laden van dit handmatige album.",
     customEntrySaveError:
       "Er is iets misgegaan bij het opslaan van dit handmatige album.",
+    edit: "Bewerken",
     albumName: "Albumnaam",
     artist: "Artiest",
     genre: "Genre",

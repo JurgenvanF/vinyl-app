@@ -152,7 +152,8 @@ body.album-details-modal-open {
   width: 100%;
 }
 
-.album-details-modal-action-btn {
+.album-details-modal-action-btn,
+.album-details-modal-action-btn--toCollection {
   width: 100%;
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
@@ -173,6 +174,18 @@ body.album-details-modal-open {
   &:hover {
     background: #f9fafb;
     border-color: #9ca3af;
+  }
+}
+
+.album-details-modal-action-btn--toCollection {
+  border: 1px solid var(--btn-details-border);
+  background: var(--btn-details-bg);
+  color: var(--btn-details-color);
+
+  &:hover {
+    background: var(--btn-details-hover-bg);
+    border-color: var(--btn-details-hover-border);
+    color: var(--btn-details-hover-color);
   }
 }
 

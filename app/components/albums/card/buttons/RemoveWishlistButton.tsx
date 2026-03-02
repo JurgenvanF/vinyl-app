@@ -5,7 +5,8 @@ import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
 import { Heart, HeartOff } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
-import { doc, deleteDoc } from "firebase/firestore";
+import { doc, deleteDoc, getDoc } from "firebase/firestore";
+import { decrementAlbumDetailsRefCountAndCleanup } from "../../../../../lib/sharedAlbumDetails";
 
 import MessageModal from "../../../modal/MessageModal";
 
@@ -14,6 +15,8 @@ type DiscogsRelease = {
   title: string;
   artist?: string;
   cover_image?: string;
+  source?: string;
+  cloudinaryPublicIds?: string[];
 };
 
 type RemoveWishlistButtonProps = {
@@ -34,9 +37,72 @@ export default function RemoveWishlistButton({
     }
 
     try {
+      const docRef = doc(db, "users", user.uid, "Wishlist", album.id.toString());
+      const snap = await getDoc(docRef);
+      const existingDetailsRef =
+        typeof snap.data()?.detailsRef === "string"
+          ? (snap.data()?.detailsRef as string)
+          : undefined;
+      const customDetailsSnap =
+        album.source === "custom"
+          ? await getDoc(doc(docRef, "details", "details")).catch(() => null)
+          : null;
+      const storedCustomPublicIds =
+        customDetailsSnap && "exists" in customDetailsSnap && customDetailsSnap.exists()
+          ? ((customDetailsSnap.data() as { cloudinaryPublicIds?: unknown })
+              .cloudinaryPublicIds as unknown[])
+              ?.filter((v): v is string => typeof v === "string" && v.length > 0) ?? []
+          : [];
+
+      if (album.source === "custom") {
+        await deleteDoc(
+          doc(
+            db,
+            "users",
+            user.uid,
+            "Wishlist",
+            album.id.toString(),
+            "details",
+            "details",
+          ),
+        ).catch(() => undefined);
+        await deleteDoc(
+          doc(
+            db,
+            "users",
+            user.uid,
+            "Wishlist",
+            album.id.toString(),
+            "album",
+            "album",
+          ),
+        ).catch(() => undefined);
+      }
+
       await deleteDoc(
-        doc(db, "users", user.uid, "Wishlist", album.id.toString()),
+        docRef,
       );
+
+      if (existingDetailsRef && album.source !== "custom") {
+        await decrementAlbumDetailsRefCountAndCleanup(existingDetailsRef);
+      }
+
+      if (
+        album.source === "custom" &&
+        ((Array.isArray(album.cloudinaryPublicIds) &&
+          album.cloudinaryPublicIds.length > 0) ||
+          storedCustomPublicIds.length > 0)
+      ) {
+        const ids =
+          Array.isArray(album.cloudinaryPublicIds) && album.cloudinaryPublicIds.length > 0
+            ? album.cloudinaryPublicIds
+            : storedCustomPublicIds;
+        await fetch("/api/cloudinary/destroy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ publicIds: ids }),
+        }).catch(() => undefined);
+      }
 
       if (typeof window !== "undefined") {
         (

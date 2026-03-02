@@ -17,7 +17,11 @@ import { t } from "../../../../lib/translations";
 import { Plus } from "lucide-react";
 import { deriveArtists, derivePrimaryArtist } from "../../../../lib/artist";
 import { fetchDiscogsArtists } from "../../../../lib/discogsArtists";
-import { ensureSharedAlbumDetails } from "../../../../lib/sharedAlbumDetails";
+import {
+  decrementAlbumDetailsRefCountAndCleanup,
+  ensureSharedAlbumDetails,
+  incrementAlbumDetailsRefCount,
+} from "../../../../lib/sharedAlbumDetails";
 
 import CollectionButton from "./buttons/CollectionButton";
 import WishlistButton from "./buttons/WishlistButton";
@@ -44,6 +48,8 @@ type DiscogsRelease = {
   have?: number;
   want?: number;
   format?: string[];
+  source?: string;
+  cloudinaryPublicIds?: string[];
 };
 
 type AlbumCardProps = {
@@ -222,6 +228,87 @@ export default function AlbumCard({
             const user = auth.currentUser;
             if (!user) return;
 
+            if (pendingAlbum.source === "custom") {
+              const wishlistRef = doc(
+                db,
+                "users",
+                user.uid,
+                "Wishlist",
+                pendingAlbum.id.toString(),
+              );
+              const wishlistSnap = await getDoc(wishlistRef);
+              const wishlistData = wishlistSnap.data();
+              const detailsSnap = await getDoc(doc(wishlistRef, "details", "details"));
+              const albumSnap = await getDoc(doc(wishlistRef, "album", "album"));
+
+              await setDoc(
+                doc(db, "users", user.uid, "Collection", pendingAlbum.id.toString()),
+                { ...(wishlistData ?? {}), addedAt: serverTimestamp() },
+              );
+              await setDoc(
+                doc(
+                  db,
+                  "users",
+                  user.uid,
+                  "Collection",
+                  pendingAlbum.id.toString(),
+                  "details",
+                  "details",
+                ),
+                detailsSnap.data() ?? {},
+                { merge: true },
+              );
+              await setDoc(
+                doc(
+                  db,
+                  "users",
+                  user.uid,
+                  "Collection",
+                  pendingAlbum.id.toString(),
+                  "album",
+                  "album",
+                ),
+                albumSnap.data() ?? {},
+                { merge: true },
+              );
+
+              await deleteDoc(doc(wishlistRef, "details", "details")).catch(
+                () => undefined,
+              );
+              await deleteDoc(doc(wishlistRef, "album", "album")).catch(
+                () => undefined,
+              );
+              await deleteDoc(wishlistRef).catch(() => undefined);
+
+              setModalOpen(false);
+              setIsInCollection(true);
+              setIsInWishlist(false);
+
+              (
+                window as Window & {
+                  addToast?: (payload: {
+                    message: string;
+                    icon: typeof Plus;
+                    bgColor: string;
+                    textColor: string;
+                    iconBgColor: string;
+                    iconBorderColor: string;
+                  }) => void;
+                }
+              ).addToast?.({
+                message: `${pendingAlbum.title} ${t(locale, "movedToCollection")}!`,
+                icon: Plus,
+                bgColor: "bg-green-100",
+                textColor: "text-green-900",
+                iconBgColor: "bg-green-200",
+                iconBorderColor: "border-green-400",
+              });
+
+              if (onAddedToCollection)
+                onAddedToCollection(pendingAlbum.id.toString());
+              return;
+            }
+
             const wishlistDocRef = doc(
               db,
               "users",
@@ -236,6 +323,9 @@ export default function AlbumCard({
                 : undefined;
 
             await deleteDoc(wishlistDocRef);
+            if (existingDetailsRef) {
+              await decrementAlbumDetailsRefCountAndCleanup(existingDetailsRef);
+            }
 
             const discogsArtistResult = await fetchDiscogsArtists({
               id: pendingAlbum.id,
@@ -258,6 +348,7 @@ export default function AlbumCard({
               resultType: pendingAlbum.type,
               detailsRef: existingDetailsRef,
             });
+            await incrementAlbumDetailsRefCount(detailsRef);
             await setDoc(
               doc(
                 db,
