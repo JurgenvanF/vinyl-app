@@ -41,6 +41,7 @@ type Translations = {
     albumsInCollection: string;
     yearsCollecting: string;
     uniqueGenres: string;
+    topArtist: string;
     yearStartedCollecting: string;
     favoriteAlbum: string;
     favoriteGenres: string;
@@ -284,6 +285,7 @@ export const translations: Translations = {
     albumsInCollection: "Albums in collection",
     yearsCollecting: "Years collecting",
     uniqueGenres: "Unique genres",
+    topArtist: "Top artist",
     yearStartedCollecting: "Year started collecting",
     favoriteAlbum: "Favorite album",
     favoriteGenres: "Favorite genres",
@@ -299,9 +301,12 @@ export const translations: Translations = {
     visibilityPublic: "Public",
     visibilityDiscoverable: "Discoverable",
     visibilityHidden: "Hidden",
-    profileVisibilityHintEveryone: "Anyone can find you, send a friend request, and view your profile.",
-    profileVisibilityHintFriends: "Anyone can send a friend request, but only friends can view your profile.",
-    profileVisibilityHintMe: "Your account won’t appear in search, and nobody can view your profile.",
+    profileVisibilityHintEveryone:
+      "Anyone can find you, send a friend request, and view your profile.",
+    profileVisibilityHintFriends:
+      "Anyone can send a friend request, but only friends can view your profile.",
+    profileVisibilityHintMe:
+      "Your account won’t appear in search, and nobody can view your profile.",
     saving: "Saving",
     saveFailed: "Could not save your changes. Please try again.",
     friendsHint: "Search by name or email to add friends.",
@@ -535,6 +540,7 @@ export const translations: Translations = {
     albumsInCollection: "Albums in collectie",
     yearsCollecting: "Jaren verzamelen",
     uniqueGenres: "Unieke genres",
+    topArtist: "Top artiest",
     yearStartedCollecting: "Startjaar verzamelen",
     favoriteAlbum: "Favoriete album",
     favoriteGenres: "Favoriete genres",
@@ -550,9 +556,12 @@ export const translations: Translations = {
     visibilityPublic: "Openbaar",
     visibilityDiscoverable: "Vindbaar",
     visibilityHidden: "Verborgen",
-    profileVisibilityHintEveryone: "Iedereen kan je vinden, een vriendschapsverzoek sturen en je profiel bekijken.",
-    profileVisibilityHintFriends: "Iedereen kan een vriendschapsverzoek sturen, maar alleen vrienden kunnen je profiel bekijken.",
-    profileVisibilityHintMe: "Je account verschijnt niet in zoekresultaten en niemand kan je profiel bekijken.",
+    profileVisibilityHintEveryone:
+      "Iedereen kan je vinden, een vriendschapsverzoek sturen en je profiel bekijken.",
+    profileVisibilityHintFriends:
+      "Iedereen kan een vriendschapsverzoek sturen, maar alleen vrienden kunnen je profiel bekijken.",
+    profileVisibilityHintMe:
+      "Je account verschijnt niet in zoekresultaten en niemand kan je profiel bekijken.",
     saving: "Opslaan",
     saveFailed: "Kon je wijzigingen niet opslaan. Probeer het opnieuw.",
     friendsHint: "Zoek op naam of e-mail om vrienden toe te voegen.",
@@ -572,7 +581,8 @@ export const translations: Translations = {
     removeFriend: "Vriend verwijderen",
     removeFriendConfirm: "Weet je zeker dat je deze vriend wilt verwijderen?",
     friendProfile: "Vriendprofiel",
-    notAllowed: "Niet toegestaan door de privacy-instellingen van deze gebruiker.",
+    notAllowed:
+      "Niet toegestaan door de privacy-instellingen van deze gebruiker.",
     searchAlbumArtist: "Zoek albums of artiesten",
     searchAlbumArtistCatNo: "Zoek albums, artiesten of catalogusnummers",
     searchTakingLonger: "Zoeken duurt iets langer dan normaal...",

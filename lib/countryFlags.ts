@@ -100,6 +100,8 @@ const aliasToISO: Record<string, string> = {
   scotland: "GB",
   wales: "GB",
   usa: "US",
+  europe: "EU",
+  "european union": "EU",
 };
 
 export const SUPPORTED_COUNTRY_ISOS = Array.from(
@@ -141,6 +143,10 @@ export function getFlagEmoji(country?: string) {
 
 export function getLocalizedCountryName(country?: string, locale: Locale = "en") {
   if (!country) return "";
+  const normalized = country.trim().toLowerCase();
+  if (normalized === "europe") {
+    return locale === "nl" ? "Europa" : "Europe";
+  }
   const iso = resolveCountryISO(country);
   if (!iso) return country;
 

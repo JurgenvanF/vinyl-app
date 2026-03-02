@@ -766,7 +766,7 @@ export default function AlbumDetailsModal({
       value: `${getFlagEmoji(details.country)} ${countryName}`.trim(),
     });
   }
-  if (album.catno)
+  if (album.catno && album.catno.trim().toLowerCase() !== "none")
     metaRows.push({
       label: t(locale, "albumDetailsCatalog"),
       value: album.catno,
@@ -1038,15 +1038,30 @@ export default function AlbumDetailsModal({
                       {t(locale, "albumDetailsLabels")}
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {details.labels.map((label, i) => (
-                        <span
-                          key={i}
-                          className="album-details-modal-chip px-3 py-1 rounded-full text-xs"
-                        >
-                          {label.name} (
-                          {label.catno || t(locale, "albumDetailsNoCatNo")})
-                        </span>
-                      ))}
+                      {details.labels.map((label, i) => {
+                        const catno = (label.catno || "").trim();
+                        const showCatno = catno && catno.toLowerCase() !== "none";
+                        const name = (label.name || "").trim();
+
+                        const labelText = name
+                          ? showCatno
+                            ? `${name} (${catno})`
+                            : name
+                          : showCatno
+                            ? catno
+                            : "";
+
+                        if (!labelText) return null;
+
+                        return (
+                          <span
+                            key={`${name}-${catno}-${i}`}
+                            className="album-details-modal-chip px-3 py-1 rounded-full text-xs"
+                          >
+                            {labelText}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

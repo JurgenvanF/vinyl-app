@@ -9,7 +9,7 @@ type Labels = {
   statsAlbums: string;
   statsYears: string;
   statsUniqueGenres: string;
-  statsFavoriteGenres: string;
+  statsTopArtist: string;
   yearStarted: string;
   favoriteAlbum: string;
   favoriteGenres: string;
@@ -53,13 +53,30 @@ export default function ProfileStatsFavoritesPanel({
   }, [startedYear, editMode]);
 
   const yearsCollecting =
-    startedYear && startedYear > 0 ? Math.max(0, currentYear - startedYear + 1) : 0;
+    startedYear && startedYear > 0
+      ? Math.max(0, currentYear - startedYear + 1)
+      : 0;
 
   const favoriteGenres = useMemo(() => {
     return Array.isArray(draft.favoriteGenres)
       ? draft.favoriteGenres.filter((g): g is string => typeof g === "string")
       : [];
   }, [draft.favoriteGenres]);
+
+  const topArtist = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const album of collectionAlbums) {
+      const name = (album.primaryArtist ?? album.artist ?? "").trim();
+      if (!name) continue;
+      counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+
+    let best: { name: string; count: number } | null = null;
+    for (const [name, count] of counts.entries()) {
+      if (!best || count > best.count) best = { name, count };
+    }
+    return best;
+  }, [collectionAlbums]);
 
   const orderedGenres = useMemo(() => {
     const favoritesSet = new Set(favoriteGenres);
@@ -71,7 +88,8 @@ export default function ProfileStatsFavoritesPanel({
   const favoriteAlbum = useMemo(() => {
     if (typeof draft.favoriteAlbumId !== "number") return null;
     return (
-      collectionAlbums.find((album) => album.id === draft.favoriteAlbumId) ?? null
+      collectionAlbums.find((album) => album.id === draft.favoriteAlbumId) ??
+      null
     );
   }, [collectionAlbums, draft.favoriteAlbumId]);
 
@@ -102,7 +120,9 @@ export default function ProfileStatsFavoritesPanel({
       <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
         <div className="profile__surface border rounded-xl p-4">
           <div className="text-sm profile__muted">{labels.statsAlbums}</div>
-          <div className="text-2xl font-semibold mt-1">{collectionAlbums.length}</div>
+          <div className="text-2xl font-semibold mt-1">
+            {collectionAlbums.length}
+          </div>
         </div>
         <div className="profile__surface border rounded-xl p-4">
           <div className="text-sm profile__muted">{labels.statsYears}</div>
@@ -111,12 +131,23 @@ export default function ProfileStatsFavoritesPanel({
           </div>
         </div>
         <div className="profile__surface border rounded-xl p-4">
-          <div className="text-sm profile__muted">{labels.statsUniqueGenres}</div>
-          <div className="text-2xl font-semibold mt-1">{uniqueGenres.length}</div>
+          <div className="text-sm profile__muted">
+            {labels.statsUniqueGenres}
+          </div>
+          <div className="text-2xl font-semibold mt-1">
+            {uniqueGenres.length}
+          </div>
         </div>
         <div className="profile__surface border rounded-xl p-4">
-          <div className="text-sm profile__muted">{labels.statsFavoriteGenres}</div>
-          <div className="text-2xl font-semibold mt-1">{favoriteGenres.length}</div>
+          <div className="text-sm profile__muted">{labels.statsTopArtist}</div>
+          <div className="flex items-center mt-1">
+            <div className="text profile truncate">
+              {topArtist ? topArtist.name : ""}
+            </div>
+            <div className="text-sm font-semibold ml-1">
+              ({topArtist ? topArtist.count : "-"})
+            </div>
+          </div>
         </div>
       </div>
 
@@ -179,7 +210,9 @@ export default function ProfileStatsFavoritesPanel({
                 <span className="truncate">
                   {favoriteAlbum
                     ? `${favoriteAlbum.title} - ${
-                        favoriteAlbum.primaryArtist ?? favoriteAlbum.artist ?? ""
+                        favoriteAlbum.primaryArtist ??
+                        favoriteAlbum.artist ??
+                        ""
                       }`
                     : labels.noneSelected}
                 </span>
@@ -241,7 +274,9 @@ export default function ProfileStatsFavoritesPanel({
                 />
               </div>
               <div className="min-w-0">
-                <div className="truncate font-semibold">{favoriteAlbum.title}</div>
+                <div className="truncate font-semibold">
+                  {favoriteAlbum.title}
+                </div>
                 <div className="truncate profile__muted">
                   {favoriteAlbum.primaryArtist ?? favoriteAlbum.artist ?? ""}
                 </div>

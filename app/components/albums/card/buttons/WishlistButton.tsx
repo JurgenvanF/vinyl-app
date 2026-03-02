@@ -31,6 +31,7 @@ type WishlistButtonProps = {
   releaseType?: string;
   action?: "enabled" | "disabled";
   onAdded?: (albumId: string) => void;
+  onLoadingChange?: (loading: boolean) => void;
 };
 
 const getReleaseType = (formats?: string[]) => {
@@ -48,112 +49,118 @@ export default function WishlistButton({
   releaseType,
   action = "enabled",
   onAdded,
+  onLoadingChange,
 }: WishlistButtonProps) {
   const { locale } = useLanguage();
 
   const handleAddToWishlist = async () => {
-    const user = auth.currentUser;
-    if (!user) {
-      return;
-    }
-
-    const splitDiscogsTitle = (fullTitle: string, artist?: string) => {
-      if (artist) return { artist, title: fullTitle };
-
-      const [maybeArtist, ...titleParts] = fullTitle.split(" - ");
-      const albumTitle = titleParts.join(" - ").trim() || fullTitle;
-      const albumArtist = maybeArtist?.trim() || "Unknown";
-
-      return { artist: albumArtist, title: albumTitle };
-    };
-
-    const { artist: albumArtist, title: albumTitle } = splitDiscogsTitle(
-      album.title,
-      album.artist,
-    );
-    const discogsArtistResult = await fetchDiscogsArtists({
-      id: album.id,
-      masterId: album.master_id,
-    });
-    const artists =
-      discogsArtistResult.length > 0
-        ? discogsArtistResult
-        : deriveArtists(albumArtist, album.artists);
-    const primaryArtist = derivePrimaryArtist(undefined, artists, albumArtist);
-
-    const normalizedReleaseType = releaseType ?? getReleaseType(album.format);
-    const { detailsRef } = await ensureSharedAlbumDetails({
-      id: album.id,
-      masterId: album.master_id,
-      resultType: album.type,
-    });
-    await incrementAlbumDetailsRefCount(detailsRef);
-
+    onLoadingChange?.(true);
     try {
-      await setDoc(
-        doc(db, "users", user.uid, "Wishlist", album.id.toString()),
-        {
-          id: album.id,
-          title: albumTitle,
-          artist: albumArtist,
-          artists,
-          primaryArtist,
-          cover_image: album.cover_image,
-          releaseType: normalizedReleaseType || null,
-          genre: album.genre?.[0] || null,
-          year: album.year || null,
-          catno: album.catno || null,
-          master_id: album.master_id || null,
-          detailsRef,
-          addedAt: serverTimestamp(),
-        },
-      );
-      onAdded?.(album.id.toString());
+      const user = auth.currentUser;
+      if (!user) {
+        return;
+      }
 
-      if (typeof window !== "undefined") {
-        (
-          window as Window & {
-            addToast?: (payload: {
-              message: string;
-              icon: typeof Heart;
-              bgColor: string;
-              textColor: string;
-              iconBgColor: string;
-              iconBorderColor: string;
-            }) => void;
-          }
-        ).addToast?.({
-          message: `${albumTitle} ${t(locale, "addedToWishlist")?.toLowerCase()}!`,
-          icon: Heart,
-          bgColor: "bg-green-100",
-          textColor: "text-green-900",
-          iconBgColor: "bg-green-200",
-          iconBorderColor: "border-green-400",
-        });
+      const splitDiscogsTitle = (fullTitle: string, artist?: string) => {
+        if (artist) return { artist, title: fullTitle };
+
+        const [maybeArtist, ...titleParts] = fullTitle.split(" - ");
+        const albumTitle = titleParts.join(" - ").trim() || fullTitle;
+        const albumArtist = maybeArtist?.trim() || "Unknown";
+
+        return { artist: albumArtist, title: albumTitle };
+      };
+
+      const { artist: albumArtist, title: albumTitle } = splitDiscogsTitle(
+        album.title,
+        album.artist,
+      );
+      const discogsArtistResult = await fetchDiscogsArtists({
+        id: album.id,
+        masterId: album.master_id,
+      });
+      const artists =
+        discogsArtistResult.length > 0
+          ? discogsArtistResult
+          : deriveArtists(albumArtist, album.artists);
+      const primaryArtist = derivePrimaryArtist(undefined, artists, albumArtist);
+
+      const normalizedReleaseType = releaseType ?? getReleaseType(album.format);
+      const { detailsRef } = await ensureSharedAlbumDetails({
+        id: album.id,
+        masterId: album.master_id,
+        resultType: album.type,
+      });
+      await incrementAlbumDetailsRefCount(detailsRef);
+
+      try {
+        await setDoc(
+          doc(db, "users", user.uid, "Wishlist", album.id.toString()),
+          {
+            id: album.id,
+            title: albumTitle,
+            artist: albumArtist,
+            artists,
+            primaryArtist,
+            cover_image: album.cover_image,
+            releaseType: normalizedReleaseType || null,
+            genre: album.genre?.[0] || null,
+            year: album.year || null,
+            catno: album.catno || null,
+            master_id: album.master_id || null,
+            detailsRef,
+            addedAt: serverTimestamp(),
+          },
+        );
+        onAdded?.(album.id.toString());
+
+        if (typeof window !== "undefined") {
+          (
+            window as Window & {
+              addToast?: (payload: {
+                message: string;
+                icon: typeof Heart;
+                bgColor: string;
+                textColor: string;
+                iconBgColor: string;
+                iconBorderColor: string;
+              }) => void;
+            }
+          ).addToast?.({
+            message: `${albumTitle} ${t(locale, "addedToWishlist")?.toLowerCase()}!`,
+            icon: Heart,
+            bgColor: "bg-green-100",
+            textColor: "text-green-900",
+            iconBgColor: "bg-green-200",
+            iconBorderColor: "border-green-400",
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        if (typeof window !== "undefined") {
+          (
+            window as Window & {
+              addToast?: (payload: {
+                message: string;
+                icon: typeof Heart;
+                bgColor: string;
+                textColor: string;
+                iconBgColor: string;
+                iconBorderColor: string;
+              }) => void;
+            }
+          ).addToast?.({
+            message: `${t(locale, "errorAddToWishlist")?.toLowerCase()}.`,
+            icon: Heart,
+            bgColor: "bg-red-100",
+            textColor: "text-red-900",
+            iconBgColor: "bg-red-200",
+            iconBorderColor: "border-red-400",
+          });
+        }
       }
-    } catch (err) {
-      console.error(err);
-      if (typeof window !== "undefined") {
-        (
-          window as Window & {
-            addToast?: (payload: {
-              message: string;
-              icon: typeof Heart;
-              bgColor: string;
-              textColor: string;
-              iconBgColor: string;
-              iconBorderColor: string;
-            }) => void;
-          }
-        ).addToast?.({
-          message: `${t(locale, "errorAddToWishlist")?.toLowerCase()}.`,
-          icon: Heart,
-          bgColor: "bg-red-100",
-          textColor: "text-red-900",
-          iconBgColor: "bg-red-200",
-          iconBorderColor: "border-red-400",
-        });
-      }
+    } finally {
+      onLoadingChange?.(false);
     }
   };
 
@@ -171,7 +178,9 @@ export default function WishlistButton({
             ? "cursor-not-allowed opacity-70"
             : "cursor-pointer"
         }`}
-        onClick={action === "enabled" ? handleAddToWishlist : undefined}
+        onClick={
+          action === "enabled" ? () => void handleAddToWishlist() : undefined
+        }
         disabled={action === "disabled"}
       >
         <Heart

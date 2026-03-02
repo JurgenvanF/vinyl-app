@@ -14,7 +14,7 @@ import {
 import { useLanguage } from "../../../../lib/LanguageContext";
 import { t } from "../../../../lib/translations";
 
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { deriveArtists, derivePrimaryArtist } from "../../../../lib/artist";
 import { fetchDiscogsArtists } from "../../../../lib/discogsArtists";
 import {
@@ -100,6 +100,7 @@ export default function AlbumCard({
   );
   const [modalOpen, setModalOpen] = useState(false);
   const [pendingAlbum, setPendingAlbum] = useState<DiscogsRelease | null>(null);
+  const [actionsLoading, setActionsLoading] = useState(false);
 
   useEffect(() => {
     setIsInCollection(collectionAction === "disabled");
@@ -108,6 +109,8 @@ export default function AlbumCard({
   useEffect(() => {
     setIsInWishlist(wishlistAction === "disabled");
   }, [wishlistAction]);
+
+  const reserveActionSpace = Boolean(buttons?.collection) && Boolean(buttons?.wishlist);
 
   return (
     <div
@@ -183,41 +186,11 @@ export default function AlbumCard({
 
       {/* Buttons */}
       <div
-        className="buttons w-10/12 flex flex-col mt-auto mb-4 gap-2 transition duration-200"
+        className={`buttons w-10/12 flex flex-col mt-auto mb-4 gap-2 transition duration-200 relative ${
+          reserveActionSpace ? "min-h-[76px]" : ""
+        }`}
         onClick={(event) => event.stopPropagation()}
       >
-        {buttons?.collection && (
-          <CollectionButton
-            album={album}
-            releaseType={releaseType}
-            action={isInCollection ? "disabled" : "enabled"}
-            onAdded={(albumId) => {
-              setIsInCollection(true);
-              setIsInWishlist(false);
-              onAddedToCollection?.(albumId);
-            }}
-            onConflict={() => {
-              if (isInWishlist) {
-                setPendingAlbum(album);
-                setModalOpen(true);
-              }
-            }}
-          />
-        )}
-
-        {buttons?.wishlist && !isInCollection && (
-          <WishlistButton
-            album={album}
-            releaseType={releaseType}
-            action={isInWishlist ? "disabled" : "enabled"}
-            onAdded={(albumId) => {
-              setIsInWishlist(true);
-              setIsInCollection(false);
-              onAddedToWishlist?.(albumId);
-            }}
-          />
-        )}
-
         <ConfirmModal
           open={modalOpen}
           title={`${t(locale, "moveToCollection", pendingAlbum?.title || album.title)}?`}
@@ -395,17 +368,61 @@ export default function AlbumCard({
           }}
         />
 
-        {buttons?.toCollection && (
-          <ToCollectionButton
-            onClick={() => {
-              setPendingAlbum(album);
-              setModalOpen(true);
-            }}
-          />
+        <div
+          className={`flex flex-col gap-2 ${actionsLoading ? "invisible" : ""}`}
+        >
+          {buttons?.collection && (
+            <CollectionButton
+              album={album}
+              releaseType={releaseType}
+              action={isInCollection ? "disabled" : "enabled"}
+              onAdded={(albumId) => {
+                setIsInCollection(true);
+                setIsInWishlist(false);
+                onAddedToCollection?.(albumId);
+              }}
+              onConflict={() => {
+                if (isInWishlist) {
+                  setPendingAlbum(album);
+                  setModalOpen(true);
+                }
+              }}
+              onLoadingChange={setActionsLoading}
+            />
+          )}
+
+          {buttons?.wishlist && !isInCollection && (
+            <WishlistButton
+              album={album}
+              releaseType={releaseType}
+              action={isInWishlist ? "disabled" : "enabled"}
+              onAdded={(albumId) => {
+                setIsInWishlist(true);
+                setIsInCollection(false);
+                onAddedToWishlist?.(albumId);
+              }}
+              onLoadingChange={setActionsLoading}
+            />
+          )}
+
+          {buttons?.toCollection && (
+            <ToCollectionButton
+              onClick={() => {
+                setPendingAlbum(album);
+                setModalOpen(true);
+              }}
+            />
+          )}
+          {buttons?.viewDetails && <ViewDetailsButton />}
+          {buttons?.removeCollection && <RemoveCollectionButton album={album} />}
+          {buttons?.removeWishlist && <RemoveWishlistButton album={album} />}
+        </div>
+
+        {actionsLoading && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Loader2 size={22} className="animate-spin opacity-70" />
+          </div>
         )}
-        {buttons?.viewDetails && <ViewDetailsButton />}
-        {buttons?.removeCollection && <RemoveCollectionButton album={album} />}
-        {buttons?.removeWishlist && <RemoveWishlistButton album={album} />}
       </div>
     </div>
   );

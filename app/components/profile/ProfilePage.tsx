@@ -392,7 +392,7 @@ export default function ProfilePage() {
               statsAlbums: t(locale, "albumsInCollection"),
               statsYears: t(locale, "yearsCollecting"),
               statsUniqueGenres: t(locale, "uniqueGenres"),
-              statsFavoriteGenres: t(locale, "favoriteGenres"),
+              statsTopArtist: t(locale, "topArtist"),
               yearStarted: t(locale, "yearStartedCollecting"),
               favoriteAlbum: t(locale, "favoriteAlbum"),
               favoriteGenres: t(locale, "favoriteGenres"),

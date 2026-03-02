@@ -32,6 +32,7 @@ type CollectionButtonProps = {
   action?: "enabled" | "disabled";
   onAdded?: (albumId: string) => void;
   onConflict?: () => void; // NEW: triggered if album is in wishlist
+  onLoadingChange?: (loading: boolean) => void;
 };
 
 const getReleaseType = (formats?: string[]) => {
@@ -50,120 +51,126 @@ export default function CollectionButton({
   action = "enabled",
   onAdded,
   onConflict,
+  onLoadingChange,
 }: CollectionButtonProps) {
   const { locale } = useLanguage();
 
   const handleAddToCollection = async () => {
-    const user = auth.currentUser;
-    if (!user) {
-      return;
-    }
-
-    // Check if album exists in wishlist
-    const wishRef = doc(db, "users", user.uid, "Wishlist", album.id.toString());
-    const wishSnap = await getDoc(wishRef);
-    if (wishSnap.exists()) {
-      // trigger conflict callback instead of adding
-      onConflict?.();
-      return;
-    }
-
-    const splitDiscogsTitle = (fullTitle: string, artist?: string) => {
-      if (artist) return { artist, title: fullTitle };
-      const [maybeArtist, ...titleParts] = fullTitle.split(" - ");
-      const albumTitle = titleParts.join(" - ").trim() || fullTitle;
-      const albumArtist = maybeArtist?.trim() || "Unknown";
-      return { artist: albumArtist, title: albumTitle };
-    };
-
-    const { artist: albumArtist, title: albumTitle } = splitDiscogsTitle(
-      album.title,
-      album.artist,
-    );
-    const discogsArtistResult = await fetchDiscogsArtists({
-      id: album.id,
-      masterId: album.master_id,
-    });
-    const artists =
-      discogsArtistResult.length > 0
-        ? discogsArtistResult
-        : deriveArtists(albumArtist, album.artists);
-    const primaryArtist = derivePrimaryArtist(undefined, artists, albumArtist);
-
-    const normalizedReleaseType = releaseType ?? getReleaseType(album.format);
-    const { detailsRef } = await ensureSharedAlbumDetails({
-      id: album.id,
-      masterId: album.master_id,
-      resultType: album.type,
-    });
-    await incrementAlbumDetailsRefCount(detailsRef);
-
+    onLoadingChange?.(true);
     try {
-      await setDoc(
-        doc(db, "users", user.uid, "Collection", album.id.toString()),
-        {
-          id: album.id,
-          title: albumTitle,
-          artist: albumArtist,
-          artists,
-          primaryArtist,
-          cover_image: album.cover_image,
-          releaseType: normalizedReleaseType || null,
-          genre: album.genre || [],
-          year: album.year || null,
-          catno: album.catno || null,
-          master_id: album.master_id || null,
-          detailsRef,
-          addedAt: serverTimestamp(),
-        },
+      const user = auth.currentUser;
+      if (!user) {
+        return;
+      }
+
+      // Check if album exists in wishlist
+      const wishRef = doc(db, "users", user.uid, "Wishlist", album.id.toString());
+      const wishSnap = await getDoc(wishRef);
+      if (wishSnap.exists()) {
+        // trigger conflict callback instead of adding
+        onConflict?.();
+        return;
+      }
+
+      const splitDiscogsTitle = (fullTitle: string, artist?: string) => {
+        if (artist) return { artist, title: fullTitle };
+        const [maybeArtist, ...titleParts] = fullTitle.split(" - ");
+        const albumTitle = titleParts.join(" - ").trim() || fullTitle;
+        const albumArtist = maybeArtist?.trim() || "Unknown";
+        return { artist: albumArtist, title: albumTitle };
+      };
+
+      const { artist: albumArtist, title: albumTitle } = splitDiscogsTitle(
+        album.title,
+        album.artist,
       );
+      const discogsArtistResult = await fetchDiscogsArtists({
+        id: album.id,
+        masterId: album.master_id,
+      });
+      const artists =
+        discogsArtistResult.length > 0
+          ? discogsArtistResult
+          : deriveArtists(albumArtist, album.artists);
+      const primaryArtist = derivePrimaryArtist(undefined, artists, albumArtist);
 
-      onAdded?.(album.id.toString());
+      const normalizedReleaseType = releaseType ?? getReleaseType(album.format);
+      const { detailsRef } = await ensureSharedAlbumDetails({
+        id: album.id,
+        masterId: album.master_id,
+        resultType: album.type,
+      });
+      await incrementAlbumDetailsRefCount(detailsRef);
 
-      if (typeof window !== "undefined") {
-        (
-          window as Window & {
-            addToast?: (payload: {
-              message: string;
-              icon: typeof Plus;
-              bgColor: string;
-              textColor: string;
-              iconBgColor: string;
-              iconBorderColor: string;
-            }) => void;
-          }
-        ).addToast?.({
-          message: `${albumTitle} ${t(locale, "addedToCollection")?.toLowerCase()}!`,
-          icon: Plus,
-          bgColor: "bg-green-100",
-          textColor: "text-green-900",
-          iconBgColor: "bg-green-200",
-          iconBorderColor: "border-green-400",
-        });
+      try {
+        await setDoc(
+          doc(db, "users", user.uid, "Collection", album.id.toString()),
+          {
+            id: album.id,
+            title: albumTitle,
+            artist: albumArtist,
+            artists,
+            primaryArtist,
+            cover_image: album.cover_image,
+            releaseType: normalizedReleaseType || null,
+            genre: album.genre || [],
+            year: album.year || null,
+            catno: album.catno || null,
+            master_id: album.master_id || null,
+            detailsRef,
+            addedAt: serverTimestamp(),
+          },
+        );
+
+        onAdded?.(album.id.toString());
+
+        if (typeof window !== "undefined") {
+          (
+            window as Window & {
+              addToast?: (payload: {
+                message: string;
+                icon: typeof Plus;
+                bgColor: string;
+                textColor: string;
+                iconBgColor: string;
+                iconBorderColor: string;
+              }) => void;
+            }
+          ).addToast?.({
+            message: `${albumTitle} ${t(locale, "addedToCollection")?.toLowerCase()}!`,
+            icon: Plus,
+            bgColor: "bg-green-100",
+            textColor: "text-green-900",
+            iconBgColor: "bg-green-200",
+            iconBorderColor: "border-green-400",
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        if (typeof window !== "undefined") {
+          (
+            window as Window & {
+              addToast?: (payload: {
+                message: string;
+                icon: typeof Plus;
+                bgColor: string;
+                textColor: string;
+                iconBgColor: string;
+                iconBorderColor: string;
+              }) => void;
+            }
+          ).addToast?.({
+            message: `${t(locale, "errorAddToCollection")?.toLowerCase()}.`,
+            icon: Plus,
+            bgColor: "bg-red-100",
+            textColor: "text-red-900",
+            iconBgColor: "bg-red-200",
+            iconBorderColor: "border-red-400",
+          });
+        }
       }
-    } catch (err) {
-      console.error(err);
-      if (typeof window !== "undefined") {
-        (
-          window as Window & {
-            addToast?: (payload: {
-              message: string;
-              icon: typeof Plus;
-              bgColor: string;
-              textColor: string;
-              iconBgColor: string;
-              iconBorderColor: string;
-            }) => void;
-          }
-        ).addToast?.({
-          message: `${t(locale, "errorAddToCollection")?.toLowerCase()}.`,
-          icon: Plus,
-          bgColor: "bg-red-100",
-          textColor: "text-red-900",
-          iconBgColor: "bg-red-200",
-          iconBorderColor: "border-red-400",
-        });
-      }
+    } finally {
+      onLoadingChange?.(false);
     }
   };
 
@@ -172,7 +179,7 @@ export default function CollectionButton({
       onConflict?.();
       return;
     }
-    handleAddToCollection();
+    void handleAddToCollection();
   };
 
   return (
