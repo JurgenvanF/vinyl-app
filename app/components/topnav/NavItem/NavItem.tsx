@@ -12,6 +12,7 @@ type NavItemProps = {
   auth?: boolean;
   onClick?: () => void;
   compact?: boolean;
+  badgeCount?: number;
 };
 
 export default function NavItem({
@@ -21,10 +22,12 @@ export default function NavItem({
   auth = false,
   onClick,
   compact = false,
+  badgeCount,
 }: NavItemProps) {
   const pathname = usePathname();
   const itemRef = useRef<HTMLDivElement>(null);
   const isActive = href && pathname === href;
+  const showBadge = typeof badgeCount === "number" && badgeCount > 0;
 
   const baseClass = `
     flex items-center gap-2 text-sm px-4 ${
@@ -47,8 +50,11 @@ export default function NavItem({
   if (href) {
     return (
       <Link href={href} className={className}>
-        {icon}
-        <span>{children}</span>
+        <span className="relative flex items-center gap-2 min-w-0">
+          {icon}
+          <span>{children}</span>
+          {showBadge && <span className="nav-badge">{badgeCount}</span>}
+        </span>
       </Link>
     );
   }
@@ -69,8 +75,11 @@ export default function NavItem({
         nestedButton?.click();
       }}
     >
-      {icon}
-      <span>{children}</span>
+      <span className="relative flex items-center gap-2 min-w-0">
+        {icon}
+        <span>{children}</span>
+        {showBadge && <span className="nav-badge">{badgeCount}</span>}
+      </span>
     </div>
   );
 }

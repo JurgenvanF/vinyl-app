@@ -10,17 +10,48 @@ import { t } from "../../../lib/translations";
 import { Disc3, Heart, User, LogOut, Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import NavItem from "./NavItem/NavItem";
+import { auth, db } from "../../../lib/firebase";
+import { collection, onSnapshot } from "firebase/firestore";
 
 import "./TopNav.scss";
 
 export default function TopNav() {
   const { locale, toggleLocale } = useLanguage();
   const [open, setOpen] = useState(false);
+  const [incomingRequestsCount, setIncomingRequestsCount] = useState(0);
   const pathname = usePathname();
 
   useEffect(() => {
-    setOpen(false);
+    Promise.resolve().then(() => setOpen(false));
   }, [pathname]);
+
+  useEffect(() => {
+    let unsubscribeReq: null | (() => void) = null;
+
+    const unsubscribeAuth = auth.onAuthStateChanged((currentUser) => {
+      if (unsubscribeReq) {
+        unsubscribeReq();
+        unsubscribeReq = null;
+      }
+
+      if (!currentUser) {
+        setIncomingRequestsCount(0);
+        return;
+      }
+
+      const ref = collection(db, "users", currentUser.uid, "FriendRequestsIncoming");
+      unsubscribeReq = onSnapshot(
+        ref,
+        (snap) => setIncomingRequestsCount(snap.size),
+        () => setIncomingRequestsCount(0),
+      );
+    });
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeReq) unsubscribeReq();
+    };
+  }, []);
 
   useEffect(() => {
     document.body.classList.toggle("sidenav-open", open);
@@ -50,7 +81,11 @@ export default function TopNav() {
             {t(locale, "wishlist")}
           </NavItem>
 
-          <NavItem href="/profile" icon={<User size={18} />}>
+          <NavItem
+            href="/profile"
+            icon={<User size={18} />}
+            badgeCount={incomingRequestsCount}
+          >
             {t(locale, "profile")}
           </NavItem>
 
@@ -116,7 +151,11 @@ export default function TopNav() {
                 {t(locale, "wishlist")}
               </NavItem>
 
-              <NavItem href="/profile" icon={<User size={18} />}>
+              <NavItem
+                href="/profile"
+                icon={<User size={18} />}
+                badgeCount={incomingRequestsCount}
+              >
                 {t(locale, "profile")}
               </NavItem>
             </div>

@@ -30,6 +30,55 @@ type Translations = {
     wishlist: string;
     profile: string;
     profileLoadError: string;
+    name: string;
+    privacy: string;
+    friends: string;
+    editProfile: string;
+    saveChanges: string;
+    personalInformation: string;
+    biography: string;
+    collectionStatsAndFavorites: string;
+    albumsInCollection: string;
+    yearsCollecting: string;
+    uniqueGenres: string;
+    yearStartedCollecting: string;
+    favoriteAlbum: string;
+    favoriteGenres: string;
+    noneSelected: string;
+    privacySettings: string;
+    privacyHint: string;
+    profileVisibility: string;
+    collectionVisibility: string;
+    wishlistVisibility: string;
+    visibilityEveryone: string;
+    visibilityFriends: string;
+    visibilityOnlyMe: string;
+    visibilityPublic: string;
+    visibilityDiscoverable: string;
+    visibilityHidden: string;
+    profileVisibilityHintEveryone: string;
+    profileVisibilityHintFriends: string;
+    profileVisibilityHintMe: string;
+    saving: string;
+    saveFailed: string;
+    friendsHint: string;
+    searchFriendsPlaceholder: string;
+    searching: string;
+    search: string;
+    searchFailed: string;
+    add: string;
+    request: string;
+    requested: string;
+    revokeRequest: string;
+    friendRequests: string;
+    accept: string;
+    reject: string;
+    myFriends: string;
+    friendCount: (count: string) => string;
+    removeFriend: string;
+    removeFriendConfirm: string;
+    friendProfile: string;
+    notAllowed: string;
     searchAlbumArtist: string;
     searchAlbumArtistCatNo: string;
     searchTakingLonger: string;
@@ -224,6 +273,55 @@ export const translations: Translations = {
     wishlist: "Wishlist",
     profile: "Profile",
     profileLoadError: "Could not load your profile. Please try again.",
+    name: "Name",
+    privacy: "Privacy",
+    friends: "Friends",
+    editProfile: "Edit profile",
+    saveChanges: "Save changes",
+    personalInformation: "Personal information",
+    biography: "Biography",
+    collectionStatsAndFavorites: "Collection stats & favorites",
+    albumsInCollection: "Albums in collection",
+    yearsCollecting: "Years collecting",
+    uniqueGenres: "Unique genres",
+    yearStartedCollecting: "Year started collecting",
+    favoriteAlbum: "Favorite album",
+    favoriteGenres: "Favorite genres",
+    noneSelected: "None selected",
+    privacySettings: "Visibility settings",
+    privacyHint: "Changes here are saved immediately.",
+    profileVisibility: "Profile visibility",
+    collectionVisibility: "Collection visibility",
+    wishlistVisibility: "Wishlist visibility",
+    visibilityEveryone: "Everyone",
+    visibilityFriends: "Friends only",
+    visibilityOnlyMe: "Only me",
+    visibilityPublic: "Public",
+    visibilityDiscoverable: "Discoverable",
+    visibilityHidden: "Hidden",
+    profileVisibilityHintEveryone: "Anyone can find you, send a friend request, and view your profile.",
+    profileVisibilityHintFriends: "Anyone can send a friend request, but only friends can view your profile.",
+    profileVisibilityHintMe: "Your account won’t appear in search, and nobody can view your profile.",
+    saving: "Saving",
+    saveFailed: "Could not save your changes. Please try again.",
+    friendsHint: "Search by name or email to add friends.",
+    searchFriendsPlaceholder: "Type a name or email…",
+    searching: "Searching",
+    search: "Search",
+    searchFailed: "Search failed. Please try again.",
+    add: "Add",
+    request: "Request",
+    requested: "Requested",
+    revokeRequest: "Revoke",
+    friendRequests: "Friend requests",
+    accept: "Accept",
+    reject: "Reject",
+    myFriends: "My friends",
+    friendCount: (count) => `${count} friends`,
+    removeFriend: "Remove friend",
+    removeFriendConfirm: "Are you sure you want to remove this friend?",
+    friendProfile: "Friend profile",
+    notAllowed: "Not allowed by this user's privacy settings.",
     searchAlbumArtist: "Search albums or artists",
     searchAlbumArtistCatNo: "Search albums, artists or catalog numbers",
     searchTakingLonger: "Searching is taking a bit longer than usual...",
@@ -426,6 +524,55 @@ export const translations: Translations = {
     wishlist: "Verlanglijst",
     profile: "Profiel",
     profileLoadError: "Kan je profiel niet laden. Probeer het opnieuw.",
+    name: "Naam",
+    privacy: "Privacy",
+    friends: "Vrienden",
+    editProfile: "Profiel bewerken",
+    saveChanges: "Wijzigingen opslaan",
+    personalInformation: "Persoonlijke informatie",
+    biography: "Biografie",
+    collectionStatsAndFavorites: "Collectiestatistieken & favorieten",
+    albumsInCollection: "Albums in collectie",
+    yearsCollecting: "Jaren verzamelen",
+    uniqueGenres: "Unieke genres",
+    yearStartedCollecting: "Startjaar verzamelen",
+    favoriteAlbum: "Favoriete album",
+    favoriteGenres: "Favoriete genres",
+    noneSelected: "Niets geselecteerd",
+    privacySettings: "Zichtbaarheidsinstellingen",
+    privacyHint: "Wijzigingen worden direct opgeslagen.",
+    profileVisibility: "Profiel zichtbaarheid",
+    collectionVisibility: "Collectie zichtbaarheid",
+    wishlistVisibility: "Verlanglijst zichtbaarheid",
+    visibilityEveryone: "Iedereen",
+    visibilityFriends: "Alleen vrienden",
+    visibilityOnlyMe: "Alleen ik",
+    visibilityPublic: "Openbaar",
+    visibilityDiscoverable: "Vindbaar",
+    visibilityHidden: "Verborgen",
+    profileVisibilityHintEveryone: "Iedereen kan je vinden, een vriendschapsverzoek sturen en je profiel bekijken.",
+    profileVisibilityHintFriends: "Iedereen kan een vriendschapsverzoek sturen, maar alleen vrienden kunnen je profiel bekijken.",
+    profileVisibilityHintMe: "Je account verschijnt niet in zoekresultaten en niemand kan je profiel bekijken.",
+    saving: "Opslaan",
+    saveFailed: "Kon je wijzigingen niet opslaan. Probeer het opnieuw.",
+    friendsHint: "Zoek op naam of e-mail om vrienden toe te voegen.",
+    searchFriendsPlaceholder: "Typ een naam of e-mail…",
+    searching: "Zoeken",
+    search: "Zoeken",
+    searchFailed: "Zoeken mislukt. Probeer het opnieuw.",
+    add: "Toevoegen",
+    request: "Verzoek",
+    requested: "Aangevraagd",
+    revokeRequest: "Intrekken",
+    friendRequests: "Vriendschapsverzoeken",
+    accept: "Accepteren",
+    reject: "Weigeren",
+    myFriends: "Mijn vrienden",
+    friendCount: (count) => `${count} vrienden`,
+    removeFriend: "Vriend verwijderen",
+    removeFriendConfirm: "Weet je zeker dat je deze vriend wilt verwijderen?",
+    friendProfile: "Vriendprofiel",
+    notAllowed: "Niet toegestaan door de privacy-instellingen van deze gebruiker.",
     searchAlbumArtist: "Zoek albums of artiesten",
     searchAlbumArtistCatNo: "Zoek albums, artiesten of catalogusnummers",
     searchTakingLonger: "Zoeken duurt iets langer dan normaal...",

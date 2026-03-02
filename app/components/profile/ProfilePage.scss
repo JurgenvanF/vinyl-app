@@ -1,0 +1,115 @@
+.profile {
+  &__surface {
+    background: var(--profile-surface-bg);
+    border-color: var(--profile-surface-border);
+    color: var(--profile-surface-text);
+  }
+
+  &__muted {
+    color: var(--profile-muted-text);
+  }
+
+  &__tab {
+    background: var(--profile-tab-bg);
+    border-color: var(--profile-tab-border);
+    color: var(--profile-tab-text);
+
+    &--active {
+      background: var(--profile-tab-active-bg);
+      border-color: var(--profile-tab-border);
+      color: var(--profile-tab-active-text);
+    }
+  }
+
+  &__input {
+    background: var(--profile-input-bg);
+    border-color: var(--profile-input-border);
+    color: var(--profile-input-text);
+
+    &--disabled {
+      background: var(--profile-input-disabled-bg);
+      color: var(--profile-input-disabled-text);
+    }
+  }
+
+  &__tag {
+    background: var(--profile-tag-bg);
+    color: var(--profile-tag-text);
+
+    &--favorite {
+      background: var(--profile-tag-favorite-bg);
+      color: var(--profile-tag-favorite-text);
+    }
+  }
+
+  &__btn {
+    &--primary {
+      background: var(--profile-btn-primary-bg);
+      border-color: var(--profile-btn-primary-border);
+      color: var(--profile-btn-primary-text);
+
+      &:hover {
+        background: var(--profile-btn-primary-hover-bg);
+      }
+    }
+
+    &--secondary {
+      background: var(--profile-btn-secondary-bg);
+      border-color: var(--profile-btn-secondary-border);
+      color: var(--profile-btn-secondary-text);
+
+      &:hover {
+        background: var(--profile-btn-secondary-hover-bg);
+      }
+    }
+  }
+
+  &__overlay {
+    background: var(--profile-overlay-bg);
+  }
+
+  &__error {
+    color: var(--profile-error-text);
+  }
+
+  &__badge {
+    background: var(--profile-badge-bg);
+    color: var(--profile-badge-text);
+    border: 2px solid var(--profile-surface-border);
+    border-radius: 999px;
+    padding: 0 8px;
+    height: 20px;
+    min-width: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    line-height: 1;
+  }
+}
+
+.profile-select {
+  &__trigger {
+    background: var(--profile-input-bg);
+    border-color: var(--profile-input-border);
+    color: var(--profile-input-text);
+
+    &--disabled {
+      background: var(--profile-input-disabled-bg);
+      color: var(--profile-input-disabled-text);
+    }
+  }
+
+  &__menu {
+    background: var(--dropdown-menu-background);
+    border-color: var(--dropdown-menu-border);
+    color: var(--dropdown-option-text);
+  }
+
+  &__option {
+    &:hover {
+      background: var(--dropdown-option-hover-bg);
+      color: var(--dropdown-option-hover-text);
+    }
+  }
+}

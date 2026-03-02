@@ -202,6 +202,45 @@
   --btn-delete-disabled-bg: #f8fafc;
   --btn-delete-disabled-border: #e5e7eb;
   --btn-delete-disabled-color: #9ca3af;
+
+  /* Profile */
+  --profile-surface-bg: rgba(255, 255, 255, 1);
+  --profile-surface-border: rgba(253, 230, 138, 0.7);
+  --profile-surface-text: #111827;
+  --profile-muted-text: #4b5563;
+
+  --profile-tab-bg: rgba(255, 251, 235, 0.8);
+  --profile-tab-border: rgba(253, 230, 138, 0.9);
+  --profile-tab-text: #7c2d12;
+  --profile-tab-active-bg: rgba(254, 243, 199, 1);
+  --profile-tab-active-text: #9a3412;
+
+  --profile-input-bg: rgba(255, 251, 235, 1);
+  --profile-input-border: rgba(253, 230, 138, 1);
+  --profile-input-text: #111827;
+  --profile-input-disabled-bg: rgba(255, 251, 235, 0.6);
+  --profile-input-disabled-text: #6b7280;
+
+  --profile-tag-bg: rgba(254, 215, 170, 0.9);
+  --profile-tag-text: #7c2d12;
+  --profile-tag-favorite-bg: rgba(253, 186, 116, 1);
+  --profile-tag-favorite-text: #7c2d12;
+
+  --profile-btn-primary-bg: #ea580c;
+  --profile-btn-primary-border: #ea580c;
+  --profile-btn-primary-text: #ffffff;
+  --profile-btn-primary-hover-bg: #c2410c;
+
+  --profile-btn-secondary-bg: rgba(255, 255, 255, 1);
+  --profile-btn-secondary-border: rgba(229, 231, 235, 1);
+  --profile-btn-secondary-text: #111827;
+  --profile-btn-secondary-hover-bg: rgba(243, 244, 246, 1);
+
+  --profile-overlay-bg: rgba(0, 0, 0, 0.5);
+  --profile-error-text: var(--rose-red);
+
+  --profile-badge-bg: var(--rose-red);
+  --profile-badge-text: #ffffff;
 }
 
 .dark {
@@ -372,4 +411,43 @@
   --btn-preview-disabled-bg: rgba(39, 39, 42, 0.7);
   --btn-preview-disabled-border: #3f3f46;
   --btn-preview-disabled-color: #71717a;
+
+  /* Profile */
+  --profile-surface-bg: rgba(18, 16, 12, 1);
+  --profile-surface-border: rgba(120, 53, 15, 0.6);
+  --profile-surface-text: #f4f4f5;
+  --profile-muted-text: #99a1af;
+
+  --profile-tab-bg: rgba(24, 22, 17, 0.9);
+  --profile-tab-border: rgba(245, 158, 11, 0.22);
+  --profile-tab-text: #fdba74;
+  --profile-tab-active-bg: rgba(69, 26, 3, 0.9);
+  --profile-tab-active-text: #fdba74;
+
+  --profile-input-bg: rgba(24, 22, 17, 1);
+  --profile-input-border: rgba(245, 158, 11, 0.22);
+  --profile-input-text: #f4f4f5;
+  --profile-input-disabled-bg: rgba(24, 22, 17, 0.6);
+  --profile-input-disabled-text: #9ca3af;
+
+  --profile-tag-bg: rgba(124, 45, 18, 0.22);
+  --profile-tag-text: #fdba74;
+  --profile-tag-favorite-bg: rgba(249, 115, 22, 0.25);
+  --profile-tag-favorite-text: #ffedd5;
+
+  --profile-btn-primary-bg: #f97316;
+  --profile-btn-primary-border: #f97316;
+  --profile-btn-primary-text: #ffffff;
+  --profile-btn-primary-hover-bg: #ea580c;
+
+  --profile-btn-secondary-bg: rgba(45, 42, 37, 1);
+  --profile-btn-secondary-border: rgba(63, 63, 70, 1);
+  --profile-btn-secondary-text: #f4f4f5;
+  --profile-btn-secondary-hover-bg: rgba(50, 50, 55, 1);
+
+  --profile-overlay-bg: rgba(0, 0, 0, 0.55);
+  --profile-error-text: #f87171;
+
+  --profile-badge-bg: #f87171;
+  --profile-badge-text: #111827;
 }

@@ -1,0 +1,418 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { User } from "firebase/auth";
+import {
+  collection,
+  doc,
+  getDoc,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
+
+import { auth, db } from "../../../lib/firebase";
+import { useLanguage } from "../../../lib/LanguageContext";
+import { t } from "../../../lib/translations";
+import VinylSpinner from "../spinner/VinylSpinner";
+
+import ProfileTabs, { ProfileTabKey } from "./ProfileTabs";
+import ProfilePersonalInfoPanel from "./panels/ProfilePersonalInfoPanel";
+import ProfileStatsFavoritesPanel from "./panels/ProfileStatsFavoritesPanel";
+import ProfilePrivacyPanel from "./panels/ProfilePrivacyPanel";
+import ProfileFriendsPanel from "./panels/ProfileFriendsPanel";
+import type {
+  CollectionAlbumLite,
+  ProfilePrivacySettings,
+  UserProfileDocument,
+} from "./profileTypes";
+
+import "./ProfilePage.scss";
+
+const defaultPrivacy: ProfilePrivacySettings = {
+  profile: "everyone",
+  collection: "friends",
+  wishlist: "friends",
+};
+
+function normalizeProfileDoc(raw: unknown, fallbackEmail: string): UserProfileDocument {
+  const base = typeof raw === "object" && raw ? (raw as Record<string, unknown>) : {};
+  const firstName =
+    typeof base.firstName === "string" ? base.firstName : fallbackEmail.split("@")[0] ?? "User";
+  const lastName = typeof base.lastName === "string" ? base.lastName : "";
+  const email = typeof base.email === "string" ? base.email : fallbackEmail;
+
+  const bio = typeof base.bio === "string" ? base.bio : "";
+  const startedCollectingYear =
+    typeof base.startedCollectingYear === "number" ? base.startedCollectingYear : null;
+  const favoriteAlbumId =
+    typeof base.favoriteAlbumId === "number" ? base.favoriteAlbumId : null;
+  const favoriteGenres = Array.isArray(base.favoriteGenres)
+    ? base.favoriteGenres.filter((g): g is string => typeof g === "string")
+    : [];
+
+  const privacyRaw = typeof base.privacy === "object" && base.privacy ? (base.privacy as Record<string, unknown>) : {};
+  const privacy: Partial<ProfilePrivacySettings> = {
+    profile:
+      privacyRaw.profile === "everyone" || privacyRaw.profile === "friends" || privacyRaw.profile === "me"
+        ? (privacyRaw.profile as ProfilePrivacySettings["profile"])
+        : undefined,
+    collection:
+      privacyRaw.collection === "everyone" || privacyRaw.collection === "friends" || privacyRaw.collection === "me"
+        ? (privacyRaw.collection as ProfilePrivacySettings["collection"])
+        : undefined,
+    wishlist:
+      privacyRaw.wishlist === "everyone" || privacyRaw.wishlist === "friends" || privacyRaw.wishlist === "me"
+        ? (privacyRaw.wishlist as ProfilePrivacySettings["wishlist"])
+        : undefined,
+  };
+
+  return {
+    firstName,
+    lastName,
+    email,
+    bio,
+    startedCollectingYear,
+    favoriteAlbumId,
+    favoriteGenres,
+    privacy,
+  };
+}
+
+function toSearchFields(profile: UserProfileDocument) {
+  const emailLower = (profile.email ?? "").trim().toLowerCase();
+  const firstNameLower = (profile.firstName ?? "").trim().toLowerCase();
+  const lastNameLower = (profile.lastName ?? "").trim().toLowerCase();
+  const fullNameLower = `${firstNameLower} ${lastNameLower}`.replace(/\s+/g, " ").trim();
+  return { emailLower, firstNameLower, lastNameLower, fullNameLower };
+}
+
+export default function ProfilePage() {
+  const { locale } = useLanguage();
+  const router = useRouter();
+
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<UserProfileDocument | null>(null);
+  const [draft, setDraft] = useState<UserProfileDocument | null>(null);
+  const [editMode, setEditMode] = useState(false);
+
+  const [activeTab, setActiveTab] = useState<ProfileTabKey>("profile");
+
+  const [collectionAlbums, setCollectionAlbums] = useState<CollectionAlbumLite[]>([]);
+  const [collectionLoading, setCollectionLoading] = useState(true);
+  const [incomingRequestsCount, setIncomingRequestsCount] = useState(0);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      if (!currentUser) {
+        setUser(null);
+        setProfile(null);
+        setDraft(null);
+        setEditMode(false);
+        setLoading(false);
+        setCollectionAlbums([]);
+        setCollectionLoading(false);
+        router.replace("/");
+        return;
+      }
+
+      setUser(currentUser);
+      setCollectionLoading(true);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [router]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const ref = doc(db, "users", user.uid);
+    const unsubscribe = onSnapshot(
+      ref,
+      (snap) => {
+        const raw = snap.data() as Record<string, unknown> | undefined;
+        const next = normalizeProfileDoc(raw, user.email ?? "");
+        setProfile(next);
+        setDraft((prev) => (prev ? prev : next));
+
+        if (raw) {
+          const updates: Record<string, unknown> = {};
+
+          // Backfill search helpers for forgiving friend search
+          const search = toSearchFields(next);
+          if (raw.emailLower !== search.emailLower) updates.emailLower = search.emailLower;
+          if (raw.firstNameLower !== search.firstNameLower)
+            updates.firstNameLower = search.firstNameLower;
+          if (raw.lastNameLower !== search.lastNameLower)
+            updates.lastNameLower = search.lastNameLower;
+          if (raw.fullNameLower !== search.fullNameLower)
+            updates.fullNameLower = search.fullNameLower;
+
+          // Backfill privacy defaults
+          const rawPrivacy =
+            typeof raw.privacy === "object" && raw.privacy
+              ? (raw.privacy as Record<string, unknown>)
+              : {};
+          const mergedPrivacy: ProfilePrivacySettings = {
+            ...defaultPrivacy,
+            ...(rawPrivacy as Partial<ProfilePrivacySettings>),
+          };
+          const missingPrivacyKeys =
+            rawPrivacy.profile === undefined ||
+            rawPrivacy.collection === undefined ||
+            rawPrivacy.wishlist === undefined;
+          if (missingPrivacyKeys) updates.privacy = mergedPrivacy;
+
+          if (Object.keys(updates).length > 0) {
+            void setDoc(ref, updates, { merge: true });
+          }
+        }
+      },
+      async () => {
+        // fallback to a one-time fetch so we can still render something
+        try {
+          const snap = await getDoc(ref);
+          const raw = snap.data() as Record<string, unknown> | undefined;
+          const next = normalizeProfileDoc(raw, user.email ?? "");
+          setProfile(next);
+          setDraft((prev) => (prev ? prev : next));
+        } catch {
+          setProfile(null);
+          setDraft(null);
+        }
+      },
+    );
+
+    return () => unsubscribe();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const ref = collection(db, "users", user.uid, "FriendRequestsIncoming");
+    const unsubscribe = onSnapshot(
+      ref,
+      (snap) => setIncomingRequestsCount(snap.size),
+      () => setIncomingRequestsCount(0),
+    );
+    return () => unsubscribe();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const collectionRef = collection(db, "users", user.uid, "Collection");
+    const q = query(collectionRef, orderBy("addedAt", "desc"));
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const albumsData: CollectionAlbumLite[] = snapshot.docs
+          .map((docSnap): CollectionAlbumLite | null => {
+            const data = docSnap.data() as Record<string, unknown>;
+            const id = typeof data.id === "number" ? data.id : Number(docSnap.id);
+            if (!Number.isFinite(id)) return null;
+
+            const genre = Array.isArray(data.genre)
+              ? data.genre.filter((v): v is string => typeof v === "string")
+              : data.genre && typeof data.genre === "string"
+                ? [data.genre]
+                : null;
+
+            return {
+              id,
+              title: typeof data.title === "string" ? data.title : "",
+              artist: typeof data.artist === "string" ? data.artist : undefined,
+              primaryArtist:
+                typeof data.primaryArtist === "string" ? data.primaryArtist : undefined,
+              cover_image:
+                typeof data.cover_image === "string" ? data.cover_image : undefined,
+              genre,
+              year: typeof data.year === "number" ? data.year : null,
+            };
+          })
+          .filter((album): album is CollectionAlbumLite => album !== null);
+
+        setCollectionAlbums(albumsData);
+        setCollectionLoading(false);
+      },
+      () => {
+        setCollectionAlbums([]);
+        setCollectionLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const uniqueGenres = useMemo(() => {
+    const all = new Set<string>();
+    for (const album of collectionAlbums) {
+      if (!Array.isArray(album.genre)) continue;
+      for (const g of album.genre) {
+        const normalized = g.trim();
+        if (normalized) all.add(normalized);
+      }
+    }
+    return Array.from(all).sort((a, b) => a.localeCompare(b));
+  }, [collectionAlbums]);
+
+  const tabLabels = {
+    profile: t(locale, "profile"),
+    privacy: t(locale, "privacy"),
+    friends: t(locale, "friends"),
+  } satisfies Record<ProfileTabKey, string>;
+
+  const canRender = !loading && user && profile && draft;
+
+  const onCancelEdit = () => {
+    if (!profile) return;
+    setDraft(profile);
+    setEditMode(false);
+  };
+
+  const onSaveProfile = async () => {
+    if (!user || !draft) return;
+    const ref = doc(db, "users", user.uid);
+
+    const safeFavoriteGenres = Array.isArray(draft.favoriteGenres)
+      ? draft.favoriteGenres.slice(0, 5)
+      : [];
+
+    const searchFields = toSearchFields(draft);
+    const payload: Partial<UserProfileDocument> = {
+      firstName: draft.firstName.trim(),
+      lastName: draft.lastName.trim(),
+      email: draft.email.trim(),
+      bio: (draft.bio ?? "").trim(),
+      startedCollectingYear:
+        typeof draft.startedCollectingYear === "number"
+          ? draft.startedCollectingYear
+          : null,
+      favoriteAlbumId:
+        typeof draft.favoriteAlbumId === "number" ? draft.favoriteAlbumId : null,
+      favoriteGenres: safeFavoriteGenres,
+      ...searchFields,
+      updatedAt: serverTimestamp() as unknown as never,
+    };
+
+    await setDoc(ref, payload, { merge: true });
+    setEditMode(false);
+  };
+
+  if (!canRender) {
+    return (
+      <div className="min-h-full flex items-center justify-center mt-10">
+        <VinylSpinner />
+      </div>
+    );
+  }
+
+  const showEditActions = activeTab === "profile";
+
+  return (
+    <div className="min-h-full flex flex-col gap-4">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-4xl sm:text-5xl mb-2">{t(locale, "profile")}</h1>
+          <p className="profile__muted">
+            {t(locale, "helloName", `${profile.firstName} ${profile.lastName}`)}
+          </p>
+        </div>
+
+        {showEditActions && (
+          <div className="flex items-center gap-2">
+            {!editMode ? (
+              <button
+                type="button"
+                className="profile__btn--primary border rounded-lg px-4 py-2"
+                onClick={() => setEditMode(true)}
+              >
+                {t(locale, "editProfile")}
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="profile__btn--primary border rounded-lg px-4 py-2"
+                  onClick={onSaveProfile}
+                >
+                  {t(locale, "saveChanges")}
+                </button>
+                <button
+                  type="button"
+                  className="profile__btn--secondary border rounded-lg px-4 py-2"
+                  onClick={onCancelEdit}
+                >
+                  {t(locale, "cancel")}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      <ProfileTabs
+        active={activeTab}
+        onChange={setActiveTab}
+        labels={tabLabels}
+        badges={{ friends: incomingRequestsCount }}
+      />
+
+      {activeTab === "profile" && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+          <ProfilePersonalInfoPanel
+            profile={profile}
+            draft={draft}
+            editMode={editMode}
+            onDraftChange={setDraft}
+            title={t(locale, "personalInformation")}
+            labels={{
+              name: t(locale, "name"),
+              firstName: t(locale, "firstName"),
+              lastName: t(locale, "lastName"),
+              email: t(locale, "email"),
+              biography: t(locale, "biography"),
+            }}
+          />
+
+          <ProfileStatsFavoritesPanel
+            draft={draft}
+            editMode={editMode}
+            onDraftChange={setDraft}
+            collectionAlbums={collectionAlbums}
+            uniqueGenres={uniqueGenres}
+            labels={{
+              title: t(locale, "collectionStatsAndFavorites"),
+              statsAlbums: t(locale, "albumsInCollection"),
+              statsYears: t(locale, "yearsCollecting"),
+              statsUniqueGenres: t(locale, "uniqueGenres"),
+              statsFavoriteGenres: t(locale, "favoriteGenres"),
+              yearStarted: t(locale, "yearStartedCollecting"),
+              favoriteAlbum: t(locale, "favoriteAlbum"),
+              favoriteGenres: t(locale, "favoriteGenres"),
+              noneSelected: t(locale, "noneSelected"),
+            }}
+          />
+        </div>
+      )}
+
+      {activeTab === "privacy" && (
+        <ProfilePrivacyPanel user={user} profile={profile} locale={locale} />
+      )}
+
+      {activeTab === "friends" && (
+        <ProfileFriendsPanel user={user} locale={locale} />
+      )}
+
+      {collectionLoading && (
+        <p className="profile__muted text-sm">{t(locale, "loading")}</p>
+      )}
+    </div>
+  );
+}
