@@ -21,7 +21,11 @@ import { Check, X } from "lucide-react";
 
 import { db } from "../../../../lib/firebase";
 import { t } from "../../../../lib/translations";
-import type { FriendEntry, FriendRequestEntry, UserProfileDocument } from "../profileTypes";
+import type {
+  FriendEntry,
+  FriendRequestEntry,
+  UserProfileDocument,
+} from "../profileTypes";
 import FriendProfileModal from "../modals/FriendProfileModal";
 import MessageModal from "../../modal/MessageModal";
 
@@ -97,8 +101,12 @@ export default function ProfileFriendsPanel({
   const [friends, setFriends] = useState<FriendEntry[]>([]);
   const [removeTarget, setRemoveTarget] = useState<FriendEntry | null>(null);
 
-  const [incomingRequests, setIncomingRequests] = useState<FriendRequestEntry[]>([]);
-  const [outgoingRequests, setOutgoingRequests] = useState<FriendRequestEntry[]>([]);
+  const [incomingRequests, setIncomingRequests] = useState<
+    FriendRequestEntry[]
+  >([]);
+  const [outgoingRequests, setOutgoingRequests] = useState<
+    FriendRequestEntry[]
+  >([]);
 
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileUid, setProfileUid] = useState<string | null>(null);
@@ -145,7 +153,8 @@ export default function ProfileFriendsPanel({
             uid,
             firstName:
               typeof data.firstName === "string" ? data.firstName : undefined,
-            lastName: typeof data.lastName === "string" ? data.lastName : undefined,
+            lastName:
+              typeof data.lastName === "string" ? data.lastName : undefined,
             email: typeof data.email === "string" ? data.email : undefined,
             createdAt: data.createdAt,
           } satisfies FriendRequestEntry;
@@ -171,7 +180,8 @@ export default function ProfileFriendsPanel({
             uid,
             firstName:
               typeof data.firstName === "string" ? data.firstName : undefined,
-            lastName: typeof data.lastName === "string" ? data.lastName : undefined,
+            lastName:
+              typeof data.lastName === "string" ? data.lastName : undefined,
             email: typeof data.email === "string" ? data.email : undefined,
             createdAt: data.createdAt,
           } satisfies FriendRequestEntry;
@@ -184,7 +194,10 @@ export default function ProfileFriendsPanel({
     return () => unsubscribe();
   }, [user.uid]);
 
-  const friendUids = useMemo(() => new Set(friends.map((f) => f.uid)), [friends]);
+  const friendUids = useMemo(
+    () => new Set(friends.map((f) => f.uid)),
+    [friends],
+  );
   const outgoingUids = useMemo(
     () => new Set(outgoingRequests.map((r) => r.uid)),
     [outgoingRequests],
@@ -222,7 +235,9 @@ export default function ProfileFriendsPanel({
         searches.push(getDocs(buildPrefixQuery("emailLower", termLower)));
         searches.push(getDocs(buildPrefixQuery("email", term)));
       } else {
-        searches.push(getDocs(buildPrefixQuery("fullNameLower", normalizedSpaces)));
+        searches.push(
+          getDocs(buildPrefixQuery("fullNameLower", normalizedSpaces)),
+        );
         searches.push(getDocs(buildPrefixQuery("firstNameLower", firstWord)));
         searches.push(getDocs(buildPrefixQuery("lastNameLower", lastWord)));
 
@@ -254,8 +269,20 @@ export default function ProfileFriendsPanel({
   };
 
   const sendFriendRequest = async (target: SearchResult) => {
-    const outgoingRef = doc(db, "users", user.uid, "FriendRequestsOutgoing", target.uid);
-    const incomingRef = doc(db, "users", target.uid, "FriendRequestsIncoming", user.uid);
+    const outgoingRef = doc(
+      db,
+      "users",
+      user.uid,
+      "FriendRequestsOutgoing",
+      target.uid,
+    );
+    const incomingRef = doc(
+      db,
+      "users",
+      target.uid,
+      "FriendRequestsIncoming",
+      user.uid,
+    );
 
     const meProfileSnap = await getDoc(doc(db, "users", user.uid));
     const meProfile = (meProfileSnap.data() ?? {}) as UserProfileDocument;
@@ -276,9 +303,14 @@ export default function ProfileFriendsPanel({
         incomingRef,
         {
           uid: user.uid,
-          firstName: typeof meProfile.firstName === "string" ? meProfile.firstName : "",
-          lastName: typeof meProfile.lastName === "string" ? meProfile.lastName : "",
-          email: typeof meProfile.email === "string" ? meProfile.email : user.email ?? "",
+          firstName:
+            typeof meProfile.firstName === "string" ? meProfile.firstName : "",
+          lastName:
+            typeof meProfile.lastName === "string" ? meProfile.lastName : "",
+          email:
+            typeof meProfile.email === "string"
+              ? meProfile.email
+              : (user.email ?? ""),
           createdAt: serverTimestamp(),
         },
         { merge: true },
@@ -288,8 +320,12 @@ export default function ProfileFriendsPanel({
 
   const revokeFriendRequest = async (targetUid: string) => {
     await Promise.all([
-      deleteDoc(doc(db, "users", user.uid, "FriendRequestsOutgoing", targetUid)),
-      deleteDoc(doc(db, "users", targetUid, "FriendRequestsIncoming", user.uid)),
+      deleteDoc(
+        doc(db, "users", user.uid, "FriendRequestsOutgoing", targetUid),
+      ),
+      deleteDoc(
+        doc(db, "users", targetUid, "FriendRequestsIncoming", user.uid),
+      ),
     ]);
   };
 
@@ -316,9 +352,14 @@ export default function ProfileFriendsPanel({
         themRef,
         {
           uid: user.uid,
-          firstName: typeof meProfile.firstName === "string" ? meProfile.firstName : "",
-          lastName: typeof meProfile.lastName === "string" ? meProfile.lastName : "",
-          email: typeof meProfile.email === "string" ? meProfile.email : user.email ?? "",
+          firstName:
+            typeof meProfile.firstName === "string" ? meProfile.firstName : "",
+          lastName:
+            typeof meProfile.lastName === "string" ? meProfile.lastName : "",
+          email:
+            typeof meProfile.email === "string"
+              ? meProfile.email
+              : (user.email ?? ""),
           addedAt: serverTimestamp(),
         },
         { merge: true },
@@ -345,15 +386,21 @@ export default function ProfileFriendsPanel({
   return (
     <>
       <section className="profile__surface border rounded-xl p-4 sm:p-6">
-        <h2 className="text-lg sm:text-xl font-semibold">{t(locale, "friends")}</h2>
-        <p className="profile__muted text-sm mt-1">{t(locale, "friendsHint")}</p>
+        <h2 className="text-lg sm:text-xl font-semibold">
+          {t(locale, "friends")}
+        </h2>
+        <p className="profile__muted text-sm mt-1">
+          {t(locale, "friendsHint")}
+        </p>
 
         {incomingRequests.length > 0 && (
           <div className="mt-5">
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <h3 className="text-md font-semibold">
                 {t(locale, "friendRequests")}{" "}
-                <span className="profile__badge ml-2">{incomingRequests.length}</span>
+                <span className="profile__badge ml-2">
+                  {incomingRequests.length}
+                </span>
               </h3>
             </div>
 
@@ -367,12 +414,14 @@ export default function ProfileFriendsPanel({
                     <div className="font-semibold truncate">
                       {r.firstName ?? ""} {r.lastName ?? ""}
                     </div>
-                    <div className="profile__muted truncate">{r.email ?? ""}</div>
+                    <div className="profile__muted truncate">
+                      {r.email ?? ""}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <button
                       type="button"
-                      className="profile__btn--primary border rounded-lg px-3 py-2"
+                      className="profile__btn--primary border rounded-lg px-3 py-2 cursor-pointer"
                       onClick={() => acceptRequest(r)}
                       aria-label={t(locale, "accept")}
                       title={t(locale, "accept")}
@@ -381,7 +430,7 @@ export default function ProfileFriendsPanel({
                     </button>
                     <button
                       type="button"
-                      className="profile__btn--secondary border rounded-lg px-3 py-2"
+                      className="profile__btn--secondary border rounded-lg px-3 py-2 cursor-pointer"
                       onClick={() => rejectRequest(r)}
                       aria-label={t(locale, "reject")}
                       title={t(locale, "reject")}
@@ -408,11 +457,13 @@ export default function ProfileFriendsPanel({
                     <div className="font-semibold truncate">
                       {r.firstName ?? ""} {r.lastName ?? ""}
                     </div>
-                    <div className="profile__muted truncate">{r.email ?? ""}</div>
+                    <div className="profile__muted truncate">
+                      {r.email ?? ""}
+                    </div>
                   </div>
                   <button
                     type="button"
-                    className="profile__btn--secondary border rounded-lg px-3 py-2 shrink-0"
+                    className="profile__btn--secondary border rounded-lg px-3 py-2 shrink-0  cursor-pointer"
                     onClick={() => revokeFriendRequest(r.uid)}
                   >
                     {t(locale, "revokeRequest")}
@@ -437,7 +488,7 @@ export default function ProfileFriendsPanel({
           />
           <button
             type="button"
-            className="profile__btn--primary border rounded-lg px-4 py-2"
+            className="profile__btn--primary border rounded-lg px-4 py-2 cursor-pointer"
             onClick={runSearch}
             disabled={searching || !queryText.trim()}
           >
@@ -457,7 +508,7 @@ export default function ProfileFriendsPanel({
                 className={`profile__surface border rounded-xl p-4 flex items-start justify-between gap-4 ${
                   r.profileVisibility === "everyone"
                     ? "cursor-pointer hover:opacity-95"
-                    : ""
+                    : "cursor-default"
                 }`}
                 role={r.profileVisibility === "everyone" ? "button" : undefined}
                 tabIndex={r.profileVisibility === "everyone" ? 0 : undefined}
@@ -492,7 +543,7 @@ export default function ProfileFriendsPanel({
                 ) : (
                   <button
                     type="button"
-                    className="profile__btn--primary border rounded-lg px-3 py-2 shrink-0"
+                    className="profile__btn--primary border rounded-lg px-3 py-2 shrink-0 cursor-pointer"
                     onClick={(event) => {
                       event.stopPropagation();
                       void sendFriendRequest(r);
@@ -506,9 +557,14 @@ export default function ProfileFriendsPanel({
           </div>
         )}
 
-        {results.length === 0 && queryText.trim() && !searching && !searchError && (
-          <p className="profile__muted text-sm mt-4">{t(locale, "noResult")}</p>
-        )}
+        {results.length === 0 &&
+          queryText.trim() &&
+          !searching &&
+          !searchError && (
+            <p className="profile__muted text-sm mt-4">
+              {t(locale, "noResult")}
+            </p>
+          )}
       </section>
 
       <section className="profile__surface border rounded-xl p-4 sm:p-6 mt-4">
@@ -525,7 +581,7 @@ export default function ProfileFriendsPanel({
           {friends.map((f) => (
             <div
               key={f.uid}
-              className="text-left profile__surface border rounded-xl p-4 transition-opacity hover:opacity-95"
+              className="text-left profile__surface border rounded-xl p-4 transition-opacity hover:opacity-95 cursor-pointer"
               onClick={() => {
                 setProfileUid(f.uid);
                 setProfileOpen(true);
@@ -548,7 +604,7 @@ export default function ProfileFriendsPanel({
                 </div>
                 <button
                   type="button"
-                  className="profile__btn--secondary border rounded-lg px-3 py-2 shrink-0"
+                  className="profile__btn--secondary border rounded-lg px-3 py-2 shrink-0 cursor-pointer"
                   onClick={(event) => {
                     event.stopPropagation();
                     setRemoveTarget(f);

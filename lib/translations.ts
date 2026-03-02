@@ -296,7 +296,7 @@ export const translations: Translations = {
     collectionVisibility: "Collection visibility",
     wishlistVisibility: "Wishlist visibility",
     visibilityEveryone: "Everyone",
-    visibilityFriends: "Friends only",
+    visibilityFriends: "Only friends",
     visibilityOnlyMe: "Only me",
     visibilityPublic: "Public",
     visibilityDiscoverable: "Discoverable",

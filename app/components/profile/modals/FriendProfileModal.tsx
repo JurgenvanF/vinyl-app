@@ -89,11 +89,15 @@ export default function FriendProfileModal({
   const [isFriend, setIsFriend] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const [collectionAlbums, setCollectionAlbums] = useState<CollectionAlbumLite[]>([]);
-  const [wishlistAlbums, setWishlistAlbums] = useState<CollectionAlbumLite[]>([]);
-  const [viewMode, setViewMode] = useState<"profile" | "collection" | "wishlist">(
-    "profile",
+  const [collectionAlbums, setCollectionAlbums] = useState<
+    CollectionAlbumLite[]
+  >([]);
+  const [wishlistAlbums, setWishlistAlbums] = useState<CollectionAlbumLite[]>(
+    [],
   );
+  const [viewMode, setViewMode] = useState<
+    "profile" | "collection" | "wishlist"
+  >("profile");
 
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsAlbum, setDetailsAlbum] = useState<{
@@ -110,7 +114,8 @@ export default function FriendProfileModal({
     source?: string;
     cloudinaryPublicIds?: string[];
   } | null>(null);
-  const [detailsOverride, setDetailsOverride] = useState<DiscogsReleaseDetails | null>(null);
+  const [detailsOverride, setDetailsOverride] =
+    useState<DiscogsReleaseDetails | null>(null);
   const [detailsArtist, setDetailsArtist] = useState<string>("");
   const [detailsTitle, setDetailsTitle] = useState<string>("");
 
@@ -152,7 +157,8 @@ export default function FriendProfileModal({
       genre,
       year: typeof data.year === "number" ? data.year : undefined,
       catno: typeof data.catno === "string" ? data.catno : undefined,
-      master_id: typeof data.master_id === "number" ? data.master_id : undefined,
+      master_id:
+        typeof data.master_id === "number" ? data.master_id : undefined,
       detailsRef: typeof data.detailsRef === "string" ? data.detailsRef : null,
       source: typeof data.source === "string" ? data.source : undefined,
       cloudinaryPublicIds: Array.isArray(data.cloudinaryPublicIds)
@@ -164,7 +170,9 @@ export default function FriendProfileModal({
 
     let override: DiscogsReleaseDetails | null = null;
     if (normalizedAlbum.source === "custom") {
-      const detailsData = detailsSnap.data() as Record<string, unknown> | undefined;
+      const detailsData = detailsSnap.data() as
+        | Record<string, unknown>
+        | undefined;
       const maybeDetails = detailsData?.details;
       if (maybeDetails && typeof maybeDetails === "object") {
         override = maybeDetails as DiscogsReleaseDetails;
@@ -238,7 +246,8 @@ export default function FriendProfileModal({
         const next: CollectionAlbumLite[] = snapshot.docs
           .map((docSnap): CollectionAlbumLite | null => {
             const data = docSnap.data() as Record<string, unknown>;
-            const id = typeof data.id === "number" ? data.id : Number(docSnap.id);
+            const id =
+              typeof data.id === "number" ? data.id : Number(docSnap.id);
             if (!Number.isFinite(id)) return null;
             const genre = Array.isArray(data.genre)
               ? data.genre.filter((v): v is string => typeof v === "string")
@@ -254,7 +263,9 @@ export default function FriendProfileModal({
                   ? data.primaryArtist
                   : undefined,
               cover_image:
-                typeof data.cover_image === "string" ? data.cover_image : undefined,
+                typeof data.cover_image === "string"
+                  ? data.cover_image
+                  : undefined,
               genre,
               year: typeof data.year === "number" ? data.year : null,
             };
@@ -282,7 +293,8 @@ export default function FriendProfileModal({
         const next: CollectionAlbumLite[] = snapshot.docs
           .map((docSnap): CollectionAlbumLite | null => {
             const data = docSnap.data() as Record<string, unknown>;
-            const id = typeof data.id === "number" ? data.id : Number(docSnap.id);
+            const id =
+              typeof data.id === "number" ? data.id : Number(docSnap.id);
             if (!Number.isFinite(id)) return null;
             const genre = Array.isArray(data.genre)
               ? data.genre.filter((v): v is string => typeof v === "string")
@@ -298,7 +310,9 @@ export default function FriendProfileModal({
                   ? data.primaryArtist
                   : undefined,
               cover_image:
-                typeof data.cover_image === "string" ? data.cover_image : undefined,
+                typeof data.cover_image === "string"
+                  ? data.cover_image
+                  : undefined,
               genre,
               year: typeof data.year === "number" ? data.year : null,
             };
@@ -326,7 +340,9 @@ export default function FriendProfileModal({
 
   const favoriteAlbum = useMemo(() => {
     if (!profile || typeof profile.favoriteAlbumId !== "number") return null;
-    return collectionAlbums.find((a) => a.id === profile.favoriteAlbumId) ?? null;
+    return (
+      collectionAlbums.find((a) => a.id === profile.favoriteAlbumId) ?? null
+    );
   }, [collectionAlbums, profile]);
 
   if (!open || !friendUid) return null;
@@ -345,7 +361,9 @@ export default function FriendProfileModal({
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold">{t(locale, "friendProfile")}</h2>
+            <h2 className="text-xl font-semibold">
+              {t(locale, "friendProfile")}
+            </h2>
             {profile && (
               <p className="profile__muted mt-1">
                 {profile.firstName} {profile.lastName}
@@ -354,7 +372,7 @@ export default function FriendProfileModal({
           </div>
           <button
             type="button"
-            className="profile__btn--secondary border rounded-lg px-3 py-2"
+            className="profile__btn--secondary border rounded-lg px-3 py-2 cursor-pointer"
             onClick={onClose}
           >
             <X />
@@ -376,7 +394,7 @@ export default function FriendProfileModal({
             <div className="mt-5 flex flex-wrap gap-2">
               <button
                 type="button"
-                className={`profile__tab border px-4 py-2 rounded-lg ${
+                className={`profile__tab border px-4 py-2 rounded-lg cursor-pointer ${
                   viewMode === "profile" ? "profile__tab--active" : ""
                 }`}
                 onClick={() => setViewMode("profile")}
@@ -386,7 +404,7 @@ export default function FriendProfileModal({
               {canSeeCollection && (
                 <button
                   type="button"
-                  className={`profile__tab border px-4 py-2 rounded-lg ${
+                  className={`profile__tab border px-4 py-2 rounded-lg cursor-pointer ${
                     viewMode === "collection" ? "profile__tab--active" : ""
                   }`}
                   onClick={() => setViewMode("collection")}
@@ -397,7 +415,7 @@ export default function FriendProfileModal({
               {canSeeWishlist && (
                 <button
                   type="button"
-                  className={`profile__tab border px-4 py-2 rounded-lg ${
+                  className={`profile__tab border px-4 py-2 rounded-lg cursor-pointer ${
                     viewMode === "wishlist" ? "profile__tab--active" : ""
                   }`}
                   onClick={() => setViewMode("wishlist")}
@@ -410,17 +428,27 @@ export default function FriendProfileModal({
             {viewMode === "profile" && (
               <div className="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <section className="profile__surface border rounded-xl p-4">
-                  <h3 className="font-semibold">{t(locale, "personalInformation")}</h3>
+                  <h3 className="font-semibold">
+                    {t(locale, "personalInformation")}
+                  </h3>
                   {!canSeeProfile ? (
-                    <p className="profile__muted mt-2">{t(locale, "notAllowed")}</p>
+                    <p className="profile__muted mt-2">
+                      {t(locale, "notAllowed")}
+                    </p>
                   ) : (
                     <div className="mt-3 grid gap-2">
                       <div>
-                        <div className="text-sm font-medium">{t(locale, "email")}</div>
-                        <div className="profile__muted">{profile.email || "-"}</div>
+                        <div className="text-sm font-medium">
+                          {t(locale, "email")}
+                        </div>
+                        <div className="profile__muted">
+                          {profile.email || "-"}
+                        </div>
                       </div>
                       <div>
-                        <div className="text-sm font-medium">{t(locale, "biography")}</div>
+                        <div className="text-sm font-medium">
+                          {t(locale, "biography")}
+                        </div>
                         <div className="profile__muted whitespace-pre-wrap">
                           {profile.bio || "-"}
                         </div>
@@ -434,7 +462,9 @@ export default function FriendProfileModal({
                     {t(locale, "collectionStatsAndFavorites")}
                   </h3>
                   {!canSeeCollection ? (
-                    <p className="profile__muted mt-2">{t(locale, "notAllowed")}</p>
+                    <p className="profile__muted mt-2">
+                      {t(locale, "notAllowed")}
+                    </p>
                   ) : (
                     <>
                       <div className="mt-3 grid grid-cols-2 gap-3">
@@ -465,15 +495,22 @@ export default function FriendProfileModal({
                             <div className="w-[60px] h-[60px] rounded-lg overflow-hidden profile__surface border">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
-                                src={favoriteAlbum.cover_image || "/placeholder.png"}
+                                src={
+                                  favoriteAlbum.cover_image ||
+                                  "/placeholder.png"
+                                }
                                 alt=""
                                 className="w-full h-full object-cover"
                               />
                             </div>
                             <div className="min-w-0">
-                              <div className="truncate font-semibold">{favoriteAlbum.title}</div>
+                              <div className="truncate font-semibold">
+                                {favoriteAlbum.title}
+                              </div>
                               <div className="truncate profile__muted">
-                                {favoriteAlbum.primaryArtist ?? favoriteAlbum.artist ?? ""}
+                                {favoriteAlbum.primaryArtist ??
+                                  favoriteAlbum.artist ??
+                                  ""}
                               </div>
                             </div>
                           </div>
@@ -487,14 +524,16 @@ export default function FriendProfileModal({
                           {t(locale, "favoriteGenres")}
                         </div>
                         <div className="mt-2 flex flex-wrap gap-2">
-                          {(profile.favoriteGenres ?? []).slice(0, 5).map((g) => (
-                            <span
-                              key={g}
-                              className="profile__tag profile__tag--favorite px-3 py-1 rounded-full text-sm"
-                            >
-                              {g}
-                            </span>
-                          ))}
+                          {(profile.favoriteGenres ?? [])
+                            .slice(0, 5)
+                            .map((g) => (
+                              <span
+                                key={g}
+                                className="profile__tag profile__tag--favorite px-3 py-1 rounded-full text-sm"
+                              >
+                                {g}
+                              </span>
+                            ))}
                           {(profile.favoriteGenres ?? []).length === 0 && (
                             <span className="profile__muted text-sm">-</span>
                           )}
@@ -517,8 +556,11 @@ export default function FriendProfileModal({
                       artist,
                       primaryArtist: album.primaryArtist,
                       cover_image: album.cover_image ?? "",
-                      genre: Array.isArray(album.genre) ? album.genre : undefined,
-                      year: typeof album.year === "number" ? album.year : undefined,
+                      genre: Array.isArray(album.genre)
+                        ? album.genre
+                        : undefined,
+                      year:
+                        typeof album.year === "number" ? album.year : undefined,
                     };
 
                     return (
@@ -527,9 +569,15 @@ export default function FriendProfileModal({
                         album={discogsRelease}
                         artist={artist}
                         title={album.title}
-                        mainGenre={Array.isArray(album.genre) ? album.genre[0] : undefined}
+                        mainGenre={
+                          Array.isArray(album.genre)
+                            ? album.genre[0]
+                            : undefined
+                        }
                         interactive
-                        onCardClick={() => openAlbumDetails("Collection", album.id)}
+                        onCardClick={() =>
+                          openAlbumDetails("Collection", album.id)
+                        }
                         buttons={{}}
                       />
                     );
@@ -552,8 +600,11 @@ export default function FriendProfileModal({
                       artist,
                       primaryArtist: album.primaryArtist,
                       cover_image: album.cover_image ?? "",
-                      genre: Array.isArray(album.genre) ? album.genre : undefined,
-                      year: typeof album.year === "number" ? album.year : undefined,
+                      genre: Array.isArray(album.genre)
+                        ? album.genre
+                        : undefined,
+                      year:
+                        typeof album.year === "number" ? album.year : undefined,
                     };
 
                     return (
@@ -562,9 +613,15 @@ export default function FriendProfileModal({
                         album={discogsRelease}
                         artist={artist}
                         title={album.title}
-                        mainGenre={Array.isArray(album.genre) ? album.genre[0] : undefined}
+                        mainGenre={
+                          Array.isArray(album.genre)
+                            ? album.genre[0]
+                            : undefined
+                        }
                         interactive
-                        onCardClick={() => openAlbumDetails("Wishlist", album.id)}
+                        onCardClick={() =>
+                          openAlbumDetails("Wishlist", album.id)
+                        }
                         buttons={{}}
                       />
                     );

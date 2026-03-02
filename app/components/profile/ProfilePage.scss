@@ -34,11 +34,13 @@
 
   &__tag {
     background: var(--profile-tag-bg);
+    border: 1px solid var(--profile-tag-border);
     color: var(--profile-tag-text);
 
     &--favorite {
       background: var(--profile-tag-favorite-bg);
       color: var(--profile-tag-favorite-text);
+      border: 1px solid transparent;
     }
   }
 

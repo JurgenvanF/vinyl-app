@@ -141,7 +141,7 @@ export default function ProfileStatsFavoritesPanel({
         <div className="profile__surface border rounded-xl p-4">
           <div className="text-sm profile__muted">{labels.statsTopArtist}</div>
           <div className="flex items-center mt-1">
-            <div className="text profile truncate">
+            <div className="text-xl profile truncate">
               {topArtist ? topArtist.name : ""}
             </div>
             <div className="text-sm font-semibold ml-1">
@@ -191,9 +191,6 @@ export default function ProfileStatsFavoritesPanel({
             min={1900}
             max={currentYear}
           />
-          <p className="profile__muted text-xs">
-            {startedYear ? `${labels.statsYears}: ${yearsCollecting}` : ""}
-          </p>
         </div>
 
         <div className="flex flex-col gap-2 relative">
@@ -203,7 +200,7 @@ export default function ProfileStatsFavoritesPanel({
             <>
               <button
                 type="button"
-                className="profile-select__trigger border rounded-lg px-3 py-2 flex items-center justify-between gap-3"
+                className="profile-select__trigger border rounded-lg px-3 py-2 flex items-center justify-between gap-3  cursor-pointer"
                 disabled={collectionAlbums.length === 0}
                 onClick={() => setAlbumMenuOpen((prev) => !prev)}
               >

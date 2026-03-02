@@ -24,7 +24,7 @@ export default function ProfileTabs({
           key={tab}
           type="button"
           onClick={() => onChange(tab)}
-          className={`profile__tab ${active === tab ? "profile__tab--active" : ""} border px-4 py-2 rounded-lg transition-colors`}
+          className={`profile__tab ${active === tab ? "profile__tab--active" : ""} border px-4 py-2 rounded-lg transition-colors cursor-pointer`}
         >
           <span className="inline-flex items-center gap-2">
             {labels[tab]}

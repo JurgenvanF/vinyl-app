@@ -38,34 +38,51 @@ const defaultPrivacy: ProfilePrivacySettings = {
   wishlist: "friends",
 };
 
-function normalizeProfileDoc(raw: unknown, fallbackEmail: string): UserProfileDocument {
-  const base = typeof raw === "object" && raw ? (raw as Record<string, unknown>) : {};
+function normalizeProfileDoc(
+  raw: unknown,
+  fallbackEmail: string,
+): UserProfileDocument {
+  const base =
+    typeof raw === "object" && raw ? (raw as Record<string, unknown>) : {};
   const firstName =
-    typeof base.firstName === "string" ? base.firstName : fallbackEmail.split("@")[0] ?? "User";
+    typeof base.firstName === "string"
+      ? base.firstName
+      : (fallbackEmail.split("@")[0] ?? "User");
   const lastName = typeof base.lastName === "string" ? base.lastName : "";
   const email = typeof base.email === "string" ? base.email : fallbackEmail;
 
   const bio = typeof base.bio === "string" ? base.bio : "";
   const startedCollectingYear =
-    typeof base.startedCollectingYear === "number" ? base.startedCollectingYear : null;
+    typeof base.startedCollectingYear === "number"
+      ? base.startedCollectingYear
+      : null;
   const favoriteAlbumId =
     typeof base.favoriteAlbumId === "number" ? base.favoriteAlbumId : null;
   const favoriteGenres = Array.isArray(base.favoriteGenres)
     ? base.favoriteGenres.filter((g): g is string => typeof g === "string")
     : [];
 
-  const privacyRaw = typeof base.privacy === "object" && base.privacy ? (base.privacy as Record<string, unknown>) : {};
+  const privacyRaw =
+    typeof base.privacy === "object" && base.privacy
+      ? (base.privacy as Record<string, unknown>)
+      : {};
   const privacy: Partial<ProfilePrivacySettings> = {
     profile:
-      privacyRaw.profile === "everyone" || privacyRaw.profile === "friends" || privacyRaw.profile === "me"
+      privacyRaw.profile === "everyone" ||
+      privacyRaw.profile === "friends" ||
+      privacyRaw.profile === "me"
         ? (privacyRaw.profile as ProfilePrivacySettings["profile"])
         : undefined,
     collection:
-      privacyRaw.collection === "everyone" || privacyRaw.collection === "friends" || privacyRaw.collection === "me"
+      privacyRaw.collection === "everyone" ||
+      privacyRaw.collection === "friends" ||
+      privacyRaw.collection === "me"
         ? (privacyRaw.collection as ProfilePrivacySettings["collection"])
         : undefined,
     wishlist:
-      privacyRaw.wishlist === "everyone" || privacyRaw.wishlist === "friends" || privacyRaw.wishlist === "me"
+      privacyRaw.wishlist === "everyone" ||
+      privacyRaw.wishlist === "friends" ||
+      privacyRaw.wishlist === "me"
         ? (privacyRaw.wishlist as ProfilePrivacySettings["wishlist"])
         : undefined,
   };
@@ -86,7 +103,9 @@ function toSearchFields(profile: UserProfileDocument) {
   const emailLower = (profile.email ?? "").trim().toLowerCase();
   const firstNameLower = (profile.firstName ?? "").trim().toLowerCase();
   const lastNameLower = (profile.lastName ?? "").trim().toLowerCase();
-  const fullNameLower = `${firstNameLower} ${lastNameLower}`.replace(/\s+/g, " ").trim();
+  const fullNameLower = `${firstNameLower} ${lastNameLower}`
+    .replace(/\s+/g, " ")
+    .trim();
   return { emailLower, firstNameLower, lastNameLower, fullNameLower };
 }
 
@@ -102,7 +121,9 @@ export default function ProfilePage() {
 
   const [activeTab, setActiveTab] = useState<ProfileTabKey>("profile");
 
-  const [collectionAlbums, setCollectionAlbums] = useState<CollectionAlbumLite[]>([]);
+  const [collectionAlbums, setCollectionAlbums] = useState<
+    CollectionAlbumLite[]
+  >([]);
   const [collectionLoading, setCollectionLoading] = useState(true);
   const [incomingRequestsCount, setIncomingRequestsCount] = useState(0);
 
@@ -145,7 +166,8 @@ export default function ProfilePage() {
 
           // Backfill search helpers for forgiving friend search
           const search = toSearchFields(next);
-          if (raw.emailLower !== search.emailLower) updates.emailLower = search.emailLower;
+          if (raw.emailLower !== search.emailLower)
+            updates.emailLower = search.emailLower;
           if (raw.firstNameLower !== search.firstNameLower)
             updates.firstNameLower = search.firstNameLower;
           if (raw.lastNameLower !== search.lastNameLower)
@@ -215,7 +237,8 @@ export default function ProfilePage() {
         const albumsData: CollectionAlbumLite[] = snapshot.docs
           .map((docSnap): CollectionAlbumLite | null => {
             const data = docSnap.data() as Record<string, unknown>;
-            const id = typeof data.id === "number" ? data.id : Number(docSnap.id);
+            const id =
+              typeof data.id === "number" ? data.id : Number(docSnap.id);
             if (!Number.isFinite(id)) return null;
 
             const genre = Array.isArray(data.genre)
@@ -229,9 +252,13 @@ export default function ProfilePage() {
               title: typeof data.title === "string" ? data.title : "",
               artist: typeof data.artist === "string" ? data.artist : undefined,
               primaryArtist:
-                typeof data.primaryArtist === "string" ? data.primaryArtist : undefined,
+                typeof data.primaryArtist === "string"
+                  ? data.primaryArtist
+                  : undefined,
               cover_image:
-                typeof data.cover_image === "string" ? data.cover_image : undefined,
+                typeof data.cover_image === "string"
+                  ? data.cover_image
+                  : undefined,
               genre,
               year: typeof data.year === "number" ? data.year : null,
             };
@@ -295,7 +322,9 @@ export default function ProfilePage() {
           ? draft.startedCollectingYear
           : null,
       favoriteAlbumId:
-        typeof draft.favoriteAlbumId === "number" ? draft.favoriteAlbumId : null,
+        typeof draft.favoriteAlbumId === "number"
+          ? draft.favoriteAlbumId
+          : null,
       favoriteGenres: safeFavoriteGenres,
       ...searchFields,
       updatedAt: serverTimestamp() as unknown as never,
@@ -330,7 +359,7 @@ export default function ProfilePage() {
             {!editMode ? (
               <button
                 type="button"
-                className="profile__btn--primary border rounded-lg px-4 py-2"
+                className="profile__btn--primary border rounded-lg px-4 py-2 cursor-pointer"
                 onClick={() => setEditMode(true)}
               >
                 {t(locale, "editProfile")}
@@ -339,14 +368,14 @@ export default function ProfilePage() {
               <>
                 <button
                   type="button"
-                  className="profile__btn--primary border rounded-lg px-4 py-2"
+                  className="profile__btn--primary border rounded-lg px-4 py-2 cursor-pointer"
                   onClick={onSaveProfile}
                 >
                   {t(locale, "saveChanges")}
                 </button>
                 <button
                   type="button"
-                  className="profile__btn--secondary border rounded-lg px-4 py-2"
+                  className="profile__btn--secondary border rounded-lg px-4 py-2 cursor-pointer"
                   onClick={onCancelEdit}
                 >
                   {t(locale, "cancel")}

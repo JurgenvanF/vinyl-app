@@ -221,7 +221,8 @@
   --profile-input-disabled-bg: rgba(255, 251, 235, 0.6);
   --profile-input-disabled-text: #6b7280;
 
-  --profile-tag-bg: rgba(254, 215, 170, 0.9);
+  --profile-tag-bg: transparent;
+  --profile-tag-border: #fde68ab3;
   --profile-tag-text: #7c2d12;
   --profile-tag-favorite-bg: rgba(253, 186, 116, 1);
   --profile-tag-favorite-text: #7c2d12;
@@ -430,7 +431,8 @@
   --profile-input-disabled-bg: rgba(24, 22, 17, 0.6);
   --profile-input-disabled-text: #9ca3af;
 
-  --profile-tag-bg: rgba(124, 45, 18, 0.22);
+  --profile-tag-bg: transparent;
+  --profile-tag-border: #f59e0b38;
   --profile-tag-text: #fdba74;
   --profile-tag-favorite-bg: rgba(249, 115, 22, 0.25);
   --profile-tag-favorite-text: #ffedd5;

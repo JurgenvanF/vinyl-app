@@ -47,8 +47,8 @@ export default function ProfilePrivacyPanel({
   }, [merged]);
 
   const options: DropDownOption[] = [
-    { value: "everyone", label: t(locale, "visibilityPublic") },
-    { value: "friends", label: t(locale, "visibilityDiscoverable") },
+    { value: "everyone", label: t(locale, "visibilityEveryone") },
+    { value: "friends", label: t(locale, "visibilityFriends") },
     { value: "me", label: t(locale, "visibilityHidden") },
   ];
 
