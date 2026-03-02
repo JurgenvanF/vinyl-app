@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, Plus, Heart, Save } from "lucide-react";
+import { Eye, Plus, Heart, Save, X } from "lucide-react";
 import { t } from "../../../../../../lib/translations";
 import type { SaveTarget } from "../customEntryTypes";
 
@@ -11,6 +11,7 @@ type ActionBarProps = {
   setSaveTarget: (target: SaveTarget) => void;
   onOpenPreview: () => void;
   onSubmit: () => void;
+  onCancel?: () => void;
   submitting: boolean;
   lockTarget?: boolean;
 };
@@ -22,6 +23,7 @@ export default function ActionBar({
   setSaveTarget,
   onOpenPreview,
   onSubmit,
+  onCancel,
   submitting,
   lockTarget = false,
 }: ActionBarProps) {
@@ -45,7 +47,15 @@ export default function ActionBar({
 
       {/* Save buttons */}
       {mode === "edit" ? (
-        <div className="buttons flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+        <div className="buttons flex flex-col-reverse sm:flex-row gap-3 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="buttons__preview h-11 px-5 rounded-xl cursor-pointer flex items-center justify-center gap-2 custom-entry__btn w-full sm:w-auto"
+          >
+            <X size={18} />
+            {t(locale, "cancel")}
+          </button>
           <button
             type="button"
             onClick={() => handleSave(saveTarget)}

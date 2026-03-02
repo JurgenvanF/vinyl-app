@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Calendar, Plus, Trash2 } from "lucide-react";
 import { useLanguage } from "../../../../../lib/LanguageContext";
@@ -705,6 +707,7 @@ export default function CustomEntry({
 
       let coverUrl = existingCoverUrl;
       let coverPublicId = existingCoverPublicId;
+      const previousCoverPublicId = coverPublicId;
       const extraAssets: Array<{ url: string; publicId: string }> = [
         ...existingExtraAssets
           .filter((e) => e.url && e.publicId)
@@ -719,6 +722,13 @@ export default function CustomEntry({
         });
         coverUrl = coverUpload.secure_url;
         coverPublicId = coverUpload.public_id;
+        if (
+          mode === "edit" &&
+          previousCoverPublicId &&
+          previousCoverPublicId !== coverPublicId
+        ) {
+          removedCloudinaryPublicIdsRef.current.add(previousCoverPublicId);
+        }
       }
 
       for (let index = 0; index < extraImages.length; index++) {
@@ -1833,6 +1843,7 @@ export default function CustomEntry({
         setSaveTarget={setSaveTarget}
         onOpenPreview={() => setPreviewOpen(true)}
         onSubmit={submit}
+        onCancel={mode === "edit" ? onDone : undefined}
         submitting={submitting}
         lockTarget={mode === "edit"}
       />
