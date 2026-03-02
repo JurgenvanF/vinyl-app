@@ -45,7 +45,7 @@ export default function AlbumSearchModal({
       }}
     >
       <div
-        className={`search-container rounded-lg p-4 m-4 w-full max-w-3xl max-h-[80vh] 
+        className={`search-container rounded-lg p-4 m-4 w-full max-w-3xl max-h-[80vh] overflow-x-hidden 
     ${mode === "barcode" || mode === "custom" ? "overflow-y-auto" : "overflow-y-hidden"}`}
         onMouseDown={(event) => event.stopPropagation()}
       >
@@ -73,7 +73,8 @@ export default function AlbumSearchModal({
           <CustomEntry
             onCreated={(target) => {
               onClose();
-              const next = target === "collection" ? "/collection" : "/wishlist";
+              const next =
+                target === "collection" ? "/collection" : "/wishlist";
               if (pathname !== next) router.push(next);
             }}
           />

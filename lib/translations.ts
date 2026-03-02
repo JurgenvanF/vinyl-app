@@ -327,11 +327,11 @@ export const translations: Translations = {
       `Missing required fields: ${fields}`,
     customEntryInvalidNumbers: (fields) => `Please use numbers for: ${fields}`,
     customEntryConfirmTitle: (albumTitle, albumArtist, target) =>
-      `Add ${albumTitle} by ${albumArtist} to ${target}?`,
+      `Add ${albumTitle} by ${albumArtist} to your ${target}?`,
     customEntryUpdateConfirmTitle: (albumTitle, albumArtist) =>
       `Update ${albumTitle} by ${albumArtist}?`,
     customEntryConfirmMessage:
-      "Are you sure you want to save this custom album?",
+      "Are you sure you want to save this custom album? You can always edit this album.",
     customEntryAdded: (albumTitle, albumArtist) =>
       `Added ${albumTitle} by ${albumArtist}`,
     customEntryUpdated: (albumTitle, albumArtist) =>
@@ -533,11 +533,11 @@ export const translations: Translations = {
       `Verplichte velden ontbreken: ${fields}`,
     customEntryInvalidNumbers: (fields) => `Gebruik cijfers voor: ${fields}`,
     customEntryConfirmTitle: (albumTitle, albumArtist, target) =>
-      `Voeg ${albumTitle} van ${albumArtist} toe aan ${target}?`,
+      `Voeg ${albumTitle} van ${albumArtist} toe aan je ${target}?`,
     customEntryUpdateConfirmTitle: (albumTitle, albumArtist) =>
       `Werk ${albumTitle} van ${albumArtist} bij?`,
     customEntryConfirmMessage:
-      "Weet je zeker dat je dit handmatige album wilt opslaan?",
+      "Weet je zeker dat je dit handmatige album wilt opslaan? Je kunt dit album altijd wijzigen.",
     customEntryAdded: (albumTitle, albumArtist) =>
       `${albumTitle} van ${albumArtist} toegevoegd`,
     customEntryUpdated: (albumTitle, albumArtist) =>

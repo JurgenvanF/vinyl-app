@@ -1874,8 +1874,8 @@ export default function CustomEntry({
                 title.trim() || t(locale, "title"),
                 artistDisplay.trim() || t(locale, "artist"),
                 saveTarget === "collection"
-                  ? t(locale, "collection")
-                  : t(locale, "wishlist"),
+                  ? t(locale, "collection").toLowerCase()
+                  : t(locale, "wishlist").toLowerCase(),
               )
         }
         message={t(locale, "customEntryConfirmMessage")}
