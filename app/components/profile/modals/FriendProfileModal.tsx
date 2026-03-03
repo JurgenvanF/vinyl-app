@@ -749,7 +749,7 @@ export default function FriendProfileModal({
 
             {viewMode === "collection" && (
               <div className="mt-5">
-                <div className="flex flex-wrap gap-4 friend-profile-compact-cards">
+                <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(140px,1fr))] friend-profile-compact-cards">
                   {collectionAlbums.map((album) => {
                     const artist = album.primaryArtist ?? album.artist ?? "";
                     const discogsRelease = {
@@ -797,7 +797,7 @@ export default function FriendProfileModal({
 
             {viewMode === "wishlist" && (
               <div className="mt-5">
-                <div className="flex flex-wrap gap-4 friend-profile-compact-cards">
+                <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(140px,1fr))] friend-profile-compact-cards">
                   {wishlistAlbums.map((album) => {
                     const artist = album.primaryArtist ?? album.artist ?? "";
                     const discogsRelease = {
