@@ -1,10 +1,10 @@
 .navigation {
-  background-color: var(--nav-background); /* semi-transparent white */
+  background-color: var(--nav-background);
   color: var(--nav-color);
   transition: all 0.2s ease;
   border-bottom: 1px solid var(--nav-border);
-  backdrop-filter: blur(100px); /* adds blur to whatever is behind */
-  -webkit-backdrop-filter: blur(100px); /* for Safari */
+  backdrop-filter: blur(100px);
+  -webkit-backdrop-filter: blur(100px);
 
   &:hover {
     background-color: var(--nav-hover-background);
