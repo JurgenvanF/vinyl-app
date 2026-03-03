@@ -48,7 +48,8 @@
   --auth-submit-hover-background: #bb4d00;
   --auth-submit-color: white;
 
-  --nav-background: white;
+  --nav-background: rgba(255, 255, 255, 0.95);
+  --nav-hover-background: white;
   --nav-color: black;
   --nav-border: #fee6859d;
 
@@ -324,7 +325,8 @@
   --auth-submit-hover-background: #bb4d00;
   --auth-submit-color: black;
 
-  --nav-background: #101828;
+  --nav-background: rgba(16, 24, 40, 0.95);
+  --nav-hover-background: #101828;
   --nav-color: #f8fafc;
   --nav-border: #78350f4d;
 
