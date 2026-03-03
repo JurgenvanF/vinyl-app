@@ -39,7 +39,12 @@ export default function TopNav() {
         return;
       }
 
-      const ref = collection(db, "users", currentUser.uid, "FriendRequestsIncoming");
+      const ref = collection(
+        db,
+        "users",
+        currentUser.uid,
+        "FriendRequestsIncoming",
+      );
       unsubscribeReq = onSnapshot(
         ref,
         (snap) => setIncomingRequestsCount(snap.size),
@@ -127,7 +132,7 @@ export default function TopNav() {
 
         {/* Drawer */}
         <div
-          className={`absolute top-0 right-0 h-full w-72 navigation drawer shadow-lg transform transition-transform duration-300 ${
+          className={`absolute top-0 right-0 h-full w-72 navigation drawer shadow-lg transform transition-transform duration-300 flex flex-col ${
             open ? "translate-x-0" : "translate-x-full"
           }`}
         >
@@ -142,9 +147,9 @@ export default function TopNav() {
             </button>
           </div>
 
-          <div className="flex flex-col h-full px-6 pb-6">
+          <div className="flex-1 min-h-0 flex flex-col px-6 pb-6">
             {/* Top navigation items */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 overflow-y-auto min-h-0 pb-4">
               <NavItem href="/collection">{t(locale, "myCollection")}</NavItem>
 
               <NavItem href="/wishlist" icon={<Heart size={18} />}>
@@ -161,7 +166,7 @@ export default function TopNav() {
             </div>
 
             {/* Bottom actions */}
-            <div className="mt-auto mb-4 flex gap-4 pt-6 pb-16 border-t">
+            <div className="mt-auto flex gap-4 pt-6 border-t">
               <div className="flex-4">
                 <NavItem auth>
                   <LogoutButton icon={<LogOut size={18} />} />
