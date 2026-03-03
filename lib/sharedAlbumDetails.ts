@@ -20,6 +20,10 @@ type SharedDetailsParams = {
 };
 
 const SHARED_DETAILS_COLLECTION = "AlbumDetails";
+const CLEANUP_RETRY_MS = [0, 1200, 4000] as const;
+
+const wait = (ms: number) =>
+  new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
 export const getAlbumDetailsRef = ({
   id,
@@ -103,20 +107,50 @@ export const decrementAlbumDetailsRefCountAndCleanup = async (
       updatedAt: serverTimestamp(),
     });
   } catch {
-    return;
+    // Refcount can drift for older data. Cleanup still relies on authoritative
+    // collectionGroup checks on the server, so continue.
   }
 
-  const snap = await getDoc(sharedRef);
-  if (!snap.exists()) return;
-  const data = snap.data() as { refCount?: unknown };
-  const count = typeof data.refCount === "number" ? data.refCount : 0;
-  if (count <= 0) {
-    if (typeof window !== "undefined") {
-      await fetch("/api/albumdetails/cleanup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ detailsRef }),
-      }).catch(() => undefined);
+  if (typeof window !== "undefined") {
+    for (const delayMs of CLEANUP_RETRY_MS) {
+      if (delayMs > 0) {
+        await wait(delayMs);
+      }
+
+      try {
+        const response = await fetch("/api/albumdetails/cleanup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ detailsRef }),
+        });
+
+        const body = (await response.json().catch(() => null)) as
+          | { ok?: boolean; deleted?: boolean; stillReferenced?: boolean; error?: string }
+          | null;
+
+        if (!response.ok || !body?.ok) {
+          console.warn("Album details cleanup failed", {
+            detailsRef,
+            status: response.status,
+            body,
+          });
+          continue;
+        }
+
+        if (body.deleted) {
+          return;
+        }
+
+        if (body.stillReferenced) {
+          // Retry a few times in case this call raced a just-finished delete.
+          continue;
+        }
+      } catch (error) {
+        console.warn("Album details cleanup request error", {
+          detailsRef,
+          error,
+        });
+      }
     }
   }
 };

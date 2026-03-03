@@ -551,14 +551,14 @@ export default function FriendProfileModal({
                         </div>
                       )}
                       <div>
-                        <div className="text-sm font-medium">
+                        <div className="text-sm font-medium mt-4">
                           {t(locale, "email")}
                         </div>
                         <div className="profile__muted">{profile.email}</div>
                       </div>
                       {profile.bio?.trim() && (
                         <div>
-                          <div className="text-sm font-medium">
+                          <div className="text-sm font-medium mt-4">
                             {t(locale, "biography")}
                           </div>
                           <div className="profile__muted whitespace-pre-wrap">
