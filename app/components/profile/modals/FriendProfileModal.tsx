@@ -34,6 +34,7 @@ import {
   acquireModalScrollLock,
   releaseModalScrollLock,
 } from "../../../../lib/modalScrollLock";
+import "../ProfilePage.scss";
 
 const defaultPrivacy: ProfilePrivacySettings = {
   profile: "everyone",
