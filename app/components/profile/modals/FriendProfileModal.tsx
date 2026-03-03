@@ -11,7 +11,7 @@ import {
   orderBy,
   query,
 } from "firebase/firestore";
-import { X } from "lucide-react";
+import { Calendar, Disc, MicVocal, Music, X } from "lucide-react";
 
 import { db } from "../../../../lib/firebase";
 import { t } from "../../../../lib/translations";
@@ -24,6 +24,16 @@ import type {
   ProfilePrivacySettings,
   UserProfileDocument,
 } from "../profileTypes";
+import {
+  getProfileIconStyle,
+  getProfileInitials,
+  isVariousArtistName,
+  normalizeProfileIconColor,
+} from "../profileDisplay";
+import {
+  acquireModalScrollLock,
+  releaseModalScrollLock,
+} from "../../../../lib/modalScrollLock";
 
 const defaultPrivacy: ProfilePrivacySettings = {
   profile: "everyone",
@@ -72,6 +82,7 @@ function normalizeFriendProfile(raw: unknown): UserProfileDocument | null {
     favoriteGenres: Array.isArray(base.favoriteGenres)
       ? base.favoriteGenres.filter((g): g is string => typeof g === "string")
       : [],
+    iconColor: normalizeProfileIconColor(base.iconColor),
     privacy: (typeof base.privacy === "object" && base.privacy
       ? (base.privacy as Record<string, unknown>)
       : {}) as never,
@@ -95,6 +106,9 @@ export default function FriendProfileModal({
   const [wishlistAlbums, setWishlistAlbums] = useState<CollectionAlbumLite[]>(
     [],
   );
+  const [viewerCollectionAlbums, setViewerCollectionAlbums] = useState<
+    CollectionAlbumLite[]
+  >([]);
   const [viewMode, setViewMode] = useState<
     "profile" | "collection" | "wishlist"
   >("profile");
@@ -118,6 +132,8 @@ export default function FriendProfileModal({
     useState<DiscogsReleaseDetails | null>(null);
   const [detailsArtist, setDetailsArtist] = useState<string>("");
   const [detailsTitle, setDetailsTitle] = useState<string>("");
+  const [detailsInViewerCollection, setDetailsInViewerCollection] =
+    useState(false);
 
   const openAlbumDetails = async (
     list: "Collection" | "Wishlist",
@@ -183,13 +199,17 @@ export default function FriendProfileModal({
     setDetailsOverride(override);
     setDetailsArtist(artist);
     setDetailsTitle(normalizedAlbum.title);
+    setDetailsInViewerCollection(
+      list === "Collection" &&
+        viewerCollectionAlbums.some((album) => album.id === normalizedAlbum.id),
+    );
     setDetailsOpen(true);
   };
 
   useEffect(() => {
     if (!open) return;
-    document.body.classList.add("profile-modal-open");
-    return () => document.body.classList.remove("profile-modal-open");
+    acquireModalScrollLock();
+    return () => releaseModalScrollLock();
   }, [open]);
 
   useEffect(() => {
@@ -233,7 +253,7 @@ export default function FriendProfileModal({
   }, [viewMode, canSeeCollection, canSeeWishlist]);
 
   useEffect(() => {
-    if (!open || !friendUid || !canSeeCollection) {
+    if (!open || !friendUid) {
       setCollectionAlbums([]);
       return;
     }
@@ -277,7 +297,54 @@ export default function FriendProfileModal({
     );
 
     return () => unsubscribe();
-  }, [open, friendUid, canSeeCollection]);
+  }, [open, friendUid]);
+
+  useEffect(() => {
+    if (!open || !viewer.uid) {
+      setViewerCollectionAlbums([]);
+      return;
+    }
+
+    const ref = collection(db, "users", viewer.uid, "Collection");
+    const q = query(ref, orderBy("addedAt", "desc"));
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const next: CollectionAlbumLite[] = snapshot.docs
+          .map((docSnap): CollectionAlbumLite | null => {
+            const data = docSnap.data() as Record<string, unknown>;
+            const id =
+              typeof data.id === "number" ? data.id : Number(docSnap.id);
+            if (!Number.isFinite(id)) return null;
+            const genre = Array.isArray(data.genre)
+              ? data.genre.filter((v): v is string => typeof v === "string")
+              : data.genre && typeof data.genre === "string"
+                ? [data.genre]
+                : null;
+            return {
+              id,
+              title: typeof data.title === "string" ? data.title : "",
+              artist: typeof data.artist === "string" ? data.artist : undefined,
+              primaryArtist:
+                typeof data.primaryArtist === "string"
+                  ? data.primaryArtist
+                  : undefined,
+              cover_image:
+                typeof data.cover_image === "string"
+                  ? data.cover_image
+                  : undefined,
+              genre,
+              year: typeof data.year === "number" ? data.year : null,
+            };
+          })
+          .filter((album): album is CollectionAlbumLite => album !== null);
+        setViewerCollectionAlbums(next);
+      },
+      () => setViewerCollectionAlbums([]),
+    );
+
+    return () => unsubscribe();
+  }, [open, viewer.uid]);
 
   useEffect(() => {
     if (!open || !friendUid || !canSeeWishlist) {
@@ -345,6 +412,36 @@ export default function FriendProfileModal({
     );
   }, [collectionAlbums, profile]);
 
+  const currentYear = new Date().getFullYear();
+  const startedYear =
+    typeof profile?.startedCollectingYear === "number"
+      ? profile.startedCollectingYear
+      : null;
+  const yearsCollecting =
+    startedYear && startedYear > 0
+      ? Math.max(0, currentYear - startedYear + 1)
+      : 0;
+
+  const topArtist = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const album of collectionAlbums) {
+      const name = (album.primaryArtist ?? album.artist ?? "").trim();
+      if (!name || isVariousArtistName(name)) continue;
+      counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+
+    let best: { name: string; count: number } | null = null;
+    for (const [name, count] of counts.entries()) {
+      if (!best || count > best.count) best = { name, count };
+    }
+    return best;
+  }, [collectionAlbums]);
+
+  const sharedAlbums = useMemo(() => {
+    const viewerIds = new Set(viewerCollectionAlbums.map((album) => album.id));
+    return collectionAlbums.filter((album) => viewerIds.has(album.id));
+  }, [collectionAlbums, viewerCollectionAlbums]);
+
   if (!open || !friendUid) return null;
   if (typeof document === "undefined") return null;
 
@@ -372,7 +469,7 @@ export default function FriendProfileModal({
           </div>
           <button
             type="button"
-            className="profile__btn--secondary border rounded-lg px-3 py-2 cursor-pointer"
+            className="profile__btn--close px-3 py-2 cursor-pointer"
             onClick={onClose}
           >
             <X />
@@ -394,8 +491,8 @@ export default function FriendProfileModal({
             <div className="mt-5 flex flex-wrap gap-2">
               <button
                 type="button"
-                className={`profile__tab border px-4 py-2 rounded-lg cursor-pointer ${
-                  viewMode === "profile" ? "profile__tab--active" : ""
+                className={`profile__modal__tab border px-4 py-2 rounded-lg cursor-pointer ${
+                  viewMode === "profile" ? "profile__modal__tab--active" : ""
                 }`}
                 onClick={() => setViewMode("profile")}
               >
@@ -404,8 +501,10 @@ export default function FriendProfileModal({
               {canSeeCollection && (
                 <button
                   type="button"
-                  className={`profile__tab border px-4 py-2 rounded-lg cursor-pointer ${
-                    viewMode === "collection" ? "profile__tab--active" : ""
+                  className={`profile__modal__tab border px-4 py-2 rounded-lg cursor-pointer ${
+                    viewMode === "collection"
+                      ? "profile__modal__tab--active"
+                      : ""
                   }`}
                   onClick={() => setViewMode("collection")}
                 >
@@ -415,8 +514,8 @@ export default function FriendProfileModal({
               {canSeeWishlist && (
                 <button
                   type="button"
-                  className={`profile__tab border px-4 py-2 rounded-lg cursor-pointer ${
-                    viewMode === "wishlist" ? "profile__tab--active" : ""
+                  className={`profile__modal__tab border px-4 py-2 rounded-lg cursor-pointer ${
+                    viewMode === "wishlist" ? "profile__modal__tab--active" : ""
                   }`}
                   onClick={() => setViewMode("wishlist")}
                 >
@@ -437,22 +536,35 @@ export default function FriendProfileModal({
                     </p>
                   ) : (
                     <div className="mt-3 grid gap-2">
+                      {profile && (
+                        <div
+                          className="mt-3 w-12 h-12 rounded-full border profile__surface__usericon flex items-center justify-center font-semibold text-sm"
+                          style={getProfileIconStyle(
+                            profile.iconColor ?? "amber",
+                          )}
+                        >
+                          {getProfileInitials(
+                            profile.firstName,
+                            profile.lastName,
+                          )}
+                        </div>
+                      )}
                       <div>
                         <div className="text-sm font-medium">
                           {t(locale, "email")}
                         </div>
-                        <div className="profile__muted">
-                          {profile.email || "-"}
-                        </div>
+                        <div className="profile__muted">{profile.email}</div>
                       </div>
-                      <div>
-                        <div className="text-sm font-medium">
-                          {t(locale, "biography")}
+                      {profile.bio?.trim() && (
+                        <div>
+                          <div className="text-sm font-medium">
+                            {t(locale, "biography")}
+                          </div>
+                          <div className="profile__muted whitespace-pre-wrap">
+                            {profile.bio}
+                          </div>
                         </div>
-                        <div className="profile__muted whitespace-pre-wrap">
-                          {profile.bio || "-"}
-                        </div>
-                      </div>
+                      )}
                     </div>
                   )}
                 </section>
@@ -461,85 +573,174 @@ export default function FriendProfileModal({
                   <h3 className="font-semibold">
                     {t(locale, "collectionStatsAndFavorites")}
                   </h3>
-                  {!canSeeCollection ? (
-                    <p className="profile__muted mt-2">
-                      {t(locale, "notAllowed")}
-                    </p>
-                  ) : (
-                    <>
-                      <div className="mt-3 grid grid-cols-2 gap-3">
-                        <div className="profile__surface border rounded-xl p-3">
-                          <div className="text-sm profile__muted">
-                            {t(locale, "albumsInCollection")}
+                  <div
+                    className="mt-3 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                    style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                  >
+                    <div className="flex flex-nowrap gap-3 min-w-max">
+                      <div className="mt-5 flex flex-wrap gap-3">
+                        <div className="profile__surface flex items-center gap-4 border rounded-xl p-3 min-w-[180px]">
+                          <div className="profile__surface__icon__collection p-2 rounded-full">
+                            <Disc size={16} />
                           </div>
-                          <div className="text-xl font-semibold mt-1">
-                            {collectionAlbums.length}
+                          <div>
+                            <div className="text-sm profile__muted">
+                              {t(locale, "albumsInCollection")}
+                            </div>
+                            <div className="text-xl font-semibold mt-1">
+                              {collectionAlbums.length}
+                            </div>
                           </div>
                         </div>
-                        <div className="profile__surface border rounded-xl p-3">
-                          <div className="text-sm profile__muted">
-                            {t(locale, "uniqueGenres")}
+
+                        <div className="profile__surface flex items-center gap-4 border rounded-xl p-3 min-w-[180px]">
+                          <div className="profile__surface__icon__years p-2 rounded-full">
+                            <Calendar size={16} />
                           </div>
-                          <div className="text-xl font-semibold mt-1">
-                            {uniqueGenres.length}
+                          <div>
+                            <div className="text-sm profile__muted">
+                              {t(locale, "yearsCollecting")}
+                            </div>
+                            <div className="text-xl font-semibold mt-1">
+                              {startedYear ? yearsCollecting : "-"}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="profile__surface flex items-center gap-4 border rounded-xl p-3 min-w-[180px]">
+                          <div className="profile__surface__icon__genres p-2 rounded-full">
+                            <Music size={16} />
+                          </div>
+                          <div>
+                            <div className="text-sm profile__muted">
+                              {t(locale, "uniqueGenres")}
+                            </div>
+                            <div className="text-xl font-semibold mt-1">
+                              {uniqueGenres.length}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="profile__surface flex items-center gap-4 border rounded-xl p-3 min-w-[220px]">
+                          <div className="profile__surface__icon__artist p-2 rounded-full">
+                            <MicVocal size={16} />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-sm profile__muted">
+                              {t(locale, "topArtist")}
+                            </div>
+                            <div className="text-lg font-semibold mt-1 truncate">
+                              {topArtist ? topArtist.name : "-"}
+                              {topArtist ? (
+                                <span className="text-sm font-semibold ml-2">
+                                  ({topArtist.count})
+                                </span>
+                              ) : null}
+                            </div>
                           </div>
                         </div>
                       </div>
+                    </div>
+                  </div>
 
-                      <div className="mt-4">
-                        <div className="text-sm font-medium">
-                          {t(locale, "favoriteAlbum")}
+                  <div className="mt-4">
+                    <div className="text-sm font-medium">
+                      {t(locale, "favoriteAlbum")}
+                    </div>
+                    {favoriteAlbum ? (
+                      <div className="mt-2 grid grid-cols-[60px_1fr] gap-3 items-center">
+                        <div className="w-[60px] h-[60px] rounded-lg overflow-hidden profile__surface border">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={
+                              favoriteAlbum.cover_image || "/placeholder.png"
+                            }
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
                         </div>
-                        {favoriteAlbum ? (
-                          <div className="mt-2 grid grid-cols-[60px_1fr] gap-3 items-center">
-                            <div className="w-[60px] h-[60px] rounded-lg overflow-hidden profile__surface border">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={
-                                  favoriteAlbum.cover_image ||
-                                  "/placeholder.png"
-                                }
-                                alt=""
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="truncate font-semibold">
-                                {favoriteAlbum.title}
-                              </div>
-                              <div className="truncate profile__muted">
-                                {favoriteAlbum.primaryArtist ??
-                                  favoriteAlbum.artist ??
-                                  ""}
-                              </div>
-                            </div>
+                        <div className="min-w-0">
+                          <div className="truncate font-semibold">
+                            {favoriteAlbum.title}
                           </div>
-                        ) : (
-                          <p className="profile__muted mt-1">-</p>
+                          <div className="truncate profile__muted">
+                            {favoriteAlbum.primaryArtist ??
+                              favoriteAlbum.artist ??
+                              ""}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="profile__muted mt-1">-</p>
+                    )}
+                  </div>
+
+                  <div className="mt-4">
+                    <div className="text-sm font-medium">
+                      {t(locale, "favoriteGenres")}
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {(profile.favoriteGenres ?? []).slice(0, 5).map((g) => (
+                        <span
+                          key={g}
+                          className="profile__tag profile__tag--favorite px-3 py-1 rounded-full text-sm"
+                        >
+                          {g}
+                        </span>
+                      ))}
+                      {(profile.favoriteGenres ?? []).length === 0 && (
+                        <span className="profile__muted text-sm">-</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {canSeeCollection && (
+                    <div className="mt-8">
+                      <div className="text-sm font-medium">
+                        {t(locale, "albumsInCommon")}
+                      </div>
+                      <p className="profile__muted text-sm mt-1">
+                        {t(locale, "albumsInCommonCount", sharedAlbums.length)}
+                      </p>
+                      <div className="mt-2 max-h-72 overflow-y-auto pr-1">
+                        <div
+                          className="grid gap-2 justify-start"
+                          style={{
+                            gridTemplateColumns:
+                              "repeat(auto-fill, minmax(120px, 1fr))",
+                          }}
+                        >
+                          {sharedAlbums.map((album) => (
+                            <button
+                              key={album.id}
+                              type="button"
+                              className="profile__surface border rounded-lg p-2 text-left cursor-pointer"
+                              onClick={() =>
+                                void openAlbumDetails("Collection", album.id)
+                              }
+                            >
+                              <div className="w-full aspect-square rounded overflow-hidden border profile__surface">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={album.cover_image || "/placeholder.png"}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="mt-1 text-xs font-semibold truncate">
+                                {album.title}
+                              </div>
+                              <div className="text-[11px] profile__muted truncate">
+                                {album.primaryArtist ?? album.artist ?? ""}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                        {sharedAlbums.length === 0 && (
+                          <span className="profile__muted text-sm">-</span>
                         )}
                       </div>
-
-                      <div className="mt-4">
-                        <div className="text-sm font-medium">
-                          {t(locale, "favoriteGenres")}
-                        </div>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {(profile.favoriteGenres ?? [])
-                            .slice(0, 5)
-                            .map((g) => (
-                              <span
-                                key={g}
-                                className="profile__tag profile__tag--favorite px-3 py-1 rounded-full text-sm"
-                              >
-                                {g}
-                              </span>
-                            ))}
-                          {(profile.favoriteGenres ?? []).length === 0 && (
-                            <span className="profile__muted text-sm">-</span>
-                          )}
-                        </div>
-                      </div>
-                    </>
+                    </div>
                   )}
                 </section>
               </div>
@@ -547,7 +748,7 @@ export default function FriendProfileModal({
 
             {viewMode === "collection" && (
               <div className="mt-5">
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-wrap gap-4 friend-profile-compact-cards">
                   {collectionAlbums.map((album) => {
                     const artist = album.primaryArtist ?? album.artist ?? "";
                     const discogsRelease = {
@@ -564,22 +765,26 @@ export default function FriendProfileModal({
                     };
 
                     return (
-                      <AlbumCard
+                      <div
                         key={album.id}
-                        album={discogsRelease}
-                        artist={artist}
-                        title={album.title}
-                        mainGenre={
-                          Array.isArray(album.genre)
-                            ? album.genre[0]
-                            : undefined
-                        }
-                        interactive
-                        onCardClick={() =>
-                          openAlbumDetails("Collection", album.id)
-                        }
-                        buttons={{}}
-                      />
+                        className="flex-shrink-0 flex-grow basis-[140px] max-w-[200px]"
+                      >
+                        <AlbumCard
+                          album={discogsRelease}
+                          artist={artist}
+                          title={album.title}
+                          mainGenre={
+                            Array.isArray(album.genre)
+                              ? album.genre[0]
+                              : undefined
+                          }
+                          interactive
+                          onCardClick={() =>
+                            openAlbumDetails("Collection", album.id)
+                          }
+                          buttons={{}}
+                        />
+                      </div>
                     );
                   })}
                   {collectionAlbums.length === 0 && (
@@ -591,7 +796,7 @@ export default function FriendProfileModal({
 
             {viewMode === "wishlist" && (
               <div className="mt-5">
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-wrap gap-4 friend-profile-compact-cards">
                   {wishlistAlbums.map((album) => {
                     const artist = album.primaryArtist ?? album.artist ?? "";
                     const discogsRelease = {
@@ -608,22 +813,26 @@ export default function FriendProfileModal({
                     };
 
                     return (
-                      <AlbumCard
+                      <div
                         key={album.id}
-                        album={discogsRelease}
-                        artist={artist}
-                        title={album.title}
-                        mainGenre={
-                          Array.isArray(album.genre)
-                            ? album.genre[0]
-                            : undefined
-                        }
-                        interactive
-                        onCardClick={() =>
-                          openAlbumDetails("Wishlist", album.id)
-                        }
-                        buttons={{}}
-                      />
+                        className="flex-shrink-0 flex-grow basis-[140px] max-w-[140px]"
+                      >
+                        <AlbumCard
+                          album={discogsRelease}
+                          artist={artist}
+                          title={album.title}
+                          mainGenre={
+                            Array.isArray(album.genre)
+                              ? album.genre[0]
+                              : undefined
+                          }
+                          interactive
+                          onCardClick={() =>
+                            openAlbumDetails("Wishlist", album.id)
+                          }
+                          buttons={{}}
+                        />
+                      </div>
                     );
                   })}
                   {wishlistAlbums.length === 0 && (
@@ -642,11 +851,15 @@ export default function FriendProfileModal({
         artist={detailsArtist}
         displayTitle={detailsTitle}
         detailsOverride={detailsOverride}
+        sharedCollectionLabel={
+          detailsInViewerCollection ? t(locale, "inBothCollections") : null
+        }
         hideActions
         onClose={() => {
           setDetailsOpen(false);
           setDetailsAlbum(null);
           setDetailsOverride(null);
+          setDetailsInViewerCollection(false);
         }}
       />
     </div>,

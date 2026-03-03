@@ -17,15 +17,21 @@ import {
   startAt,
   endAt,
 } from "firebase/firestore";
-import { Check, X } from "lucide-react";
+import { Check, UserMinus, UserPlus, UserSearch, UserX, X } from "lucide-react";
 
 import { db } from "../../../../lib/firebase";
 import { t } from "../../../../lib/translations";
 import type {
   FriendEntry,
   FriendRequestEntry,
+  ProfileIconColor,
   UserProfileDocument,
 } from "../profileTypes";
+import {
+  getProfileIconStyle,
+  getProfileInitials,
+  normalizeProfileIconColor,
+} from "../profileDisplay";
 import FriendProfileModal from "../modals/FriendProfileModal";
 import MessageModal from "../../modal/MessageModal";
 
@@ -34,6 +40,7 @@ type SearchResult = {
   firstName: string;
   lastName: string;
   email: string;
+  iconColor: ProfileIconColor;
   profileVisibility: "everyone" | "friends" | "me";
   collectionVisibility: "everyone" | "friends" | "me";
   wishlistVisibility: "everyone" | "friends" | "me";
@@ -51,6 +58,7 @@ function normalizeUserResult(uid: string, raw: unknown): SearchResult | null {
   const email = typeof base.email === "string" ? base.email : "";
   const firstName = typeof base.firstName === "string" ? base.firstName : "";
   const lastName = typeof base.lastName === "string" ? base.lastName : "";
+  const iconColor = normalizeProfileIconColor(base.iconColor);
 
   const privacyRaw =
     typeof base.privacy === "object" && base.privacy
@@ -83,6 +91,7 @@ function normalizeUserResult(uid: string, raw: unknown): SearchResult | null {
     email,
     firstName,
     lastName,
+    iconColor,
     profileVisibility,
     collectionVisibility,
     wishlistVisibility,
@@ -128,6 +137,7 @@ export default function ProfileFriendsPanel({
               lastName:
                 typeof data.lastName === "string" ? data.lastName : undefined,
               email: typeof data.email === "string" ? data.email : undefined,
+              iconColor: normalizeProfileIconColor(data.iconColor),
               addedAt: data.addedAt,
             } satisfies FriendEntry;
           })
@@ -153,11 +163,12 @@ export default function ProfileFriendsPanel({
             uid,
             firstName:
               typeof data.firstName === "string" ? data.firstName : undefined,
-            lastName:
-              typeof data.lastName === "string" ? data.lastName : undefined,
-            email: typeof data.email === "string" ? data.email : undefined,
-            createdAt: data.createdAt,
-          } satisfies FriendRequestEntry;
+              lastName:
+                typeof data.lastName === "string" ? data.lastName : undefined,
+              email: typeof data.email === "string" ? data.email : undefined,
+              iconColor: normalizeProfileIconColor(data.iconColor),
+              createdAt: data.createdAt,
+            } satisfies FriendRequestEntry;
         });
         setIncomingRequests(next);
       },
@@ -180,11 +191,12 @@ export default function ProfileFriendsPanel({
             uid,
             firstName:
               typeof data.firstName === "string" ? data.firstName : undefined,
-            lastName:
-              typeof data.lastName === "string" ? data.lastName : undefined,
-            email: typeof data.email === "string" ? data.email : undefined,
-            createdAt: data.createdAt,
-          } satisfies FriendRequestEntry;
+              lastName:
+                typeof data.lastName === "string" ? data.lastName : undefined,
+              email: typeof data.email === "string" ? data.email : undefined,
+              iconColor: normalizeProfileIconColor(data.iconColor),
+              createdAt: data.createdAt,
+            } satisfies FriendRequestEntry;
         });
         setOutgoingRequests(next);
       },
@@ -295,6 +307,7 @@ export default function ProfileFriendsPanel({
           firstName: target.firstName,
           lastName: target.lastName,
           email: target.email,
+          iconColor: target.iconColor,
           createdAt: serverTimestamp(),
         },
         { merge: true },
@@ -311,6 +324,7 @@ export default function ProfileFriendsPanel({
             typeof meProfile.email === "string"
               ? meProfile.email
               : (user.email ?? ""),
+          iconColor: normalizeProfileIconColor(meProfile.iconColor),
           createdAt: serverTimestamp(),
         },
         { merge: true },
@@ -344,6 +358,7 @@ export default function ProfileFriendsPanel({
           firstName: from.firstName ?? "",
           lastName: from.lastName ?? "",
           email: from.email ?? "",
+          iconColor: normalizeProfileIconColor(from.iconColor),
           addedAt: serverTimestamp(),
         },
         { merge: true },
@@ -360,6 +375,7 @@ export default function ProfileFriendsPanel({
             typeof meProfile.email === "string"
               ? meProfile.email
               : (user.email ?? ""),
+          iconColor: normalizeProfileIconColor(meProfile.iconColor),
           addedAt: serverTimestamp(),
         },
         { merge: true },
@@ -382,6 +398,19 @@ export default function ProfileFriendsPanel({
       deleteDoc(doc(db, "users", target.uid, "Friends", user.uid)),
     ]);
   };
+
+  const renderAvatar = (
+    firstName?: string,
+    lastName?: string,
+    iconColor?: ProfileIconColor,
+  ) => (
+    <div
+      className="w-10 h-10 rounded-full border profile__surface__usericon flex items-center justify-center font-semibold text-xs shrink-0"
+      style={getProfileIconStyle(iconColor ?? "amber")}
+    >
+      {getProfileInitials(firstName, lastName)}
+    </div>
+  );
 
   return (
     <>
@@ -410,12 +439,15 @@ export default function ProfileFriendsPanel({
                   key={r.uid}
                   className="profile__surface border rounded-xl p-4 flex items-start justify-between gap-4"
                 >
-                  <div className="min-w-0">
-                    <div className="font-semibold truncate">
-                      {r.firstName ?? ""} {r.lastName ?? ""}
-                    </div>
-                    <div className="profile__muted truncate">
-                      {r.email ?? ""}
+                  <div className="min-w-0 flex items-start gap-3">
+                    {renderAvatar(r.firstName, r.lastName, r.iconColor)}
+                    <div className="min-w-0">
+                      <div className="font-semibold truncate">
+                        {r.firstName ?? ""} {r.lastName ?? ""}
+                      </div>
+                      <div className="profile__muted truncate">
+                        {r.email ?? ""}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -453,19 +485,23 @@ export default function ProfileFriendsPanel({
                   key={r.uid}
                   className="profile__surface border rounded-xl p-4 flex items-start justify-between gap-4"
                 >
-                  <div className="min-w-0">
-                    <div className="font-semibold truncate">
-                      {r.firstName ?? ""} {r.lastName ?? ""}
-                    </div>
-                    <div className="profile__muted truncate">
-                      {r.email ?? ""}
+                  <div className="min-w-0 flex items-start gap-3">
+                    {renderAvatar(r.firstName, r.lastName, r.iconColor)}
+                    <div className="min-w-0">
+                      <div className="font-semibold truncate">
+                        {r.firstName ?? ""} {r.lastName ?? ""}
+                      </div>
+                      <div className="profile__muted truncate">
+                        {r.email ?? ""}
+                      </div>
                     </div>
                   </div>
                   <button
                     type="button"
-                    className="profile__btn--secondary border rounded-lg px-3 py-2 shrink-0  cursor-pointer"
+                    className="profile__btn--secondary flex items-center gap-2 border rounded-lg px-3 py-2 shrink-0  cursor-pointer"
                     onClick={() => revokeFriendRequest(r.uid)}
                   >
+                    <UserMinus size={18} />
                     {t(locale, "revokeRequest")}
                   </button>
                 </div>
@@ -488,10 +524,11 @@ export default function ProfileFriendsPanel({
           />
           <button
             type="button"
-            className="profile__btn--primary border rounded-lg px-4 py-2 cursor-pointer"
+            className="profile__btn--primary flex items-center gap-2 border rounded-lg px-4 py-2 cursor-pointer"
             onClick={runSearch}
             disabled={searching || !queryText.trim()}
           >
+            <UserSearch size={20} />
             {searching ? `${t(locale, "searching")}…` : t(locale, "search")}
           </button>
         </div>
@@ -525,16 +562,19 @@ export default function ProfileFriendsPanel({
                   setProfileOpen(true);
                 }}
               >
-                <div className="min-w-0">
-                  <div className="font-semibold truncate">
-                    {r.firstName} {r.lastName}
-                  </div>
-                  <div className="profile__muted truncate">{r.email}</div>
-                  {r.profileVisibility !== "everyone" && (
-                    <div className="profile__muted text-xs mt-1">
-                      {t(locale, "visibilityFriends")}
+                <div className="min-w-0 flex items-start gap-3">
+                  {renderAvatar(r.firstName, r.lastName, r.iconColor)}
+                  <div className="min-w-0">
+                    <div className="font-semibold truncate">
+                      {r.firstName} {r.lastName}
                     </div>
-                  )}
+                    <div className="profile__muted truncate">{r.email}</div>
+                    {r.profileVisibility !== "everyone" && (
+                      <div className="profile__muted text-xs mt-1">
+                        {t(locale, "visibilityFriends")}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 {outgoingUids.has(r.uid) ? (
                   <span className="profile__muted text-sm font-semibold shrink-0">
@@ -543,12 +583,13 @@ export default function ProfileFriendsPanel({
                 ) : (
                   <button
                     type="button"
-                    className="profile__btn--primary border rounded-lg px-3 py-2 shrink-0 cursor-pointer"
+                    className="profile__btn--primary flex items-center gap-2 border rounded-lg px-3 py-2 shrink-0 cursor-pointer"
                     onClick={(event) => {
                       event.stopPropagation();
                       void sendFriendRequest(r);
                     }}
                   >
+                    <UserPlus size={20} />
                     {t(locale, "request")}
                   </button>
                 )}
@@ -596,20 +637,26 @@ export default function ProfileFriendsPanel({
               }}
             >
               <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <div className="font-semibold truncate">
-                    {f.firstName ?? ""} {f.lastName ?? ""}
+                <div className="min-w-0 flex items-start gap-3">
+                  {renderAvatar(f.firstName, f.lastName, f.iconColor)}
+                  <div className="min-w-0">
+                    <div className="font-semibold truncate">
+                      {f.firstName ?? ""} {f.lastName ?? ""}
+                    </div>
+                    <div className="profile__muted truncate">
+                      {f.email ?? ""}
+                    </div>
                   </div>
-                  <div className="profile__muted truncate">{f.email ?? ""}</div>
                 </div>
                 <button
                   type="button"
-                  className="profile__btn--secondary border rounded-lg px-3 py-2 shrink-0 cursor-pointer"
+                  className="profile__btn--secondary flex items-center gap-2 border rounded-lg px-3 py-2 shrink-0 cursor-pointer"
                   onClick={(event) => {
                     event.stopPropagation();
                     setRemoveTarget(f);
                   }}
                 >
+                  <UserX size={18} />
                   {t(locale, "remove")}
                 </button>
               </div>

@@ -7,6 +7,7 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
   orderBy,
   query,
@@ -31,6 +32,8 @@ import type {
 } from "./profileTypes";
 
 import "./ProfilePage.scss";
+import { X } from "lucide-react";
+import { normalizeProfileIconColor } from "./profileDisplay";
 
 const defaultPrivacy: ProfilePrivacySettings = {
   profile: "everyone",
@@ -61,6 +64,7 @@ function normalizeProfileDoc(
   const favoriteGenres = Array.isArray(base.favoriteGenres)
     ? base.favoriteGenres.filter((g): g is string => typeof g === "string")
     : [];
+  const iconColor = normalizeProfileIconColor(base.iconColor);
 
   const privacyRaw =
     typeof base.privacy === "object" && base.privacy
@@ -95,6 +99,7 @@ function normalizeProfileDoc(
     startedCollectingYear,
     favoriteAlbumId,
     favoriteGenres,
+    iconColor,
     privacy,
   };
 }
@@ -174,6 +179,8 @@ export default function ProfilePage() {
             updates.lastNameLower = search.lastNameLower;
           if (raw.fullNameLower !== search.fullNameLower)
             updates.fullNameLower = search.fullNameLower;
+          if (raw.iconColor !== next.iconColor)
+            updates.iconColor = next.iconColor;
 
           // Backfill privacy defaults
           const rawPrivacy =
@@ -312,6 +319,7 @@ export default function ProfilePage() {
       : [];
 
     const searchFields = toSearchFields(draft);
+    const safeIconColor = normalizeProfileIconColor(draft.iconColor);
     const payload: Partial<UserProfileDocument> = {
       firstName: draft.firstName.trim(),
       lastName: draft.lastName.trim(),
@@ -326,11 +334,48 @@ export default function ProfilePage() {
           ? draft.favoriteAlbumId
           : null,
       favoriteGenres: safeFavoriteGenres,
+      iconColor: safeIconColor,
       ...searchFields,
       updatedAt: serverTimestamp() as unknown as never,
     };
 
     await setDoc(ref, payload, { merge: true });
+    const [friendsSnap, outgoingSnap, incomingSnap] = await Promise.all([
+      getDocs(collection(db, "users", user.uid, "Friends")),
+      getDocs(collection(db, "users", user.uid, "FriendRequestsOutgoing")),
+      getDocs(collection(db, "users", user.uid, "FriendRequestsIncoming")),
+    ]);
+
+    const mirrorPayload = {
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      email: payload.email,
+      iconColor: safeIconColor,
+    };
+
+    await Promise.all([
+      ...friendsSnap.docs.map((friendDoc) =>
+        setDoc(
+          doc(db, "users", friendDoc.id, "Friends", user.uid),
+          mirrorPayload,
+          { merge: true },
+        ),
+      ),
+      ...outgoingSnap.docs.map((requestDoc) =>
+        setDoc(
+          doc(db, "users", requestDoc.id, "FriendRequestsIncoming", user.uid),
+          mirrorPayload,
+          { merge: true },
+        ),
+      ),
+      ...incomingSnap.docs.map((requestDoc) =>
+        setDoc(
+          doc(db, "users", requestDoc.id, "FriendRequestsOutgoing", user.uid),
+          mirrorPayload,
+          { merge: true },
+        ),
+      ),
+    ]);
     setEditMode(false);
   };
 
@@ -345,45 +390,45 @@ export default function ProfilePage() {
   const showEditActions = activeTab === "profile";
 
   return (
-    <div className="min-h-full flex flex-col gap-4">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
+    <div className="min-h-full flex flex-col gap-4 max-w-[1000px] mx-auto w-full">
+      <div className="flex items-start gap-4 flex-wrap">
+        <div className="flex justify-between w-full">
           <h1 className="text-4xl sm:text-5xl mb-2">{t(locale, "profile")}</h1>
-          <p className="profile__muted">
-            {t(locale, "helloName", `${profile.firstName} ${profile.lastName}`)}
-          </p>
-        </div>
 
-        {showEditActions && (
-          <div className="flex items-center gap-2">
-            {!editMode ? (
-              <button
-                type="button"
-                className="profile__btn--primary border rounded-lg px-4 py-2 cursor-pointer"
-                onClick={() => setEditMode(true)}
-              >
-                {t(locale, "editProfile")}
-              </button>
-            ) : (
-              <>
+          {showEditActions && (
+            <div className="flex items-center gap-2">
+              {!editMode ? (
                 <button
                   type="button"
                   className="profile__btn--primary border rounded-lg px-4 py-2 cursor-pointer"
-                  onClick={onSaveProfile}
+                  onClick={() => setEditMode(true)}
                 >
-                  {t(locale, "saveChanges")}
+                  {t(locale, "editProfile")}
                 </button>
-                <button
-                  type="button"
-                  className="profile__btn--secondary border rounded-lg px-4 py-2 cursor-pointer"
-                  onClick={onCancelEdit}
-                >
-                  {t(locale, "cancel")}
-                </button>
-              </>
-            )}
-          </div>
-        )}
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="profile__btn--primary border rounded-lg px-4 py-2 cursor-pointer"
+                    onClick={onSaveProfile}
+                  >
+                    {t(locale, "saving")}
+                  </button>
+                  <button
+                    type="button"
+                    className="profile__btn--secondary border rounded-lg px-3 py-2 cursor-pointer"
+                    onClick={onCancelEdit}
+                  >
+                    <X />
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+        <p className="profile__muted">
+          {t(locale, "helloName", `${profile.firstName} ${profile.lastName}`)}
+        </p>
       </div>
 
       <ProfileTabs
@@ -394,7 +439,7 @@ export default function ProfilePage() {
       />
 
       {activeTab === "profile" && (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+        <div className="grid grid-cols-1 gap-4 items-start">
           <ProfilePersonalInfoPanel
             profile={profile}
             draft={draft}
@@ -407,6 +452,7 @@ export default function ProfilePage() {
               lastName: t(locale, "lastName"),
               email: t(locale, "email"),
               biography: t(locale, "biography"),
+              iconColor: t(locale, "avatarColor"),
             }}
           />
 

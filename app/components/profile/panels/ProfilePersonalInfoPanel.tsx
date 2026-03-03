@@ -2,6 +2,11 @@
 
 import { ChangeEvent } from "react";
 import type { UserProfileDocument } from "../profileTypes";
+import {
+  getProfileIconStyle,
+  getProfileInitials,
+  PROFILE_ICON_COLORS,
+} from "../profileDisplay";
 
 type ProfilePersonalInfoPanelProps = {
   profile: UserProfileDocument;
@@ -15,6 +20,7 @@ type ProfilePersonalInfoPanelProps = {
     lastName: string;
     email: string;
     biography: string;
+    iconColor: string;
   };
 };
 
@@ -33,6 +39,8 @@ export default function ProfilePersonalInfoPanel({
     };
 
   const disabledClass = editMode ? "" : "profile__input--disabled";
+  const initials = getProfileInitials(profile.firstName, profile.lastName);
+  const selectedIconColor = draft.iconColor ?? profile.iconColor ?? "amber";
 
   return (
     <section className="profile__surface border rounded-xl p-4 sm:p-6">
@@ -42,6 +50,34 @@ export default function ProfilePersonalInfoPanel({
           <p className="profile__muted text-sm mt-1">
             {labels.name}: {profile.firstName} {profile.lastName}
           </p>
+          <div
+            className="mt-3 w-12 h-12 rounded-full border profile__surface__usericon flex items-center justify-center font-semibold text-sm"
+            style={getProfileIconStyle(selectedIconColor)}
+          >
+            {initials}
+          </div>
+          {editMode && (
+            <div className="mt-3">
+              <div className="text-xs profile__muted mb-2">{labels.iconColor}</div>
+              <div className="flex flex-wrap gap-2">
+                {PROFILE_ICON_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`w-7 h-7 rounded-full border-2 cursor-pointer ${
+                      selectedIconColor === color
+                        ? "ring-2 ring-offset-1 ring-orange-400"
+                        : ""
+                    }`}
+                    style={getProfileIconStyle(color)}
+                    onClick={() => onDraftChange({ ...draft, iconColor: color })}
+                    aria-label={`${labels.iconColor}: ${color}`}
+                    title={color}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -90,4 +126,3 @@ export default function ProfilePersonalInfoPanel({
     </section>
   );
 }
-

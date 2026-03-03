@@ -19,9 +19,11 @@ import {
 } from "../../../../lib/discogsRelease";
 import { auth, db } from "../../../../lib/firebase";
 import {
+  collection,
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   serverTimestamp,
   setDoc,
 } from "firebase/firestore";
@@ -44,7 +46,17 @@ import WishlistButton from "../card/buttons/WishlistButton";
 import ToCollectionButton from "../card/buttons/ToCollectionButton";
 import MessageModal from "../../modal/MessageModal";
 import VinylSpinner from "../../spinner/VinylSpinner";
+import FriendProfileModal from "../../profile/modals/FriendProfileModal";
 import { useThemePlaceholder } from "../../../../lib/useThemePlaceholder";
+import {
+  getProfileIconStyle,
+  getProfileInitials,
+  normalizeProfileIconColor,
+} from "../../profile/profileDisplay";
+import {
+  acquireModalScrollLock,
+  releaseModalScrollLock,
+} from "../../../../lib/modalScrollLock";
 import "./AlbumDetailsModal.scss";
 
 type DiscogsRelease = {
@@ -72,9 +84,18 @@ type AlbumDetailsModalProps = {
   artist?: string;
   displayTitle?: string;
   detailsOverride?: DiscogsReleaseDetails | null;
+  sharedCollectionLabel?: string | null;
   hideActions?: boolean;
   onEditCustom?: () => void;
   onClose: () => void;
+};
+
+type FriendWithAlbum = {
+  uid: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  iconColor: Parameters<typeof getProfileIconStyle>[0];
 };
 
 export default function AlbumDetailsModal({
@@ -83,6 +104,7 @@ export default function AlbumDetailsModal({
   artist,
   displayTitle,
   detailsOverride,
+  sharedCollectionLabel = null,
   hideActions = false,
   onEditCustom,
   onClose,
@@ -110,6 +132,11 @@ export default function AlbumDetailsModal({
   const [extraArtistsOverflow, setExtraArtistsOverflow] = useState(false);
   const [notesOverflow, setNotesOverflow] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [friendsWithAlbum, setFriendsWithAlbum] = useState<FriendWithAlbum[]>(
+    [],
+  );
+  const [friendProfileOpen, setFriendProfileOpen] = useState(false);
+  const [friendProfileUid, setFriendProfileUid] = useState<string | null>(null);
   const thumbDragRef = useRef<{
     dragging: boolean;
     startX: number;
@@ -221,11 +248,96 @@ export default function AlbumDetailsModal({
   }, [open, album, hideActions]);
 
   useEffect(() => {
-    document.body.classList.toggle("album-details-modal-open", open);
+    if (!open || !album) {
+      setFriendsWithAlbum([]);
+      return;
+    }
+
+    const user = auth.currentUser;
+    if (!user) {
+      setFriendsWithAlbum([]);
+      return;
+    }
+
+    let active = true;
+
+    const loadFriendsWithAlbum = async () => {
+      try {
+        const friendsSnap = await getDocs(
+          collection(db, "users", user.uid, "Friends"),
+        );
+        const friends = friendsSnap.docs
+          .map((friendDoc): FriendWithAlbum | null => {
+            const data = friendDoc.data() as Record<string, unknown>;
+            const uid =
+              typeof data.uid === "string" && data.uid.trim()
+                ? data.uid
+                : friendDoc.id;
+            if (!uid) return null;
+            return {
+              uid,
+              firstName:
+                typeof data.firstName === "string" ? data.firstName : "",
+              lastName: typeof data.lastName === "string" ? data.lastName : "",
+              email: typeof data.email === "string" ? data.email : "",
+              iconColor: normalizeProfileIconColor(data.iconColor),
+            };
+          })
+          .filter((friend): friend is FriendWithAlbum => friend !== null);
+
+        const checks = await Promise.all(
+          friends.map(async (friend): Promise<FriendWithAlbum | null> => {
+            const friendProfileRef = doc(db, "users", friend.uid);
+            const friendAlbumRef = doc(
+              db,
+              "users",
+              friend.uid,
+              "Collection",
+              album.id.toString(),
+            );
+            const [friendAlbumSnap, friendProfileSnap] = await Promise.all([
+              getDoc(friendAlbumRef),
+              getDoc(friendProfileRef),
+            ]);
+            if (!friendAlbumSnap.exists()) return null;
+
+            const rawProfile = (friendProfileSnap.data() ??
+              {}) as Record<string, unknown>;
+            const privacyRaw =
+              typeof rawProfile.privacy === "object" && rawProfile.privacy
+                ? (rawProfile.privacy as Record<string, unknown>)
+                : {};
+            const collectionVisibility = privacyRaw.collection;
+            if (collectionVisibility === "me") return null;
+
+            return {
+              ...friend,
+              iconColor: normalizeProfileIconColor(rawProfile.iconColor),
+            };
+          }),
+        );
+
+        if (!active) return;
+        setFriendsWithAlbum(
+          checks.filter((friend): friend is FriendWithAlbum => friend !== null),
+        );
+      } catch {
+        if (!active) return;
+        setFriendsWithAlbum([]);
+      }
+    };
+
+    void loadFriendsWithAlbum();
 
     return () => {
-      document.body.classList.remove("album-details-modal-open");
+      active = false;
     };
+  }, [open, album]);
+
+  useEffect(() => {
+    if (!open) return;
+    acquireModalScrollLock();
+    return () => releaseModalScrollLock();
   }, [open]);
 
   useEffect(() => {
@@ -795,6 +907,7 @@ export default function AlbumDetailsModal({
     });
   }
   const isLoading = detailsLoading || (!hideActions && albumStateLoading);
+  const viewer = auth.currentUser;
 
   return (
     <div
@@ -816,6 +929,11 @@ export default function AlbumDetailsModal({
             <p className="album-details-modal-subtitle text-sm">
               {artist || album.artist || t(locale, "unknownArtist")}
             </p>
+            {sharedCollectionLabel && (
+              <p className="text-xs mt-2 inline-flex rounded-full px-2 py-1 bg-emerald-500/20 text-emerald-400">
+                {sharedCollectionLabel}
+              </p>
+            )}
           </div>
           <button
             onClick={onClose}
@@ -1040,7 +1158,8 @@ export default function AlbumDetailsModal({
                     <div className="flex flex-wrap gap-2">
                       {details.labels.map((label, i) => {
                         const catno = (label.catno || "").trim();
-                        const showCatno = catno && catno.toLowerCase() !== "none";
+                        const showCatno =
+                          catno && catno.toLowerCase() !== "none";
                         const name = (label.name || "").trim();
 
                         const labelText = name
@@ -1154,6 +1273,37 @@ export default function AlbumDetailsModal({
                 )}
               </div>
             </div>
+
+            {friendsWithAlbum.length > 0 && (
+              <div className="mt-3">
+                <p className="text-xs album-details-modal-muted">
+                  {t(locale, "friendsHaveThisAlbum")}
+                </p>
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                  {friendsWithAlbum.map((friend) => {
+                    const fullName =
+                      `${friend.firstName} ${friend.lastName}`.trim();
+                    const tooltip =
+                      fullName || friend.email || t(locale, "unknownValue");
+                    return (
+                      <button
+                        key={friend.uid}
+                        type="button"
+                        title={tooltip}
+                        className="w-9 h-9 min-w-9 min-h-9 rounded-full border flex items-center justify-center text-xs font-semibold shrink-0 cursor-pointer"
+                        style={getProfileIconStyle(friend.iconColor)}
+                        onClick={() => {
+                          setFriendProfileUid(friend.uid);
+                          setFriendProfileOpen(true);
+                        }}
+                      >
+                        {getProfileInitials(friend.firstName, friend.lastName)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Divider */}
             <div className="album-details-modal-divider border-t my-8" />
@@ -1367,6 +1517,18 @@ export default function AlbumDetailsModal({
           </>
         )}
       </div>
+      {viewer && (
+        <FriendProfileModal
+          open={friendProfileOpen}
+          viewer={viewer}
+          friendUid={friendProfileUid}
+          locale={locale}
+          onClose={() => {
+            setFriendProfileOpen(false);
+            setFriendProfileUid(null);
+          }}
+        />
+      )}
     </div>
   );
 }

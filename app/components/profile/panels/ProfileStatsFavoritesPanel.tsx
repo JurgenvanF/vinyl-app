@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { CollectionAlbumLite, UserProfileDocument } from "../profileTypes";
-import { ChevronDown } from "lucide-react";
+import { Calendar, ChevronDown, Disc, MicVocal, Music } from "lucide-react";
+import { isVariousArtistName } from "../profileDisplay";
 
 type Labels = {
   title: string;
@@ -67,7 +68,7 @@ export default function ProfileStatsFavoritesPanel({
     const counts = new Map<string, number>();
     for (const album of collectionAlbums) {
       const name = (album.primaryArtist ?? album.artist ?? "").trim();
-      if (!name) continue;
+      if (!name || isVariousArtistName(name)) continue;
       counts.set(name, (counts.get(name) ?? 0) + 1);
     }
 
@@ -118,34 +119,56 @@ export default function ProfileStatsFavoritesPanel({
       <h2 className="text-lg sm:text-xl font-semibold">{labels.title}</h2>
 
       <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-        <div className="profile__surface border rounded-xl p-4">
-          <div className="text-sm profile__muted">{labels.statsAlbums}</div>
-          <div className="text-2xl font-semibold mt-1">
-            {collectionAlbums.length}
+        <div className="profile__surface flex items-center gap-4 border rounded-xl p-4">
+          <div className="profile__surface__icon__collection p-2 rounded-full">
+            <Disc size={25} />
           </div>
-        </div>
-        <div className="profile__surface border rounded-xl p-4">
-          <div className="text-sm profile__muted">{labels.statsYears}</div>
-          <div className="text-2xl font-semibold mt-1">
-            {startedYear ? yearsCollecting : "-"}
-          </div>
-        </div>
-        <div className="profile__surface border rounded-xl p-4">
-          <div className="text-sm profile__muted">
-            {labels.statsUniqueGenres}
-          </div>
-          <div className="text-2xl font-semibold mt-1">
-            {uniqueGenres.length}
-          </div>
-        </div>
-        <div className="profile__surface border rounded-xl p-4">
-          <div className="text-sm profile__muted">{labels.statsTopArtist}</div>
-          <div className="flex items-center mt-1">
-            <div className="text-xl profile truncate">
-              {topArtist ? topArtist.name : ""}
+          <div>
+            <div className="text-2xl font-semibold mt-1">
+              {collectionAlbums.length}
             </div>
-            <div className="text-sm font-semibold ml-1">
-              ({topArtist ? topArtist.count : "-"})
+            <div className="text-sm profile__muted">{labels.statsAlbums}</div>
+          </div>
+        </div>
+        <div className="profile__surface flex items-center gap-4 border rounded-xl p-4">
+          <div className="profile__surface__icon__years p-2 rounded-full">
+            <Calendar size={25} />
+          </div>
+          <div>
+            <div className="text-2xl font-semibold mt-1">
+              {startedYear ? yearsCollecting : "-"}
+            </div>
+            <div className="text-sm profile__muted">{labels.statsYears}</div>
+          </div>
+        </div>
+        <div className="profile__surface flex items-center gap-4 border rounded-xl p-4">
+          <div className="profile__surface__icon__genres p-2 rounded-full">
+            <Music size={25} />
+          </div>
+          <div>
+            <div className="text-2xl font-semibold mt-1">
+              {uniqueGenres.length}
+            </div>
+            <div className="text-sm profile__muted">
+              {labels.statsUniqueGenres}
+            </div>
+          </div>
+        </div>
+        <div className="profile__surface flex items-center gap-4 border rounded-xl p-4">
+          <div className="profile__surface__icon__artist p-2 rounded-full">
+            <MicVocal size={25} />
+          </div>
+          <div>
+            <div className="flex items-center mt-1">
+              <div className="text-xl font-semibold profile truncate">
+                {topArtist ? topArtist.name : ""}
+              </div>
+              <div className="text-sm font-semibold ml-1">
+                ({topArtist ? topArtist.count : "-"})
+              </div>
+            </div>
+            <div className="text-sm profile__muted">
+              {labels.statsTopArtist}
             </div>
           </div>
         </div>
@@ -156,7 +179,7 @@ export default function ProfileStatsFavoritesPanel({
           <label className="text-sm font-medium">{labels.yearStarted}</label>
           <input
             className={`profile__input ${editMode ? "" : "profile__input--disabled"} border rounded-lg px-3 py-2`}
-            type="number"
+            type={`${editMode ? "number" : "text"}`}
             value={startedYearInput}
             onChange={(event) => {
               const raw = event.target.value;
@@ -286,7 +309,7 @@ export default function ProfileStatsFavoritesPanel({
       </div>
 
       <div className="mt-6">
-        <div className="flex items-end justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4 flex-wrap">
           <div>
             <h3 className="text-sm font-semibold">{labels.favoriteGenres}</h3>
             <p className="profile__muted text-xs mt-1">

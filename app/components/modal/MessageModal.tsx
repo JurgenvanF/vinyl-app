@@ -1,8 +1,13 @@
 "use client";
 
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { t } from "../../../lib/translations";
+import {
+  acquireModalScrollLock,
+  releaseModalScrollLock,
+} from "../../../lib/modalScrollLock";
 
 import "./MessageModal.scss";
 
@@ -29,6 +34,12 @@ export default function MessageModal({
   onCancel,
 }: MessageModalProps) {
   const { locale } = useLanguage();
+
+  useEffect(() => {
+    if (!open) return;
+    acquireModalScrollLock();
+    return () => releaseModalScrollLock();
+  }, [open]);
 
   const confirmToneClass: Record<ColorOption, string> = {
     blue: "message-modal__button--primary",

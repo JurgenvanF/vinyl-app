@@ -21,13 +21,27 @@ export default function ClientLayout({
   }, [pathname]);
 
   useEffect(() => {
-    if (pathname === "/wishlist") {
-      document.title = `Vinyl Vault | ${t(locale, "wishlist")}`;
+    if (pathname === "/") {
+      document.title = "Vinyl Vault";
       return;
     }
 
-    if (pathname === "/profile") {
-      document.title = `Vinyl Vault | ${t(locale, "profile")}`;
+    const pageByPath: Record<string, string> = {
+      "/collection": t(locale, "myCollection"),
+      "/wishlist": t(locale, "wishlist"),
+      "/profile": t(locale, "profile"),
+    };
+    const directTitle = pageByPath[pathname];
+    if (directTitle) {
+      document.title = `Vinyl Vault | ${directTitle}`;
+      return;
+    }
+
+    const firstSegment = pathname.split("/").filter(Boolean)[0];
+    if (firstSegment) {
+      const fallbackLabel =
+        firstSegment.charAt(0).toUpperCase() + firstSegment.slice(1);
+      document.title = `Vinyl Vault | ${fallbackLabel}`;
       return;
     }
 

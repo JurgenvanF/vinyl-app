@@ -37,6 +37,7 @@ type Translations = {
     saveChanges: string;
     personalInformation: string;
     biography: string;
+    avatarColor: string;
     collectionStatsAndFavorites: string;
     albumsInCollection: string;
     yearsCollecting: string;
@@ -79,6 +80,9 @@ type Translations = {
     removeFriend: string;
     removeFriendConfirm: string;
     friendProfile: string;
+    albumsInCommon: string;
+    albumsInCommonCount: (count: number) => string;
+    inBothCollections: string;
     notAllowed: string;
     searchAlbumArtist: string;
     searchAlbumArtistCatNo: string;
@@ -230,6 +234,8 @@ type Translations = {
     albumDetailsOtherTracks: string;
     albumDetailsSide: (side: string) => string;
     albumDetailsImageAria: (index: number) => string;
+    friendsHaveThisAlbum: string;
+    noFriendsHaveThisAlbum: string;
     barcode: string;
     readyToScan: string;
     clickBelowToStartCamera: string;
@@ -281,6 +287,7 @@ export const translations: Translations = {
     saveChanges: "Save changes",
     personalInformation: "Personal information",
     biography: "Biography",
+    avatarColor: "Avatar color",
     collectionStatsAndFavorites: "Collection stats & favorites",
     albumsInCollection: "Albums in collection",
     yearsCollecting: "Years collecting",
@@ -326,6 +333,10 @@ export const translations: Translations = {
     removeFriend: "Remove friend",
     removeFriendConfirm: "Are you sure you want to remove this friend?",
     friendProfile: "Friend profile",
+    albumsInCommon: "Albums in common",
+    albumsInCommonCount: (count) =>
+      `${count} ${count === 1 ? "album" : "albums"} in common`,
+    inBothCollections: "In both collections",
     notAllowed: "Not allowed by this user's privacy settings.",
     searchAlbumArtist: "Search albums or artists",
     searchAlbumArtistCatNo: "Search albums, artists or catalog numbers",
@@ -486,6 +497,8 @@ export const translations: Translations = {
     albumDetailsOtherTracks: "Other tracks",
     albumDetailsSide: (side) => `Side ${side}`,
     albumDetailsImageAria: (index) => `Show image ${index}`,
+    friendsHaveThisAlbum: "Friends with this album in collection",
+    noFriendsHaveThisAlbum: "None",
     barcode: "Barcode",
     readyToScan: "Ready to scan",
     clickBelowToStartCamera: "Click the button below to start the camera",
@@ -536,6 +549,7 @@ export const translations: Translations = {
     saveChanges: "Wijzigingen opslaan",
     personalInformation: "Persoonlijke informatie",
     biography: "Biografie",
+    avatarColor: "Profielfoto kleur",
     collectionStatsAndFavorites: "Collectiestatistieken & favorieten",
     albumsInCollection: "Albums in collectie",
     yearsCollecting: "Jaren verzamelen",
@@ -581,6 +595,10 @@ export const translations: Translations = {
     removeFriend: "Vriend verwijderen",
     removeFriendConfirm: "Weet je zeker dat je deze vriend wilt verwijderen?",
     friendProfile: "Vriendprofiel",
+    albumsInCommon: "Albums gemeenschappelijk",
+    albumsInCommonCount: (count) =>
+      `${count} ${count === 1 ? "album" : "albums"} gemeenschappelijk`,
+    inBothCollections: "In beide collecties",
     notAllowed:
       "Niet toegestaan door de privacy-instellingen van deze gebruiker.",
     searchAlbumArtist: "Zoek albums of artiesten",
@@ -748,6 +766,8 @@ export const translations: Translations = {
     albumDetailsOtherTracks: "Overige nummers",
     albumDetailsSide: (side) => `Kant ${side}`,
     albumDetailsImageAria: (index) => `Toon afbeelding ${index}`,
+    friendsHaveThisAlbum: "Vrienden met dit album in collectie",
+    noFriendsHaveThisAlbum: "Geen",
     barcode: "Barcode",
     readyToScan: "Klaar om te scannen",
     clickBelowToStartCamera:

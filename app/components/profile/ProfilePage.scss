@@ -3,21 +3,66 @@
     background: var(--profile-surface-bg);
     border-color: var(--profile-surface-border);
     color: var(--profile-surface-text);
+
+    &__usericon {
+      background: var(--profile-user-icon-bg-amber);
+      border-color: var(--profile-user-icon-border-amber);
+      color: var(--profile-user-icon-text-amber);
+    }
+
+    &__icon {
+      &__collection {
+        background-color: var(--profile-stats-icon-collection-bg);
+        color: var(--profile-stats-icon-collection-text);
+      }
+
+      &__years {
+        background-color: var(--profile-stats-icon-years-bg);
+        color: var(--profile-stats-icon-years-text);
+      }
+
+      &__genres {
+        background-color: var(--profile-stats-icon-genres-bg);
+        color: var(--profile-stats-icon-genres-text);
+      }
+
+      &__artist {
+        background-color: var(--profile-stats-icon-artist-bg);
+        color: var(--profile-stats-icon-artist-text);
+      }
+    }
   }
 
   &__muted {
     color: var(--profile-muted-text);
   }
 
+  &__tabs {
+    background: var(--auth-buttons-background);
+  }
+
   &__tab {
-    background: var(--profile-tab-bg);
-    border-color: var(--profile-tab-border);
-    color: var(--profile-tab-text);
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--muted-black);
 
     &--active {
-      background: var(--profile-tab-active-bg);
-      border-color: var(--profile-tab-border);
-      color: var(--profile-tab-active-text);
+      background: var(--auth-button-background);
+      border: 1px solid var(--auth-button-border);
+      color: var(--auth-button-color);
+    }
+  }
+
+  &__modal {
+    &__tab {
+      background: var(--profile-tab-bg);
+      border: 1px solid var(--profile-tab-border);
+      color: var(--profile-tab-text);
+
+      &--active {
+        background: var(--profile-tab-active-bg);
+        color: var(--profile-tab-active-text);
+      }
     }
   }
 
@@ -45,6 +90,12 @@
   }
 
   &__btn {
+    &--close {
+      :hover {
+        color: #dc2626;
+      }
+    }
+
     &--primary {
       background: var(--profile-btn-primary-bg);
       border-color: var(--profile-btn-primary-border);
@@ -115,3 +166,9 @@
     }
   }
 }
+
+// .friend-profile-compact-cards {
+//   .album-card {
+//     max-width: 140px;
+//   }
+// }

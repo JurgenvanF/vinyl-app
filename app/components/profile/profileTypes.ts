@@ -1,5 +1,18 @@
 export type ProfilePrivacyLevel = "everyone" | "friends" | "me";
 
+export type ProfileIconColor =
+  | "amber"
+  | "red"
+  | "green"
+  | "blue"
+  | "pink"
+  | "purple"
+  | "teal"
+  | "indigo"
+  | "lime"
+  | "rose"
+  | "cyan";
+
 export type ProfilePrivacySettings = {
   profile: ProfilePrivacyLevel;
   collection: ProfilePrivacyLevel;
@@ -15,6 +28,7 @@ export type UserProfileDocument = {
   startedCollectingYear?: number | null;
   favoriteAlbumId?: number | null;
   favoriteGenres?: string[];
+  iconColor?: ProfileIconColor;
 
   privacy?: Partial<ProfilePrivacySettings>;
 
@@ -42,6 +56,7 @@ export type FriendEntry = {
   firstName?: string;
   lastName?: string;
   email?: string;
+  iconColor?: ProfileIconColor;
   addedAt?: unknown;
 };
 
@@ -50,5 +65,6 @@ export type FriendRequestEntry = {
   firstName?: string;
   lastName?: string;
   email?: string;
+  iconColor?: ProfileIconColor;
   createdAt?: unknown;
 };
