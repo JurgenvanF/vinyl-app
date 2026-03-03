@@ -1,5 +1,5 @@
 .navigation {
-  background-color: var(--nav-solid-background);
+  background-color: var(--nav-background);
   color: var(--nav-color);
   transition: all 0.2s ease;
   border-bottom: 1px solid var(--nav-border);
@@ -7,23 +7,18 @@
   &:hover {
     background-color: var(--nav-hover-background);
   }
-}
 
-@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .navigation {
-    background-color: var(--nav-background);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-  }
-}
+  &.drawer {
+    border-bottom: none;
+    border-left: 1px solid var(--nav-border);
 
-.mobile-drawer {
-  background-color: var(--nav-drawer-background);
-  color: var(--nav-color);
-  border-left: 1px solid var(--nav-border);
+    .navbar__content__nav__item {
+      border-bottom: none;
+    }
 
-  .mt-auto {
-    border-top: 1px solid var(--nav-border);
+    .mt-auto {
+      border-top: 1px solid var(--nav-border);
+    }
   }
 }
 
