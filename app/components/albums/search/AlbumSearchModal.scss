@@ -44,8 +44,12 @@ body.album-search-modal-open {
 
   &__type {
     border: 1px solid transparent;
-    &--active,
+
     &:hover {
+      color: var(--search-input-type-text);
+    }
+
+    &--active {
       background-color: var(--search-input-type-bg);
       border: 1px solid var(--search-input-type-border);
       color: var(--search-input-type-text);
