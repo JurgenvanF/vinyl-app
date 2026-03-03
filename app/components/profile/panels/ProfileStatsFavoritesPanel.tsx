@@ -118,61 +118,63 @@ export default function ProfileStatsFavoritesPanel({
     <section className="profile__surface border rounded-xl p-4 sm:p-6">
       <h2 className="text-lg sm:text-xl font-semibold">{labels.title}</h2>
 
-      <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-        <div className="profile__surface flex items-center gap-4 border rounded-xl p-4">
-          <div className="profile__surface__icon__collection p-2 rounded-full">
-            <Disc size={25} />
-          </div>
-          <div>
-            <div className="text-2xl font-semibold mt-1">
-              {collectionAlbums.length}
+      {!editMode && (
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+          <div className="profile__surface flex items-center gap-4 border rounded-xl p-4">
+            <div className="profile__surface__icon__collection p-2 rounded-full">
+              <Disc size={25} />
             </div>
-            <div className="text-sm profile__muted">{labels.statsAlbums}</div>
-          </div>
-        </div>
-        <div className="profile__surface flex items-center gap-4 border rounded-xl p-4">
-          <div className="profile__surface__icon__years p-2 rounded-full">
-            <Calendar size={25} />
-          </div>
-          <div>
-            <div className="text-2xl font-semibold mt-1">
-              {startedYear ? yearsCollecting : "-"}
-            </div>
-            <div className="text-sm profile__muted">{labels.statsYears}</div>
-          </div>
-        </div>
-        <div className="profile__surface flex items-center gap-4 border rounded-xl p-4">
-          <div className="profile__surface__icon__genres p-2 rounded-full">
-            <Music size={25} />
-          </div>
-          <div>
-            <div className="text-2xl font-semibold mt-1">
-              {uniqueGenres.length}
-            </div>
-            <div className="text-sm profile__muted">
-              {labels.statsUniqueGenres}
-            </div>
-          </div>
-        </div>
-        <div className="profile__surface flex items-center gap-4 border rounded-xl p-4">
-          <div className="profile__surface__icon__artist p-2 rounded-full">
-            <MicVocal size={25} />
-          </div>
-          <div>
-            <div className="flex items-center mt-1">
-              <div className="text-xl font-semibold profile truncate">
-                {topArtist ? topArtist.name : ""}
+            <div>
+              <div className="text-2xl font-semibold mt-1">
+                {collectionAlbums.length}
               </div>
-              <div className="text-sm font-semibold ml-1">
-                ({topArtist ? topArtist.count : "-"})
+              <div className="text-sm profile__muted">{labels.statsAlbums}</div>
+            </div>
+          </div>
+          <div className="profile__surface flex items-center gap-4 border rounded-xl p-4">
+            <div className="profile__surface__icon__years p-2 rounded-full">
+              <Calendar size={25} />
+            </div>
+            <div>
+              <div className="text-2xl font-semibold mt-1">
+                {startedYear ? yearsCollecting : "-"}
+              </div>
+              <div className="text-sm profile__muted">{labels.statsYears}</div>
+            </div>
+          </div>
+          <div className="profile__surface flex items-center gap-4 border rounded-xl p-4">
+            <div className="profile__surface__icon__genres p-2 rounded-full">
+              <Music size={25} />
+            </div>
+            <div>
+              <div className="text-2xl font-semibold mt-1">
+                {uniqueGenres.length}
+              </div>
+              <div className="text-sm profile__muted">
+                {labels.statsUniqueGenres}
               </div>
             </div>
-            <div className="text-sm profile__muted">
-              {labels.statsTopArtist}
+          </div>
+          <div className="profile__surface flex items-center gap-4 border rounded-xl p-4">
+            <div className="profile__surface__icon__artist p-2 rounded-full">
+              <MicVocal size={25} />
+            </div>
+            <div>
+              <div className="flex items-center mt-1">
+                <div className="text-xl font-semibold profile truncate">
+                  {topArtist ? topArtist.name : ""}
+                </div>
+                <div className="text-sm font-semibold ml-1">
+                  ({topArtist ? topArtist.count : "-"})
+                </div>
+              </div>
+              <div className="text-sm profile__muted">
+                {labels.statsTopArtist}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div className="flex flex-col gap-2">
