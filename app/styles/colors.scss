@@ -44,6 +44,10 @@
   --auth-input-focus-shadow: #ecbb82;
   --auth-input-placeholder: #a1a1a1;
 
+  --search-input-type-bg: #fef3c7;
+  --search-input-type-border: #fcd34d;
+  --search-input-type-text: #4a5565;
+
   --auth-submit-background: #e17100;
   --auth-submit-hover-background: #bb4d00;
   --auth-submit-color: white;
@@ -321,6 +325,10 @@
   --auth-input-focus-border: #f59e0b;
   --auth-input-focus-shadow: rgba(245, 158, 11, 0.35);
   --auth-input-placeholder: #a1a1a1;
+
+  --search-input-type-bg: #221f18; /* slightly lighter than #181611 */
+  --search-input-type-border: #3a3426; /* warm subtle border */
+  --search-input-type-text: #f3e7c5; /* soft warm light text */
 
   --auth-submit-background: #e17100;
   --auth-submit-hover-background: #bb4d00;

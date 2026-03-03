@@ -86,6 +86,7 @@ type Translations = {
     notAllowed: string;
     searchAlbumArtist: string;
     searchAlbumArtistCatNo: string;
+    searchSpecificSongs: string;
     searchTakingLonger: string;
     addAlbum: string;
     recentlyAdded: string;
@@ -340,6 +341,7 @@ export const translations: Translations = {
     notAllowed: "Not allowed by this user's privacy settings.",
     searchAlbumArtist: "Search albums or artists",
     searchAlbumArtistCatNo: "Search albums, artists or catalog numbers",
+    searchSpecificSongs: "Search specific songs",
     searchTakingLonger: "Searching is taking a bit longer than usual...",
     addAlbum: "Add Album",
     recentlyAdded: "Recently added",
@@ -603,6 +605,7 @@ export const translations: Translations = {
       "Niet toegestaan door de privacy-instellingen van deze gebruiker.",
     searchAlbumArtist: "Zoek albums of artiesten",
     searchAlbumArtistCatNo: "Zoek albums, artiesten of catalogusnummers",
+    searchSpecificSongs: "Zoek specifieke nummers",
     searchTakingLonger: "Zoeken duurt iets langer dan normaal...",
     addAlbum: "Album toevoegen",
     recentlyAdded: "Recent toegevoegd",

@@ -18,6 +18,7 @@ import { t } from "../../lib/translations";
 import { deriveArtists, derivePrimaryArtist } from "../../lib/artist";
 import { fetchDiscogsArtists } from "../../lib/discogsArtists";
 import type { DiscogsReleaseDetails } from "../../lib/discogsRelease";
+import { getSharedAlbumDetails } from "../../lib/sharedAlbumDetails";
 import VinylSpinner from "../components/spinner/VinylSpinner";
 import AlbumCard from "../components/albums/card/AlbumCard";
 import AlbumSearchModal from "../components/albums/search/AlbumSearchModal";
@@ -26,7 +27,7 @@ import CustomEntryModal from "../components/albums/search/custom-entry/CustomEnt
 import Searchbar from "../components/albums/search/searchbar/Searchbar";
 import DropDown from "../components/albums/search/searchbar/dropdown/DropDown";
 
-import { Plus, SlidersHorizontal, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, SlidersHorizontal, ArrowUp, ArrowDown, Music2 } from "lucide-react";
 
 import "./collection.scss";
 
@@ -50,13 +51,29 @@ type AlbumFromFirestore = {
 type CollectionSort = "recentlyAdded" | "artist" | "albumName" | "releaseDate";
 const BACKFILL_BATCH_SIZE = 5;
 
+const extractTracklistSearchText = (value: unknown): string => {
+  if (!Array.isArray(value)) return "";
+  return value
+    .map((track) => {
+      if (!track || typeof track !== "object") return "";
+      const title = (track as { title?: unknown }).title;
+      return typeof title === "string" ? title.toLowerCase() : "";
+    })
+    .filter(Boolean)
+    .join(" ");
+};
+
 export default function Dashboard() {
   const { locale } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [albumsLoading, setAlbumsLoading] = useState<boolean>(true);
   const [albums, setAlbums] = useState<AlbumFromFirestore[]>([]);
+  const [searchMode, setSearchMode] = useState<"album" | "song">("album");
   const [searchValue, setSearchValue] = useState("");
+  const [songSearchIndex, setSongSearchIndex] = useState<Record<number, string>>(
+    {},
+  );
   const [sortBy, setSortBy] = useState<CollectionSort>("recentlyAdded");
   const [modalOpen, setModalOpen] = useState(false);
   const [releaseDateAsc, setReleaseDateAsc] = useState(false);
@@ -273,9 +290,88 @@ export default function Dashboard() {
     };
   }, [user, albumsLoading, albums, sortBy]);
 
+  useEffect(() => {
+    if (searchMode !== "song") return;
+    if (!user) return;
+    if (!searchValue.trim()) return;
+    if (albums.length === 0) return;
+
+    const missingAlbums = albums.filter(
+      (album) => songSearchIndex[album.id] === undefined,
+    );
+    if (missingAlbums.length === 0) return;
+
+    let cancelled = false;
+
+    const loadSongIndex = async () => {
+      const entries = await Promise.all(
+        missingAlbums.map(async (album) => {
+          try {
+            if (album.detailsRef) {
+              const sharedDetails = await getSharedAlbumDetails(album.detailsRef);
+              return [
+                album.id,
+                extractTracklistSearchText(sharedDetails?.tracklist ?? []),
+              ] as const;
+            }
+
+            const detailsSnap = await getDoc(
+              doc(
+                db,
+                "users",
+                user.uid,
+                "Collection",
+                album.id.toString(),
+                "details",
+                "details",
+              ),
+            );
+            const data = detailsSnap.data() as
+              | {
+                  details?: { tracklist?: unknown };
+                  tracklist?: unknown;
+                }
+              | undefined;
+            const rawTracklist =
+              data?.details?.tracklist !== undefined
+                ? data.details.tracklist
+                : data?.tracklist;
+
+            return [album.id, extractTracklistSearchText(rawTracklist)] as const;
+          } catch {
+            return [album.id, ""] as const;
+          }
+        }),
+      );
+
+      if (cancelled) return;
+      setSongSearchIndex((prev) => {
+        const next = { ...prev };
+        for (const [albumId, searchBlob] of entries) {
+          next[albumId] = searchBlob;
+        }
+        return next;
+      });
+    };
+
+    void loadSongIndex();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchMode, searchValue, user, albums, songSearchIndex]);
+
   const searchedAlbums = useMemo(() => {
     const term = searchValue.trim().toLowerCase();
     if (!term) return albums;
+
+    if (searchMode === "song") {
+      return albums.filter((album) => {
+        const songsBlob = songSearchIndex[album.id];
+        if (songsBlob === undefined) return true;
+        return songsBlob.includes(term);
+      });
+    }
 
     return albums.filter((album) => {
       const title = album.title?.toLowerCase() ?? "";
@@ -285,7 +381,7 @@ export default function Dashboard() {
         title.includes(term) || artist.includes(term) || catno.includes(term)
       );
     });
-  }, [albums, searchValue]);
+  }, [albums, searchValue, searchMode, songSearchIndex]);
 
   const visibleAlbums = useMemo(() => {
     if (sortBy === "recentlyAdded") return searchedAlbums;
@@ -425,9 +521,21 @@ export default function Dashboard() {
         <div className="w-full">
           <Searchbar
             value={searchValue}
-            placeholder={t(locale, "searchAlbumArtistCatNo")}
+            placeholder={
+              searchMode === "song"
+                ? t(locale, "searchSpecificSongs")
+                : t(locale, "searchAlbumArtistCatNo")
+            }
             onChange={(value) => setSearchValue(value)}
             onClear={() => setSearchValue("")}
+            rightAction={{
+              icon: <Music2 size={15} />,
+              onClick: () =>
+                setSearchMode((prev) => (prev === "album" ? "song" : "album")),
+              ariaLabel: t(locale, "searchSpecificSongs"),
+              title: t(locale, "searchSpecificSongs"),
+              active: searchMode === "song",
+            }}
           />
         </div>
         <div className="flex items-center w-[22%] min-[501px]:w-[40%] max-w-[225px] gap-2">

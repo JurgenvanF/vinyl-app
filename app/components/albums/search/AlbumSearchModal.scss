@@ -41,4 +41,21 @@ body.album-search-modal-open {
   &::placeholder {
     color: var(--auth-input-placeholder);
   }
+
+  &__type {
+    border: 1px solid transparent;
+    &--active,
+    &:hover {
+      background-color: var(--search-input-type-bg);
+      border: 1px solid var(--search-input-type-border);
+      color: var(--search-input-type-text);
+    }
+  }
+
+  &__clear {
+    color: #99a1af;
+    &:hover {
+      color: var(--search-input-type-text);
+    }
+  }
 }

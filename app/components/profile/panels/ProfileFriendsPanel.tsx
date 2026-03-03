@@ -104,6 +104,7 @@ export default function ProfileFriendsPanel({
 }: ProfileFriendsPanelProps) {
   const [queryText, setQueryText] = useState("");
   const [searching, setSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searchError, setSearchError] = useState("");
 
@@ -227,9 +228,15 @@ export default function ProfileFriendsPanel({
 
   const runSearch = async () => {
     const term = queryText.trim();
-    if (!term) return;
+    if (!term) {
+      setResults([]);
+      setSearchError("");
+      setHasSearched(false);
+      return;
+    }
 
     setSearching(true);
+    setHasSearched(true);
     setSearchError("");
     setResults([]);
 
@@ -279,6 +286,13 @@ export default function ProfileFriendsPanel({
       setSearching(false);
     }
   };
+
+  useEffect(() => {
+    if (queryText.trim()) return;
+    setResults([]);
+    setSearchError("");
+    setHasSearched(false);
+  }, [queryText]);
 
   const sendFriendRequest = async (target: SearchResult) => {
     const outgoingRef = doc(
@@ -511,17 +525,37 @@ export default function ProfileFriendsPanel({
         )}
 
         <div className="mt-5 flex flex-col sm:flex-row gap-2">
-          <input
-            className="profile__input border rounded-lg px-3 py-2 flex-1"
-            value={queryText}
-            onChange={(e) => setQueryText(e.target.value)}
-            placeholder={t(locale, "searchFriendsPlaceholder")}
-            onKeyDown={(event) => {
-              if (event.key !== "Enter") return;
-              event.preventDefault();
-              void runSearch();
-            }}
-          />
+          <div className="relative flex-1">
+            <input
+              className="profile__input border rounded-lg px-3 py-2 pr-10 w-full"
+              value={queryText}
+              onChange={(e) => {
+                setQueryText(e.target.value);
+                setHasSearched(false);
+              }}
+              placeholder={t(locale, "searchFriendsPlaceholder")}
+              onKeyDown={(event) => {
+                if (event.key !== "Enter") return;
+                event.preventDefault();
+                void runSearch();
+              }}
+            />
+            {queryText.trim() && (
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 profile__muted hover:opacity-80 cursor-pointer"
+                onClick={() => {
+                  setQueryText("");
+                  setResults([]);
+                  setSearchError("");
+                  setHasSearched(false);
+                }}
+                aria-label={t(locale, "remove")}
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
           <button
             type="button"
             className="profile__btn--primary flex items-center gap-2 border rounded-lg px-4 py-2 cursor-pointer"
@@ -599,6 +633,7 @@ export default function ProfileFriendsPanel({
         )}
 
         {results.length === 0 &&
+          hasSearched &&
           queryText.trim() &&
           !searching &&
           !searchError && (
