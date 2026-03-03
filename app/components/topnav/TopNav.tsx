@@ -132,11 +132,11 @@ export default function TopNav() {
 
         {/* Drawer */}
         <div
-          className={`absolute top-0 right-0 h-full w-72 navigation drawer shadow-lg transform transition-transform duration-300 flex flex-col ${
+          className={`mobile-drawer absolute top-0 right-0 h-full w-[85vw] max-w-72 shadow-lg transform transition-transform duration-300 flex flex-col ${
             open ? "translate-x-0" : "translate-x-full"
           }`}
         >
-          <div className="flex justify-between px-9 py-5">
+          <div className="flex justify-between px-6 py-5">
             <div className="">
               <NavItem compact>
                 <ThemeSelector />
@@ -149,7 +149,7 @@ export default function TopNav() {
 
           <div className="flex-1 min-h-0 flex flex-col px-6 pb-6">
             {/* Top navigation items */}
-            <div className="flex flex-col gap-4 overflow-y-auto min-h-0 pb-4">
+            <div className="flex flex-col gap-3 overflow-y-auto min-h-0 pb-4">
               <NavItem href="/collection">{t(locale, "myCollection")}</NavItem>
 
               <NavItem href="/wishlist" icon={<Heart size={18} />}>
