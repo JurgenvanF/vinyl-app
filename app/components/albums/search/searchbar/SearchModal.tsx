@@ -39,7 +39,11 @@ const splitDiscogsTitle = (fullTitle: string, artist?: string) => {
   return { artist: albumArtist, title: albumTitle };
 };
 
-export default function SearchModal() {
+type SearchModalProps = {
+  initialQuery?: string;
+};
+
+export default function SearchModal({ initialQuery }: SearchModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<DiscogsRelease[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -106,6 +110,13 @@ export default function SearchModal() {
 
     fetchUserData();
   }, []);
+
+  useEffect(() => {
+    const nextQuery = initialQuery ?? "";
+    setSearchQuery(nextQuery);
+    setHasCompletedSearch(false);
+    setPage(1);
+  }, [initialQuery]);
 
   useEffect(() => {
     if (!searchQuery) {

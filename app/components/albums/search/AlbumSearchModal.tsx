@@ -16,11 +16,13 @@ import "./AlbumSearchModal.scss";
 type AlbumSearchModalProps = {
   open: boolean;
   onClose: () => void;
+  initialQuery?: string;
 };
 
 export default function AlbumSearchModal({
   open,
   onClose,
+  initialQuery,
 }: AlbumSearchModalProps) {
   const { locale } = useLanguage();
   const router = useRouter();
@@ -64,7 +66,7 @@ export default function AlbumSearchModal({
         <AlbumSearchToggle mode={mode} setMode={setMode} />
 
         <div className={mode === "search" ? "" : "hidden"}>
-          <SearchModal />
+          <SearchModal initialQuery={initialQuery} />
         </div>
         <div className={mode === "barcode" ? "" : "hidden"}>
           <Barcode />

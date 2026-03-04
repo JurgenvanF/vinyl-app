@@ -209,6 +209,7 @@ type Translations = {
     unknownArtist: string;
     unknownYear: string;
     noAlbumsFound: string;
+    addFirstAlbumPrompt: string;
     collectionCount: (visible: number, total: number) => string;
     albumCount: (count: number) => string;
     unknownValue: string;
@@ -473,6 +474,7 @@ export const translations: Translations = {
     unknownArtist: "Unknown artist",
     unknownYear: "Unknown year",
     noAlbumsFound: "No albums found.",
+    addFirstAlbumPrompt: "Add your first album to get started.",
     collectionCount: (visible, total) => `${visible} of ${total} albums`,
     albumCount: (count) => `${count} ${count === 1 ? "album" : "albums"}`,
     unknownValue: "Unknown",
@@ -743,6 +745,7 @@ export const translations: Translations = {
     unknownArtist: "Onbekende artiest",
     unknownYear: "Onbekend jaar",
     noAlbumsFound: "Geen albums gevonden.",
+    addFirstAlbumPrompt: "Voeg je eerste album toe om te beginnen.",
     collectionCount: (visible, total) => `${visible} van ${total} albums`,
     albumCount: (count) => `${count} ${count === 1 ? "album" : "albums"}`,
     unknownValue: "Onbekend",

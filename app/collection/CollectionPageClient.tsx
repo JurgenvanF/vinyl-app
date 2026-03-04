@@ -82,6 +82,7 @@ export default function Dashboard() {
   >({});
   const [sortBy, setSortBy] = useState<CollectionSort>("recentlyAdded");
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalInitialQuery, setModalInitialQuery] = useState("");
   const [releaseDateAsc, setReleaseDateAsc] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState<{
     album: {
@@ -472,13 +473,24 @@ export default function Dashboard() {
 
   if (!user) return <p className="text-center mt-20">{t(locale, "loading")}</p>;
 
+  const hasSearchTerm = Boolean(searchValue.trim());
+  const showNoResults = hasSearchTerm && visibleAlbums.length === 0;
+  const emptyStateMessage = showNoResults
+    ? t(locale, "noAlbumsFound")
+    : t(locale, "addFirstAlbumPrompt");
+
+  const openAddAlbumModal = (initialQuery = "") => {
+    setModalInitialQuery(initialQuery);
+    setModalOpen(true);
+  };
+
   return (
     <div className="collection-container flex flex-col min-h-full gap-4">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl sm:text-5xl">{t(locale, "myCollection")}</h1>
         <div className="flex gap-2">
           <button
-            onClick={() => setModalOpen(true)}
+            onClick={() => openAddAlbumModal()}
             className="collection-container__add rounded h-10 p-2 cursor-pointer"
           >
             <div className="flex gap-2 items-center">
@@ -489,7 +501,11 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <AlbumSearchModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <AlbumSearchModal
+        open={modalOpen}
+        initialQuery={modalInitialQuery}
+        onClose={() => setModalOpen(false)}
+      />
       <AlbumDetailsModal
         key={selectedAlbum?.album.id ?? 0}
         open={Boolean(selectedAlbum)}
@@ -721,9 +737,11 @@ export default function Dashboard() {
           ))}
           {visibleAlbums.length === 0 && (
             <div className="col-span-full flex flex-col items-center gap-3 py-10">
-              <p className="text-center">{t(locale, "noAlbumsFound")}</p>
+              <p className="text-center">{emptyStateMessage}</p>
               <button
-                onClick={() => setModalOpen(true)}
+                onClick={() =>
+                  openAddAlbumModal(showNoResults ? searchValue : "")
+                }
                 className="collection-container__add rounded h-10 px-3 cursor-pointer"
               >
                 <span className="flex items-center gap-2">
@@ -740,9 +758,9 @@ export default function Dashboard() {
         (sortBy === "artist" || sortBy === "releaseDate") &&
         visibleAlbums.length === 0 && (
           <div className="mt-6 flex flex-col items-center gap-3 py-10">
-            <p className="text-center">{t(locale, "noAlbumsFound")}</p>
+            <p className="text-center">{emptyStateMessage}</p>
             <button
-              onClick={() => setModalOpen(true)}
+              onClick={() => openAddAlbumModal(showNoResults ? searchValue : "")}
               className="collection-container__add rounded h-10 px-3 cursor-pointer"
             >
               <span className="flex items-center gap-2">
