@@ -7,8 +7,8 @@ const getAdminApp = () => {
   const normalizePrivateKey = (value: string) =>
     value
       .trim()
-      .replace(/^"(.*)"$/s, "$1")
-      .replace(/^'(.*)'$/s, "$1")
+      .replace(/^"([\s\S]*)"$/, "$1")
+      .replace(/^'([\s\S]*)'$/, "$1")
       .replace(/\\n/g, "\n")
       .replace(/\r\n/g, "\n");
 
