@@ -4,6 +4,14 @@ import admin from "firebase-admin";
 const getAdminApp = () => {
   if (admin.apps.length > 0) return admin.app();
 
+  const normalizePrivateKey = (value: string) =>
+    value
+      .trim()
+      .replace(/^"(.*)"$/s, "$1")
+      .replace(/^'(.*)'$/s, "$1")
+      .replace(/\\n/g, "\n")
+      .replace(/\r\n/g, "\n");
+
   const serviceJson = process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON;
   if (serviceJson) {
     const parsed = JSON.parse(serviceJson) as {
@@ -28,7 +36,7 @@ const getAdminApp = () => {
       credential: admin.credential.cert({
         projectId,
         clientEmail,
-        privateKey: privateKey.replace(/\\n/g, "\n"),
+        privateKey: normalizePrivateKey(privateKey),
       }),
     });
   }
