@@ -254,6 +254,15 @@ type Translations = {
     barcodeErrorPreviewMountFailed: string;
     barcodeErrorCameraDenied: string;
     barcodeErrorFetchAlbumData: string;
+    notFoundBadge: string;
+    notFoundTitle: string;
+    notFoundDescription: string;
+    notFoundAction: string;
+    errorBadge: string;
+    errorTitle: string;
+    errorDescription: string;
+    errorRetry: string;
+    errorBackHome: string;
   };
 };
 
@@ -527,6 +536,17 @@ export const translations: Translations = {
     barcodeErrorPreviewMountFailed: "Camera preview failed to mount.",
     barcodeErrorCameraDenied: "Camera access denied or unavailable.",
     barcodeErrorFetchAlbumData: "Error fetching album data.",
+    notFoundBadge: "404 - Lost in the Crates",
+    notFoundTitle: "This record is off the shelf",
+    notFoundDescription:
+      "The page you're trying to open doesn't exist anymore. Maybe it was removed, renamed, or never pressed at all.",
+    notFoundAction: "Browse collection",
+    errorBadge: "500 - Needle Skipped",
+    errorTitle: "The record hit a scratch",
+    errorDescription:
+      "Something unexpected interrupted playback. Let's try dropping the needle again.",
+    errorRetry: "Try again",
+    errorBackHome: "Back to Home",
   },
   nl: {
     welcome: "Beheer uw Vinyl Collectie",
@@ -806,6 +826,17 @@ export const translations: Translations = {
     barcodeErrorCameraDenied:
       "Geen toegang tot camera of camera niet beschikbaar.",
     barcodeErrorFetchAlbumData: "Fout bij het ophalen van albumgegevens.",
+    notFoundBadge: "404 - Verdwaald tussen de platen",
+    notFoundTitle: "Deze plaat staat niet in de kast",
+    notFoundDescription:
+      "De pagina die je probeert te openen bestaat niet meer. Misschien is die verwijderd, hernoemd of nooit uitgebracht.",
+    notFoundAction: "Bekijk collectie",
+    errorBadge: "500 - Naald sloeg over",
+    errorTitle: "Deze plaat heeft een kras",
+    errorDescription:
+      "Er ging iets onverwachts mis. Probeer de naald nog eens opnieuw te laten zakken.",
+    errorRetry: "Probeer opnieuw",
+    errorBackHome: "Terug naar home",
   },
 };
 

@@ -181,3 +181,18 @@ body.modal-open {
 html.modal-open {
   overflow: hidden;
 }
+
+.not-found {
+  &__icon {
+    animation: 20s linear infinite rotate;
+  }
+
+  &__btn {
+    background-color: var(--auth-submit-background);
+    color: white;
+
+    &:hover {
+      background-color: var(--auth-submit-hover-background);
+    }
+  }
+}

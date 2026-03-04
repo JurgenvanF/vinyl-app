@@ -41,6 +41,14 @@ export default function ClientLayout({
 
   useEffect(() => {
     const applyTitle = () => {
+      const forcedTitle = document.body.dataset.forceTitle;
+      if (forcedTitle) {
+        if (document.title !== forcedTitle) {
+          document.title = forcedTitle;
+        }
+        return;
+      }
+
       const rawPath = (window.location.pathname || "/").trim();
       const normalizedPath =
         rawPath.length > 1 ? rawPath.replace(/\/+$/, "") : rawPath;
