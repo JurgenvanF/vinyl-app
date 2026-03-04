@@ -46,6 +46,8 @@ type Translations = {
     yearStartedCollecting: string;
     favoriteAlbum: string;
     favoriteGenres: string;
+    noFavoriteAlbumSet: string;
+    noFavoriteGenresSet: string;
     noneSelected: string;
     privacySettings: string;
     privacyHint: string;
@@ -210,6 +212,10 @@ type Translations = {
     unknownYear: string;
     noAlbumsFound: string;
     addFirstAlbumPrompt: string;
+    noAlbumsInCollection: string;
+    noAlbumsInTheirCollection: string;
+    noAlbumsInWishlist: string;
+    noAlbumsInTheirWishlist: string;
     collectionCount: (visible: number, total: number) => string;
     albumCount: (count: number) => string;
     unknownValue: string;
@@ -298,6 +304,8 @@ export const translations: Translations = {
     yearStartedCollecting: "Year started collecting",
     favoriteAlbum: "Favorite album",
     favoriteGenres: "Favorite genres",
+    noFavoriteAlbumSet: "No favorite album set yet.",
+    noFavoriteGenresSet: "No favorite genres set yet.",
     noneSelected: "None selected",
     privacySettings: "Visibility settings",
     privacyHint: "Changes here are saved immediately.",
@@ -475,6 +483,10 @@ export const translations: Translations = {
     unknownYear: "Unknown year",
     noAlbumsFound: "No albums found.",
     addFirstAlbumPrompt: "Add your first album to get started.",
+    noAlbumsInCollection: "No albums in your collection yet.",
+    noAlbumsInTheirCollection: "No albums in their collection yet.",
+    noAlbumsInWishlist: "No albums in your wishlist yet.",
+    noAlbumsInTheirWishlist: "No albums in their wishlist yet.",
     collectionCount: (visible, total) => `${visible} of ${total} albums`,
     albumCount: (count) => `${count} ${count === 1 ? "album" : "albums"}`,
     unknownValue: "Unknown",
@@ -562,6 +574,8 @@ export const translations: Translations = {
     yearStartedCollecting: "Startjaar verzamelen",
     favoriteAlbum: "Favoriete album",
     favoriteGenres: "Favoriete genres",
+    noFavoriteAlbumSet: "Nog geen favoriet album ingesteld.",
+    noFavoriteGenresSet: "Nog geen favoriete genres ingesteld.",
     noneSelected: "Niets geselecteerd",
     privacySettings: "Zichtbaarheidsinstellingen",
     privacyHint: "Wijzigingen worden direct opgeslagen.",
@@ -746,6 +760,10 @@ export const translations: Translations = {
     unknownYear: "Onbekend jaar",
     noAlbumsFound: "Geen albums gevonden.",
     addFirstAlbumPrompt: "Voeg je eerste album toe om te beginnen.",
+    noAlbumsInCollection: "Nog geen albums in je collectie.",
+    noAlbumsInTheirCollection: "Nog geen albums in hun collectie.",
+    noAlbumsInWishlist: "Nog geen albums in je verlanglijst.",
+    noAlbumsInTheirWishlist: "Nog geen albums in hun verlanglijst.",
     collectionCount: (visible, total) => `${visible} van ${total} albums`,
     albumCount: (count) => `${count} ${count === 1 ? "album" : "albums"}`,
     unknownValue: "Onbekend",

@@ -14,6 +14,8 @@ type Labels = {
   yearStarted: string;
   favoriteAlbum: string;
   favoriteGenres: string;
+  noFavoriteAlbumSet: string;
+  noFavoriteGenresSet: string;
   noneSelected: string;
 };
 
@@ -60,7 +62,10 @@ export default function ProfileStatsFavoritesPanel({
 
   const favoriteGenres = useMemo(() => {
     return Array.isArray(draft.favoriteGenres)
-      ? draft.favoriteGenres.filter((g): g is string => typeof g === "string")
+      ? draft.favoriteGenres
+          .filter((g): g is string => typeof g === "string")
+          .map((g) => g.trim())
+          .filter(Boolean)
       : [];
   }, [draft.favoriteGenres]);
 
@@ -85,6 +90,7 @@ export default function ProfileStatsFavoritesPanel({
     const rest = uniqueGenres.filter((g) => !favoritesSet.has(g));
     return [...favorites, ...rest];
   }, [favoriteGenres, uniqueGenres]);
+  const favoriteGenresCount = orderedGenres.length === 0 ? 0 : favoriteGenres.length;
 
   const favoriteAlbum = useMemo(() => {
     if (typeof draft.favoriteAlbumId !== "number") return null;
@@ -305,7 +311,9 @@ export default function ProfileStatsFavoritesPanel({
               </div>
             </div>
           ) : (
-            !editMode && <p className="profile__muted text-sm">-</p>
+            !editMode && (
+              <p className="profile__muted text-sm">{labels.noFavoriteAlbumSet}</p>
+            )
           )}
         </div>
       </div>
@@ -319,13 +327,15 @@ export default function ProfileStatsFavoritesPanel({
             </p>
           </div>
           <div className="profile__muted text-xs">
-            {favoriteGenres.length}/5
+            {favoriteGenresCount}/5
           </div>
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
           {orderedGenres.length === 0 && (
-            <span className="profile__muted text-sm">-</span>
+            <span className="profile__muted text-sm">
+              {labels.noFavoriteGenresSet}
+            </span>
           )}
           {orderedGenres.map((genre) => {
             const isFav = favoriteGenres.includes(genre);

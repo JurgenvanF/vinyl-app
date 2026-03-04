@@ -62,7 +62,10 @@ function normalizeProfileDoc(
   const favoriteAlbumId =
     typeof base.favoriteAlbumId === "number" ? base.favoriteAlbumId : null;
   const favoriteGenres = Array.isArray(base.favoriteGenres)
-    ? base.favoriteGenres.filter((g): g is string => typeof g === "string")
+    ? base.favoriteGenres
+        .filter((g): g is string => typeof g === "string")
+        .map((g) => g.trim())
+        .filter(Boolean)
     : [];
   const iconColor = normalizeProfileIconColor(base.iconColor);
 
@@ -471,6 +474,8 @@ export default function ProfilePage() {
               yearStarted: t(locale, "yearStartedCollecting"),
               favoriteAlbum: t(locale, "favoriteAlbum"),
               favoriteGenres: t(locale, "favoriteGenres"),
+              noFavoriteAlbumSet: t(locale, "noFavoriteAlbumSet"),
+              noFavoriteGenresSet: t(locale, "noFavoriteGenresSet"),
               noneSelected: t(locale, "noneSelected"),
             }}
           />

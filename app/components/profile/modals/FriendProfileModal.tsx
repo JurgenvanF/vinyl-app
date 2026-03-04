@@ -81,7 +81,10 @@ function normalizeFriendProfile(raw: unknown): UserProfileDocument | null {
     favoriteAlbumId:
       typeof base.favoriteAlbumId === "number" ? base.favoriteAlbumId : null,
     favoriteGenres: Array.isArray(base.favoriteGenres)
-      ? base.favoriteGenres.filter((g): g is string => typeof g === "string")
+      ? base.favoriteGenres
+          .filter((g): g is string => typeof g === "string")
+          .map((g) => g.trim())
+          .filter(Boolean)
       : [],
     iconColor: normalizeProfileIconColor(base.iconColor),
     privacy: (typeof base.privacy === "object" && base.privacy
@@ -412,6 +415,14 @@ export default function FriendProfileModal({
       collectionAlbums.find((a) => a.id === profile.favoriteAlbumId) ?? null
     );
   }, [collectionAlbums, profile]);
+  const favoriteGenres = useMemo(() => {
+    const saved = (profile?.favoriteGenres ?? [])
+      .map((genre) => genre.trim())
+      .filter(Boolean);
+    if (uniqueGenres.length === 0) return [];
+    const currentGenres = new Set(uniqueGenres);
+    return saved.filter((genre) => currentGenres.has(genre)).slice(0, 5);
+  }, [profile?.favoriteGenres, uniqueGenres]);
 
   const currentYear = new Date().getFullYear();
   const startedYear =
@@ -594,19 +605,21 @@ export default function FriendProfileModal({
                           </div>
                         </div>
 
-                        <div className="profile__surface flex items-center gap-4 border rounded-xl p-3 min-w-[180px]">
-                          <div className="profile__surface__icon__years p-2 rounded-full">
-                            <Calendar size={16} />
-                          </div>
-                          <div>
-                            <div className="text-sm profile__muted">
-                              {t(locale, "yearsCollecting")}
+                        {startedYear ? (
+                          <div className="profile__surface flex items-center gap-4 border rounded-xl p-3 min-w-[180px]">
+                            <div className="profile__surface__icon__years p-2 rounded-full">
+                              <Calendar size={16} />
                             </div>
-                            <div className="text-xl font-semibold mt-1">
-                              {startedYear ? yearsCollecting : "-"}
+                            <div>
+                              <div className="text-sm profile__muted">
+                                {t(locale, "yearsCollecting")}
+                              </div>
+                              <div className="text-xl font-semibold mt-1">
+                                {yearsCollecting}
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        ) : null}
 
                         <div className="profile__surface flex items-center gap-4 border rounded-xl p-3 min-w-[180px]">
                           <div className="profile__surface__icon__genres p-2 rounded-full">
@@ -622,33 +635,33 @@ export default function FriendProfileModal({
                           </div>
                         </div>
 
-                        <div className="profile__surface flex items-center gap-4 border rounded-xl p-3 min-w-[220px]">
-                          <div className="profile__surface__icon__artist p-2 rounded-full">
-                            <MicVocal size={16} />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="text-sm profile__muted">
-                              {t(locale, "topArtist")}
+                        {topArtist ? (
+                          <div className="profile__surface flex items-center gap-4 border rounded-xl p-3 min-w-[220px]">
+                            <div className="profile__surface__icon__artist p-2 rounded-full">
+                              <MicVocal size={16} />
                             </div>
-                            <div className="text-lg font-semibold mt-1 truncate">
-                              {topArtist ? topArtist.name : "-"}
-                              {topArtist ? (
+                            <div className="min-w-0">
+                              <div className="text-sm profile__muted">
+                                {t(locale, "topArtist")}
+                              </div>
+                              <div className="text-lg font-semibold mt-1 truncate">
+                                {topArtist.name}
                                 <span className="text-sm font-semibold ml-2">
                                   ({topArtist.count})
                                 </span>
-                              ) : null}
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        ) : null}
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4">
-                    <div className="text-sm font-medium">
-                      {t(locale, "favoriteAlbum")}
-                    </div>
-                    {favoriteAlbum ? (
+                  {favoriteAlbum ? (
+                    <div className="mt-4">
+                      <div className="text-sm font-medium">
+                        {t(locale, "favoriteAlbum")}
+                      </div>
                       <div className="mt-2 grid grid-cols-[60px_1fr] gap-3 items-center">
                         <div className="w-[60px] h-[60px] rounded-lg overflow-hidden profile__surface border">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -671,31 +684,28 @@ export default function FriendProfileModal({
                           </div>
                         </div>
                       </div>
-                    ) : (
-                      <p className="profile__muted mt-1">-</p>
-                    )}
-                  </div>
-
-                  <div className="mt-4">
-                    <div className="text-sm font-medium">
-                      {t(locale, "favoriteGenres")}
                     </div>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {(profile.favoriteGenres ?? []).slice(0, 5).map((g) => (
-                        <span
-                          key={g}
-                          className="profile__tag profile__tag--favorite px-3 py-1 rounded-full text-sm"
-                        >
-                          {g}
-                        </span>
-                      ))}
-                      {(profile.favoriteGenres ?? []).length === 0 && (
-                        <span className="profile__muted text-sm">-</span>
-                      )}
-                    </div>
-                  </div>
+                  ) : null}
 
-                  {canSeeCollection && (
+                  {favoriteGenres.length > 0 ? (
+                    <div className="mt-4">
+                      <div className="text-sm font-medium">
+                        {t(locale, "favoriteGenres")}
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {favoriteGenres.map((g) => (
+                          <span
+                            key={g}
+                            className="profile__tag profile__tag--favorite px-3 py-1 rounded-full text-sm"
+                          >
+                            {g}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {canSeeCollection && sharedAlbums.length > 0 && (
                     <div className="mt-8">
                       <div className="text-sm font-medium">
                         {t(locale, "albumsInCommon")}
@@ -737,9 +747,6 @@ export default function FriendProfileModal({
                             </button>
                           ))}
                         </div>
-                        {sharedAlbums.length === 0 && (
-                          <span className="profile__muted text-sm">-</span>
-                        )}
                       </div>
                     </div>
                   )}
@@ -749,6 +756,11 @@ export default function FriendProfileModal({
 
             {viewMode === "collection" && (
               <div className="mt-5">
+                {collectionAlbums.length === 0 && (
+                  <p className="profile__muted">
+                    {t(locale, "noAlbumsInTheirCollection")}
+                  </p>
+                )}
                 <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(140px,1fr))] friend-profile-compact-cards">
                   {collectionAlbums.map((album) => {
                     const artist = album.primaryArtist ?? album.artist ?? "";
@@ -788,15 +800,17 @@ export default function FriendProfileModal({
                       </div>
                     );
                   })}
-                  {collectionAlbums.length === 0 && (
-                    <p className="profile__muted">{t(locale, "noResult")}</p>
-                  )}
                 </div>
               </div>
             )}
 
             {viewMode === "wishlist" && (
               <div className="mt-5">
+                {wishlistAlbums.length === 0 && (
+                  <p className="profile__muted">
+                    {t(locale, "noAlbumsInTheirWishlist")}
+                  </p>
+                )}
                 <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(140px,1fr))] friend-profile-compact-cards">
                   {wishlistAlbums.map((album) => {
                     const artist = album.primaryArtist ?? album.artist ?? "";
@@ -836,9 +850,6 @@ export default function FriendProfileModal({
                       </div>
                     );
                   })}
-                  {wishlistAlbums.length === 0 && (
-                    <p className="profile__muted">{t(locale, "noResult")}</p>
-                  )}
                 </div>
               </div>
             )}

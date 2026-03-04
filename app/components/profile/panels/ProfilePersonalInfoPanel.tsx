@@ -51,14 +51,16 @@ export default function ProfilePersonalInfoPanel({
             {labels.name}: {profile.firstName} {profile.lastName}
           </p>
           <div
-            className="mt-3 w-12 h-12 rounded-full border profile__surface__usericon flex items-center justify-center font-semibold text-sm"
+            className="mt-5 w-12 h-12 rounded-full border profile__surface__usericon flex items-center justify-center font-semibold text-sm"
             style={getProfileIconStyle(selectedIconColor)}
           >
             {initials}
           </div>
           {editMode && (
             <div className="mt-3">
-              <div className="text-xs profile__muted mb-2">{labels.iconColor}</div>
+              <div className="text-xs profile__muted mb-2">
+                {labels.iconColor}
+              </div>
               <div className="flex flex-wrap gap-2">
                 {PROFILE_ICON_COLORS.map((color) => (
                   <button
@@ -70,7 +72,9 @@ export default function ProfilePersonalInfoPanel({
                         : ""
                     }`}
                     style={getProfileIconStyle(color)}
-                    onClick={() => onDraftChange({ ...draft, iconColor: color })}
+                    onClick={() =>
+                      onDraftChange({ ...draft, iconColor: color })
+                    }
                     aria-label={`${labels.iconColor}: ${color}`}
                     title={color}
                   />

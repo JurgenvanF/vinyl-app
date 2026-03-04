@@ -445,6 +445,12 @@ export default function WishlistPage() {
 
   if (!user) return <p className="text-center mt-20">{t(locale, "loading")}</p>;
 
+  const hasSearchTerm = Boolean(searchValue.trim());
+  const showNoResults = hasSearchTerm && visibleAlbums.length === 0;
+  const emptyStateMessage = showNoResults
+    ? t(locale, "noResult")
+    : t(locale, "noAlbumsInWishlist");
+
   return (
     <div className="collection-container flex flex-col min-h-full gap-4">
       <div className="flex justify-between items-center">
@@ -695,7 +701,7 @@ export default function WishlistPage() {
           ))}
           {visibleAlbums.length === 0 && (
             <div className="col-span-full flex flex-col items-center gap-3 py-10">
-              <p className="text-center">{t(locale, "noAlbumsFound")}</p>
+              <p className="text-center">{emptyStateMessage}</p>
               <button
                 onClick={() => setModalOpen(true)}
                 className="collection-container__add rounded h-10 px-3 cursor-pointer"
@@ -714,7 +720,7 @@ export default function WishlistPage() {
         (sortBy === "artist" || sortBy === "releaseDate") &&
         visibleAlbums.length === 0 && (
           <div className="mt-6 flex flex-col items-center gap-3 py-10">
-            <p className="text-center">{t(locale, "noAlbumsFound")}</p>
+            <p className="text-center">{emptyStateMessage}</p>
             <button
               onClick={() => setModalOpen(true)}
               className="collection-container__add rounded h-10 px-3 cursor-pointer"

@@ -476,8 +476,8 @@ export default function Dashboard() {
   const hasSearchTerm = Boolean(searchValue.trim());
   const showNoResults = hasSearchTerm && visibleAlbums.length === 0;
   const emptyStateMessage = showNoResults
-    ? t(locale, "noAlbumsFound")
-    : t(locale, "addFirstAlbumPrompt");
+    ? t(locale, "noResult")
+    : t(locale, "noAlbumsInCollection");
 
   const openAddAlbumModal = (initialQuery = "") => {
     setModalInitialQuery(initialQuery);
