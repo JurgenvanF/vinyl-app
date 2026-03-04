@@ -8,6 +8,7 @@ import AlbumDetailsModal from "../../modal/AlbumDetailsModal";
 import VinylSpinner from "../../../spinner/VinylSpinner";
 import AlbumCard from "../../card/AlbumCard";
 import { auth, db } from "../../../../../lib/firebase";
+import { devError } from "../../../../../lib/devLog";
 import { collection, getDocs } from "firebase/firestore";
 import { Scan, ScanBarcode } from "lucide-react";
 
@@ -97,7 +98,7 @@ export default function Barcode() {
         setCollectionIds(new Set(collectionSnap.docs.map((doc) => doc.id)));
         setWishlistIds(new Set(wishlistSnap.docs.map((doc) => doc.id)));
       } catch (err) {
-        console.error(err);
+        devError(err);
       }
     };
 
@@ -212,7 +213,7 @@ export default function Barcode() {
               setSelectedAlbum({ album: only, artist, title });
             }
           } catch (err) {
-            console.error(err);
+            devError(err);
             setError(t(locale, "barcodeErrorFetchAlbumData"));
           } finally {
             setLookupLoading(false);

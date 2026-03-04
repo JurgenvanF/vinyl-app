@@ -2,6 +2,7 @@
 
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
+import { devError } from "../../../../../lib/devLog";
 import { Heart } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
@@ -136,7 +137,7 @@ export default function WishlistButton({
           });
         }
       } catch (err) {
-        console.error(err);
+        devError(err);
         if (typeof window !== "undefined") {
           (
             window as Window & {

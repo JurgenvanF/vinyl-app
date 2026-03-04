@@ -2,6 +2,7 @@
 
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
+import { devError } from "../../../../../lib/devLog";
 import { Plus, Check } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
 import { doc, setDoc, serverTimestamp, getDoc } from "firebase/firestore";
@@ -146,7 +147,7 @@ export default function CollectionButton({
           });
         }
       } catch (err) {
-        console.error(err);
+        devError(err);
         if (typeof window !== "undefined") {
           (
             window as Window & {

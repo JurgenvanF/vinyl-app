@@ -12,6 +12,7 @@ import {
 } from "../../../../../lib/countryFlags";
 import { useThemePlaceholder } from "../../../../../lib/useThemePlaceholder";
 import { auth, db } from "../../../../../lib/firebase";
+import { devError } from "../../../../../lib/devLog";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import AlbumCard from "../../card/AlbumCard";
 import AlbumDetailsModal from "../../modal/AlbumDetailsModal";
@@ -382,7 +383,7 @@ export default function CustomEntry({
 
         loadedExistingKeyRef.current = loadKey;
       } catch (error) {
-        console.error(error);
+        devError(error);
         if (!active || loadExistingSeqRef.current !== seq) return;
         setFormError(t(locale, "customEntryLoadError"));
       } finally {
@@ -926,7 +927,7 @@ export default function CustomEntry({
       });
       setExistingExtraAssets([]);
     } catch (error) {
-      console.error(error);
+      devError(error);
       setFormError(t(locale, "customEntrySaveError"));
     } finally {
       setSubmitting(false);

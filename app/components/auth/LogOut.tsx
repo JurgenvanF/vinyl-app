@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { t } from "../../../lib/translations";
 import { auth } from "../../../lib/firebase";
+import { devError } from "../../../lib/devLog";
 
 import { LogOut, TriangleAlert } from "lucide-react";
 import { ReactNode } from "react";
@@ -46,7 +47,7 @@ export default function LogoutButton({ className, icon }: LogoutButtonProps) {
 
       router.replace("/");
     } catch (error: unknown) {
-      console.error(error);
+      devError(error);
 
       const toastWindow = window as Window & {
         addToast?: (toast: {

@@ -1,3 +1,5 @@
+import { devError } from "./devLog";
+
 type DiscogsReleaseParams = {
   id?: number | null;
   masterId?: number | null;
@@ -133,7 +135,7 @@ export const fetchDiscogsReleaseDetails = async ({
       cache.set(cacheKey, { details, timestamp: Date.now() });
       return details;
     } catch (error) {
-      console.error(error);
+      devError(error);
       return EMPTY_DETAILS;
     } finally {
       inFlight.delete(cacheKey);

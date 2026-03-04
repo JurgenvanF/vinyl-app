@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import VinylSpinner from "../../../spinner/VinylSpinner";
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
+import { devError } from "../../../../../lib/devLog";
 import AlbumCard from "../../card/AlbumCard";
 import Searchbar from "./Searchbar";
 import AlbumDetailsModal from "../../modal/AlbumDetailsModal";
@@ -53,8 +54,6 @@ export default function SearchModal({ initialQuery }: SearchModalProps) {
 
   const [showTopFade, setShowTopFade] = useState(false);
   const [showBottomFade, setShowBottomFade] = useState(false);
-  const [totalPages, setTotalPages] = useState(1);
-
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const [collectionIds, setCollectionIds] = useState<Set<string>>(new Set());
@@ -104,7 +103,7 @@ export default function SearchModal({ initialQuery }: SearchModalProps) {
         setCollectionIds(new Set(collectionSnap.docs.map((doc) => doc.id)));
         setWishlistIds(new Set(wishlistSnap.docs.map((doc) => doc.id)));
       } catch (err) {
-        console.error(err);
+        devError(err);
       }
     };
 
@@ -122,7 +121,6 @@ export default function SearchModal({ initialQuery }: SearchModalProps) {
     if (!searchQuery) {
       setSearchResults([]);
       setPage(1);
-      setTotalPages(1);
       setHasCompletedSearch(false);
       setSearchNotice("");
       return;
@@ -164,10 +162,9 @@ export default function SearchModal({ initialQuery }: SearchModalProps) {
         uniqueResults = [...masters, ...nonMasters];
 
         setSearchResults(uniqueResults);
-        setTotalPages(Math.ceil(data.total / PER_PAGE));
         setHasCompletedSearch(true);
       } catch (err) {
-        console.error(err);
+        devError(err);
         setSearchResults([]);
         setHasCompletedSearch(true);
       } finally {
@@ -177,14 +174,14 @@ export default function SearchModal({ initialQuery }: SearchModalProps) {
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [searchQuery, page]);
+  }, [searchQuery, page, locale]);
 
   const getMainGenre = (genres?: string[]) => {
     if (!genres || genres.length === 0) return undefined;
     return genres[0].split(/[,/]/)[0].trim();
   };
 
-  const getReleaseType = (formats?: string[], type?: string) => {
+  const getReleaseType = (formats?: string[]) => {
     if (!formats || formats.length === 0) return undefined;
     const meaningful = formats.find((f) =>
       /LP|Single|EP|CD|Compilation/i.test(f),
@@ -237,7 +234,7 @@ export default function SearchModal({ initialQuery }: SearchModalProps) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {searchResults.map((album) => {
                 const mainGenre = getMainGenre(album.genre);
-                const releaseType = getReleaseType(album.format, album.type);
+                const releaseType = getReleaseType(album.format);
                 const { artist, title } = splitDiscogsTitle(
                   album.title,
                   album.artist,

@@ -11,6 +11,7 @@ import { FirebaseError } from "firebase/app";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../lib/LanguageContext";
 import { t } from "../lib/translations";
+import { devError } from "../lib/devLog";
 import LanguageToggle from "./components/language/LanguageToggle";
 
 import {
@@ -169,7 +170,7 @@ export default function AuthPage() {
       );
       router.replace("/collection");
     } catch (error: unknown) {
-      console.error(error);
+      devError(error);
 
       if (
         error instanceof FirebaseError &&

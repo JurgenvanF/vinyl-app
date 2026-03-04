@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
+import { devError } from "../../../../../lib/devLog";
 import { Heart, HeartOff } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
 import { doc, deleteDoc, getDoc } from "firebase/firestore";
@@ -126,7 +127,7 @@ export default function RemoveWishlistButton({
         });
       }
     } catch (err) {
-      console.error(err);
+      devError(err);
       if (typeof window !== "undefined") {
         (
           window as Window & {

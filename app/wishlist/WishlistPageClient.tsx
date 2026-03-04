@@ -19,6 +19,7 @@ import { deriveArtists, derivePrimaryArtist } from "../../lib/artist";
 import { fetchDiscogsArtists } from "../../lib/discogsArtists";
 import type { DiscogsReleaseDetails } from "../../lib/discogsRelease";
 import { getSharedAlbumDetails } from "../../lib/sharedAlbumDetails";
+import { devError } from "../../lib/devLog";
 import VinylSpinner from "../components/spinner/VinylSpinner";
 import AlbumCard from "../components/albums/card/AlbumCard";
 import AlbumSearchModal from "../components/albums/search/AlbumSearchModal";
@@ -148,7 +149,7 @@ export default function WishlistPage() {
         detailsOverride,
       }));
     } catch (error) {
-      console.error(error);
+      devError(error);
     }
   };
 
@@ -219,7 +220,7 @@ export default function WishlistPage() {
         setAlbumsLoading(false);
       },
       (error) => {
-        console.error(error);
+        devError(error);
         setAlbums([]);
         setAlbumsLoading(false);
       },
@@ -272,7 +273,7 @@ export default function WishlistPage() {
             },
           );
         } catch (error) {
-          console.error(error);
+          devError(error);
         }
       }
     };

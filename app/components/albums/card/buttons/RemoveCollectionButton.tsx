@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
+import { devError } from "../../../../../lib/devLog";
 import { Trash2 } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
 import { doc, deleteDoc, getDoc } from "firebase/firestore";
@@ -20,6 +21,17 @@ type DiscogsRelease = {
 
 type RemoveCollectionButtonProps = {
   album: DiscogsRelease;
+};
+
+type ToastWindow = Window & {
+  addToast?: (toast: {
+    message: string;
+    icon: typeof Trash2;
+    bgColor: string;
+    textColor: string;
+    iconBgColor: string;
+    iconBorderColor: string;
+  }) => void;
 };
 
 export default function RemoveCollectionButton({
@@ -101,7 +113,7 @@ export default function RemoveCollectionButton({
       }
 
       if (typeof window !== "undefined") {
-        (window as any).addToast?.({
+        (window as ToastWindow).addToast?.({
           message: `${album.title} ${t(locale, "removedFromCollection").toLowerCase()}!`,
           icon: Trash2,
           bgColor: "bg-yellow-100",
@@ -111,9 +123,9 @@ export default function RemoveCollectionButton({
         });
       }
     } catch (err) {
-      console.error(err);
+      devError(err);
       if (typeof window !== "undefined") {
-        (window as any).addToast?.({
+        (window as ToastWindow).addToast?.({
           message: `${t(locale, "errorRemovedFromCollection")?.toLowerCase()}.`,
           icon: Trash2,
           bgColor: "bg-red-100",
