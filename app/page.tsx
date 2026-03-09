@@ -5,6 +5,8 @@ import { auth, db } from "../lib/firebase";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  sendEmailVerification,
 } from "firebase/auth";
 import { setDoc, doc } from "firebase/firestore";
 import { FirebaseError } from "firebase/app";
@@ -42,6 +44,7 @@ export default function AuthPage() {
   const [registerEmailError, setRegisterEmailError] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   // Check if user is already logged in
   useEffect(() => {
@@ -153,6 +156,9 @@ export default function AuthPage() {
       );
       const newUser = userCredential.user;
 
+      auth.languageCode = locale === "nl" ? "nl" : "en";
+      await sendEmailVerification(newUser);
+
       await setDoc(doc(db, "users", newUser.uid), {
         firstName,
         lastName,
@@ -163,6 +169,14 @@ export default function AuthPage() {
       showToast(
         t(locale, "registerSuccess"),
         UserPlus,
+        "bg-green-100",
+        "text-green-900",
+        "bg-green-200",
+        "border-green-400",
+      );
+      showToast(
+        t(locale, "verificationEmailSent"),
+        LogIn,
         "bg-green-100",
         "text-green-900",
         "bg-green-200",
@@ -197,6 +211,65 @@ export default function AuthPage() {
         "bg-red-200",
         "border-red-400",
       );
+    }
+  };
+
+  const handleSendPasswordReset = async () => {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      showToast(
+        t(locale, "enterEmailForReset"),
+        TriangleAlert,
+        "bg-red-100",
+        "text-red-900",
+        "bg-red-200",
+        "border-red-400",
+      );
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      auth.languageCode = locale === "nl" ? "nl" : "en";
+      await sendPasswordResetEmail(auth, trimmedEmail);
+      showToast(
+        t(locale, "passwordResetEmailSent"),
+        LogIn,
+        "bg-green-100",
+        "text-green-900",
+        "bg-green-200",
+        "border-green-400",
+      );
+    } catch (error: unknown) {
+      if (
+        error instanceof FirebaseError &&
+        (error.code === "auth/user-not-found" ||
+          error.code === "auth/invalid-email")
+      ) {
+        // For security + UX, do not confirm whether an account exists.
+        showToast(
+          t(locale, "passwordResetEmailSent"),
+          LogIn,
+          "bg-green-100",
+          "text-green-900",
+          "bg-green-200",
+          "border-green-400",
+        );
+        return;
+      }
+
+      devError(error);
+
+      showToast(
+        t(locale, "passwordResetEmailFailed"),
+        TriangleAlert,
+        "bg-red-100",
+        "text-red-900",
+        "bg-red-200",
+        "border-red-400",
+      );
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -299,6 +372,15 @@ export default function AuthPage() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+
+            <button
+              type="button"
+              disabled={resetLoading}
+              onClick={handleSendPasswordReset}
+              className="text-xs underline text-gray-600 hover:text-gray-900 transition self-end -mt-2 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            >
+              {t(locale, "forgotPassword")}
+            </button>
             <button
               type="submit"
               className="auth__container__submit p-3 rounded-lg bg-black text-white hover:bg-zinc-800 transition-colors cursor-pointer"

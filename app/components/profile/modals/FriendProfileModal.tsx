@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { type PointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { User } from "firebase/auth";
 import {
@@ -100,6 +100,20 @@ export default function FriendProfileModal({
   locale,
   onClose,
 }: FriendProfileModalProps) {
+  const statsScrollRef = useRef<HTMLDivElement | null>(null);
+  const statsDragRef = useRef<{
+    active: boolean;
+    pointerId: number | null;
+    startX: number;
+    startScrollLeft: number;
+  }>({
+    active: false,
+    pointerId: null,
+    startX: 0,
+    startScrollLeft: 0,
+  });
+  const [isStatsDragging, setIsStatsDragging] = useState(false);
+
   const [profile, setProfile] = useState<UserProfileDocument | null>(null);
   const [isFriend, setIsFriend] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -138,6 +152,60 @@ export default function FriendProfileModal({
   const [detailsTitle, setDetailsTitle] = useState<string>("");
   const [detailsInViewerCollection, setDetailsInViewerCollection] =
     useState(false);
+
+  useEffect(() => {
+    if (!isStatsDragging) return;
+    const prevCursor = document.body.style.cursor;
+    document.body.style.cursor = "grabbing";
+    return () => {
+      document.body.style.cursor = prevCursor;
+    };
+  }, [isStatsDragging]);
+
+  const onStatsPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== "mouse") return;
+    if (event.button !== 0) return;
+
+    const container = statsScrollRef.current;
+    if (!container) return;
+
+    statsDragRef.current.active = true;
+    statsDragRef.current.pointerId = event.pointerId;
+    statsDragRef.current.startX = event.clientX;
+    statsDragRef.current.startScrollLeft = container.scrollLeft;
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setIsStatsDragging(true);
+  };
+
+  const onStatsPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== "mouse") return;
+    if (!statsDragRef.current.active) return;
+
+    const container = statsScrollRef.current;
+    if (!container) return;
+
+    const dx = event.clientX - statsDragRef.current.startX;
+    container.scrollLeft = statsDragRef.current.startScrollLeft - dx;
+
+    event.preventDefault();
+  };
+
+  const endStatsDrag = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== "mouse") return;
+    if (statsDragRef.current.pointerId !== event.pointerId) return;
+
+    statsDragRef.current.active = false;
+    statsDragRef.current.pointerId = null;
+
+    try {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    } catch {
+      // ignore
+    }
+
+    setIsStatsDragging(false);
+  };
 
   const openAlbumDetails = async (
     list: "Collection" | "Wishlist",
@@ -586,11 +654,18 @@ export default function FriendProfileModal({
                     {t(locale, "collectionStatsAndFavorites")}
                   </h3>
                   <div
-                    className="mt-3 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                    className={`mt-3 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden select-none ${isStatsDragging ? "cursor-grabbing" : "cursor-grab"} [&_*]:cursor-inherit`}
                     style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                    ref={statsScrollRef}
+                    onPointerDown={onStatsPointerDown}
+                    onPointerMove={onStatsPointerMove}
+                    onPointerUp={endStatsDrag}
+                    onPointerCancel={endStatsDrag}
                   >
                     <div className="flex flex-nowrap gap-3 min-w-max">
-                      <div className="mt-5 flex flex-wrap gap-3">
+                      <div
+                        className="mt-5 flex flex-wrap gap-3"
+                      >
                         <div className="profile__surface flex items-center gap-4 border rounded-xl p-3 min-w-[180px]">
                           <div className="profile__surface__icon__collection p-2 rounded-full">
                             <Disc size={16} />

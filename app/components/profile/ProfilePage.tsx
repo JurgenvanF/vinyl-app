@@ -8,11 +8,13 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
   setDoc,
+  where,
 } from "firebase/firestore";
 
 import { auth, db } from "../../../lib/firebase";
@@ -126,6 +128,8 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfileDocument | null>(null);
   const [draft, setDraft] = useState<UserProfileDocument | null>(null);
   const [editMode, setEditMode] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const [activeTab, setActiveTab] = useState<ProfileTabKey>("profile");
 
@@ -310,76 +314,109 @@ export default function ProfilePage() {
   const onCancelEdit = () => {
     if (!profile) return;
     setDraft(profile);
+    setEmailError(null);
     setEditMode(false);
   };
 
   const onSaveProfile = async () => {
-    if (!user || !draft) return;
+    if (!user || !draft || saving) return;
+    setEmailError(null);
+
+    const trimmedEmail = (draft.email ?? "").trim();
+    const isLikelyValidEmail = (value: string) =>
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+    if (!isLikelyValidEmail(trimmedEmail)) {
+      setEmailError(t(locale, "invalidEmail"));
+      return;
+    }
+
     const ref = doc(db, "users", user.uid);
 
     const safeFavoriteGenres = Array.isArray(draft.favoriteGenres)
       ? draft.favoriteGenres.slice(0, 5)
       : [];
 
-    const searchFields = toSearchFields(draft);
-    const safeIconColor = normalizeProfileIconColor(draft.iconColor);
-    const payload: Partial<UserProfileDocument> = {
-      firstName: draft.firstName.trim(),
-      lastName: draft.lastName.trim(),
-      email: draft.email.trim(),
-      bio: (draft.bio ?? "").trim(),
-      startedCollectingYear:
-        typeof draft.startedCollectingYear === "number"
-          ? draft.startedCollectingYear
-          : null,
-      favoriteAlbumId:
-        typeof draft.favoriteAlbumId === "number"
-          ? draft.favoriteAlbumId
-          : null,
-      favoriteGenres: safeFavoriteGenres,
-      iconColor: safeIconColor,
-      ...searchFields,
-      updatedAt: serverTimestamp() as unknown as never,
-    };
+    setSaving(true);
+    try {
+      const emailLower = trimmedEmail.toLowerCase();
+      const usersRef = collection(db, "users");
+      const [lowerSnap, exactSnap] = await Promise.all([
+        getDocs(query(usersRef, where("emailLower", "==", emailLower), limit(3))),
+        getDocs(query(usersRef, where("email", "==", trimmedEmail), limit(3))),
+      ]);
 
-    await setDoc(ref, payload, { merge: true });
-    const [friendsSnap, outgoingSnap, incomingSnap] = await Promise.all([
-      getDocs(collection(db, "users", user.uid, "Friends")),
-      getDocs(collection(db, "users", user.uid, "FriendRequestsOutgoing")),
-      getDocs(collection(db, "users", user.uid, "FriendRequestsIncoming")),
-    ]);
+      const otherUserHasEmail =
+        lowerSnap.docs.some((docSnap) => docSnap.id !== user.uid) ||
+        exactSnap.docs.some((docSnap) => docSnap.id !== user.uid);
 
-    const mirrorPayload = {
-      firstName: payload.firstName,
-      lastName: payload.lastName,
-      email: payload.email,
-      iconColor: safeIconColor,
-    };
+      if (otherUserHasEmail) {
+        setEmailError(t(locale, "emailAlreadyInUse"));
+        return;
+      }
 
-    await Promise.all([
-      ...friendsSnap.docs.map((friendDoc) =>
-        setDoc(
-          doc(db, "users", friendDoc.id, "Friends", user.uid),
-          mirrorPayload,
-          { merge: true },
+      const searchFields = toSearchFields({ ...draft, email: trimmedEmail });
+      const safeIconColor = normalizeProfileIconColor(draft.iconColor);
+      const payload: Partial<UserProfileDocument> = {
+        firstName: draft.firstName.trim(),
+        lastName: draft.lastName.trim(),
+        email: trimmedEmail,
+        bio: (draft.bio ?? "").trim(),
+        startedCollectingYear:
+          typeof draft.startedCollectingYear === "number"
+            ? draft.startedCollectingYear
+            : null,
+        favoriteAlbumId:
+          typeof draft.favoriteAlbumId === "number"
+            ? draft.favoriteAlbumId
+            : null,
+        favoriteGenres: safeFavoriteGenres,
+        iconColor: safeIconColor,
+        ...searchFields,
+        updatedAt: serverTimestamp() as unknown as never,
+      };
+
+      await setDoc(ref, payload, { merge: true });
+      const [friendsSnap, outgoingSnap, incomingSnap] = await Promise.all([
+        getDocs(collection(db, "users", user.uid, "Friends")),
+        getDocs(collection(db, "users", user.uid, "FriendRequestsOutgoing")),
+        getDocs(collection(db, "users", user.uid, "FriendRequestsIncoming")),
+      ]);
+
+      const mirrorPayload = {
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        email: payload.email,
+        iconColor: safeIconColor,
+      };
+
+      await Promise.all([
+        ...friendsSnap.docs.map((friendDoc) =>
+          setDoc(
+            doc(db, "users", friendDoc.id, "Friends", user.uid),
+            mirrorPayload,
+            { merge: true },
+          ),
         ),
-      ),
-      ...outgoingSnap.docs.map((requestDoc) =>
-        setDoc(
-          doc(db, "users", requestDoc.id, "FriendRequestsIncoming", user.uid),
-          mirrorPayload,
-          { merge: true },
+        ...outgoingSnap.docs.map((requestDoc) =>
+          setDoc(
+            doc(db, "users", requestDoc.id, "FriendRequestsIncoming", user.uid),
+            mirrorPayload,
+            { merge: true },
+          ),
         ),
-      ),
-      ...incomingSnap.docs.map((requestDoc) =>
-        setDoc(
-          doc(db, "users", requestDoc.id, "FriendRequestsOutgoing", user.uid),
-          mirrorPayload,
-          { merge: true },
+        ...incomingSnap.docs.map((requestDoc) =>
+          setDoc(
+            doc(db, "users", requestDoc.id, "FriendRequestsOutgoing", user.uid),
+            mirrorPayload,
+            { merge: true },
+          ),
         ),
-      ),
-    ]);
-    setEditMode(false);
+      ]);
+      setEditMode(false);
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!canRender) {
@@ -389,6 +426,8 @@ export default function ProfilePage() {
       </div>
     );
   }
+
+  const currentUser = user as User;
 
   const showEditActions = activeTab === "profile";
 
@@ -405,6 +444,7 @@ export default function ProfilePage() {
                   type="button"
                   className="profile__btn--primary border rounded-lg px-4 py-2 cursor-pointer"
                   onClick={() => setEditMode(true)}
+                  disabled={saving}
                 >
                   {t(locale, "editProfile")}
                 </button>
@@ -414,13 +454,17 @@ export default function ProfilePage() {
                     type="button"
                     className="profile__btn--primary border rounded-lg px-4 py-2 cursor-pointer"
                     onClick={onSaveProfile}
+                    disabled={saving}
                   >
-                    {t(locale, "saving")}
+                    {saving ? t(locale, "saving") : t(locale, "saveChanges")}
                   </button>
                   <button
                     type="button"
                     className="profile__btn--secondary border rounded-lg px-3 py-2 cursor-pointer"
                     onClick={onCancelEdit}
+                    disabled={saving}
+                    aria-label={t(locale, "cancel")}
+                    title={t(locale, "cancel")}
                   >
                     <X />
                   </button>
@@ -444,10 +488,16 @@ export default function ProfilePage() {
       {activeTab === "profile" && (
         <div className="grid grid-cols-1 gap-4 items-start">
           <ProfilePersonalInfoPanel
+            locale={locale}
+            user={currentUser}
             profile={profile}
             draft={draft}
             editMode={editMode}
-            onDraftChange={setDraft}
+            onDraftChange={(next) => {
+              setDraft(next);
+              setEmailError(null);
+            }}
+            emailError={emailError}
             title={t(locale, "personalInformation")}
             labels={{
               name: t(locale, "name"),
@@ -483,11 +533,15 @@ export default function ProfilePage() {
       )}
 
       {activeTab === "privacy" && (
-        <ProfilePrivacyPanel user={user} profile={profile} locale={locale} />
+        <ProfilePrivacyPanel
+          user={currentUser}
+          profile={profile}
+          locale={locale}
+        />
       )}
 
       {activeTab === "friends" && (
-        <ProfileFriendsPanel user={user} locale={locale} />
+        <ProfileFriendsPanel user={currentUser} locale={locale} />
       )}
 
       {collectionLoading && (

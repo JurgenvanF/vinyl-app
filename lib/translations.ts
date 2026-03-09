@@ -9,8 +9,28 @@ type Translations = {
     by: string;
     login: string;
     register: string;
+    forgotPassword: string;
+    enterEmailForReset: string;
+    passwordResetEmailSent: string;
+    passwordResetEmailFailed: string;
+    accountSecurity: string;
+    emailVerified: string;
+    emailNotVerified: string;
+    sendVerificationEmail: string;
+    reloadVerificationStatus: string;
+    verificationEmailSent: string;
+    verificationEmailFailed: string;
+    currentPassword: string;
+    newPassword: string;
+    confirmNewPassword: string;
+    updatePassword: string;
+    passwordUpdated: string;
+    passwordUpdateFailed: string;
+    passwordsDoNotMatch: string;
+    passwordTooShort: string;
     email: string;
     emailAlreadyInUse: string;
+    invalidEmail: string;
     password: string;
     firstName: string;
     lastName: string;
@@ -276,8 +296,29 @@ export const translations: Translations = {
     by: "by",
     login: "Login",
     register: "Register",
+    forgotPassword: "Forgot password?",
+    enterEmailForReset: "Enter your email first so we can send a reset link.",
+    passwordResetEmailSent:
+      "If an account exists for this email, you'll receive a reset link shortly. Check Spam/Promotions too.",
+    passwordResetEmailFailed: "Could not send password reset email.",
+    accountSecurity: "Account security",
+    emailVerified: "Email verified.",
+    emailNotVerified: "Email not verified yet.",
+    sendVerificationEmail: "Send verification email",
+    reloadVerificationStatus: "Reload status",
+    verificationEmailSent: "Verification email sent.",
+    verificationEmailFailed: "Could not send verification email.",
+    currentPassword: "Current password",
+    newPassword: "New password",
+    confirmNewPassword: "Confirm new password",
+    updatePassword: "Update password",
+    passwordUpdated: "Password updated.",
+    passwordUpdateFailed: "Could not update password.",
+    passwordsDoNotMatch: "New passwords do not match.",
+    passwordTooShort: "Password must be at least 8 characters.",
     email: "Email",
     emailAlreadyInUse: "This email address is already in use.",
+    invalidEmail: "Please enter a valid email address.",
     password: "Password",
     firstName: "First Name",
     lastName: "Last Name",
@@ -557,8 +598,31 @@ export const translations: Translations = {
     by: "door",
     login: "Inloggen",
     register: "Registreren",
+    forgotPassword: "Wachtwoord vergeten?",
+    enterEmailForReset:
+      "Vul eerst je e-mailadres in zodat we een resetlink kunnen sturen.",
+    passwordResetEmailSent:
+      "Als er een account bestaat voor dit e-mailadres, ontvang je zo een resetlink. Check ook je spam/promoties.",
+    passwordResetEmailFailed:
+      "Kon geen e-mail voor wachtwoordreset versturen.",
+    accountSecurity: "Accountbeveiliging",
+    emailVerified: "E-mailadres geverifieerd.",
+    emailNotVerified: "E-mailadres is nog niet geverifieerd.",
+    sendVerificationEmail: "Verificatie-e-mail sturen",
+    reloadVerificationStatus: "Status vernieuwen",
+    verificationEmailSent: "Verificatie-e-mail verzonden.",
+    verificationEmailFailed: "Kon geen verificatie-e-mail versturen.",
+    currentPassword: "Huidig wachtwoord",
+    newPassword: "Nieuw wachtwoord",
+    confirmNewPassword: "Bevestig nieuw wachtwoord",
+    updatePassword: "Wachtwoord wijzigen",
+    passwordUpdated: "Wachtwoord gewijzigd.",
+    passwordUpdateFailed: "Kon wachtwoord niet wijzigen.",
+    passwordsDoNotMatch: "Nieuwe wachtwoorden komen niet overeen.",
+    passwordTooShort: "Wachtwoord moet minimaal 8 tekens zijn.",
     email: "E-mail",
     emailAlreadyInUse: "Dit e-mailadres is al in gebruik.",
+    invalidEmail: "Vul een geldig e-mailadres in.",
     password: "Wachtwoord",
     firstName: "Voornaam",
     lastName: "Achternaam",
