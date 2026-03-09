@@ -18,6 +18,7 @@ import {
 import { t } from "../../../../lib/translations";
 import { devError } from "../../../../lib/devLog";
 import { auth } from "../../../../lib/firebase";
+import { Eye, EyeOff } from "lucide-react";
 
 type Locale = Parameters<typeof t>[0];
 
@@ -59,6 +60,11 @@ export default function ProfilePersonalInfoPanel({
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
 
   useEffect(() => {
     setVerified(user.emailVerified);
@@ -391,42 +397,103 @@ export default function ProfilePersonalInfoPanel({
                     <label className="text-sm font-medium">
                       {t(locale, "currentPassword")}
                     </label>
-                    <input
-                      className="profile__input border rounded-lg px-3 py-2"
-                      type="password"
-                      autoComplete="current-password"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      disabled={passwordLoading}
-                    />
+                    <div className="relative">
+                      <input
+                        className="profile__input border rounded-lg px-3 py-2 w-full"
+                        type={showPassword.current ? "text" : "password"}
+                        autoComplete="current-password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        disabled={passwordLoading}
+                      />
+                      <div className="absolute inset-y-0 right-3 flex items-center">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowPassword((prev) => ({
+                              ...prev,
+                              current: !prev.current,
+                            }))
+                          }
+                          className="text-gray-500 hover:text-gray-800 transition"
+                        >
+                          {showPassword.current ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                   <div className="flex flex-col gap-1">
                     <label className="text-sm font-medium">
                       {t(locale, "newPassword")}
                     </label>
-                    <input
-                      className="profile__input border rounded-lg px-3 py-2"
-                      type="password"
-                      autoComplete="new-password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      disabled={passwordLoading}
-                      minLength={8}
-                    />
+                    <div className="relative">
+                      <input
+                        className="profile__input border rounded-lg px-3 py-2 w-full"
+                        type={showPassword.new ? "text" : "password"}
+                        autoComplete="new-password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        disabled={passwordLoading}
+                        minLength={8}
+                      />
+                      <div className="absolute inset-y-0 right-3 flex items-center">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowPassword((prev) => ({
+                              ...prev,
+                              new: !prev.new,
+                            }))
+                          }
+                          className="text-gray-500 hover:text-gray-800 transition"
+                        >
+                          {showPassword.new ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
+
                   <div className="flex flex-col gap-1">
                     <label className="text-sm font-medium">
                       {t(locale, "confirmNewPassword")}
                     </label>
-                    <input
-                      className="profile__input border rounded-lg px-3 py-2"
-                      type="password"
-                      autoComplete="new-password"
-                      value={confirmNewPassword}
-                      onChange={(e) => setConfirmNewPassword(e.target.value)}
-                      disabled={passwordLoading}
-                      minLength={8}
-                    />
+                    <div className="relative">
+                      <input
+                        className="profile__input border rounded-lg px-3 py-2 w-full"
+                        type={showPassword.confirm ? "text" : "password"}
+                        autoComplete="new-password"
+                        value={confirmNewPassword}
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        disabled={passwordLoading}
+                        minLength={8}
+                      />
+                      <div className="absolute inset-y-0 right-3 flex items-center">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowPassword((prev) => ({
+                              ...prev,
+                              confirm: !prev.confirm,
+                            }))
+                          }
+                          className="text-gray-500 hover:text-gray-800 transition"
+                        >
+                          {showPassword.confirm ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
