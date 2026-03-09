@@ -381,7 +381,11 @@ export default function ProfilePersonalInfoPanel({
             )}
 
             {showPasswordUpdate && (
-              <form onSubmit={handlePasswordUpdate} className="grid gap-3">
+              <form
+                autoComplete="off"
+                onSubmit={handlePasswordUpdate}
+                className="grid gap-3"
+              >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div className="flex flex-col gap-1">
                     <label className="text-sm font-medium">
@@ -390,6 +394,7 @@ export default function ProfilePersonalInfoPanel({
                     <input
                       className="profile__input border rounded-lg px-3 py-2"
                       type="password"
+                      autoComplete="current-password"
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
                       disabled={passwordLoading}
@@ -402,6 +407,7 @@ export default function ProfilePersonalInfoPanel({
                     <input
                       className="profile__input border rounded-lg px-3 py-2"
                       type="password"
+                      autoComplete="new-password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       disabled={passwordLoading}
@@ -415,6 +421,7 @@ export default function ProfilePersonalInfoPanel({
                     <input
                       className="profile__input border rounded-lg px-3 py-2"
                       type="password"
+                      autoComplete="new-password"
                       value={confirmNewPassword}
                       onChange={(e) => setConfirmNewPassword(e.target.value)}
                       disabled={passwordLoading}
