@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLanguage } from "../lib/LanguageContext";
 import { t } from "../lib/translations";
 import TopNav from "./components/topnav/TopNav";
 import ThemeInitializer from "./components/theme/ThemeInitializer";
 import Footer from "./components/footer/Footer";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { auth } from "../lib/firebase";
+import { type User, sendEmailVerification, signOut } from "firebase/auth";
 
 const getClientTitle = (path: string, locale: "en" | "nl"): string => {
   if (path === "/") return "Vinyl Vault";
@@ -33,11 +35,26 @@ export default function ClientLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { locale } = useLanguage();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [isEmailVerified, setIsEmailVerified] = useState(true);
+  const [verificationSending, setVerificationSending] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [pathname]);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((next) => {
+      setCurrentUser(next);
+      setIsEmailVerified(next?.emailVerified ?? true);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const applyTitle = () => {
@@ -96,14 +113,97 @@ export default function ClientLayout({
 
   const hideTopNav = pathname === "/";
   const isAuthPage = pathname === "/";
+  const needsVerification =
+    !isAuthPage && !authLoading && Boolean(currentUser) && !isEmailVerified;
+
+  useEffect(() => {
+    if (!needsVerification) return;
+
+    setVerificationSent(false);
+
+    let cancelled = false;
+    const poll = async () => {
+      const u = auth.currentUser;
+      if (!u) return;
+      await u.reload();
+      if (cancelled) return;
+      setIsEmailVerified(auth.currentUser?.emailVerified ?? true);
+      if (u.emailVerified) {
+        router.replace(pathname && pathname !== "/" ? pathname : "/collection");
+      }
+    };
+
+    poll();
+    const intervalId = window.setInterval(poll, 4000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [needsVerification, pathname, router]);
+
+  const handleResendVerification = async () => {
+    const u = auth.currentUser;
+    if (!u) return;
+
+    setVerificationSending(true);
+    try {
+      auth.languageCode = locale === "nl" ? "nl" : "en";
+      await sendEmailVerification(u);
+      setVerificationSent(true);
+    } finally {
+      setVerificationSending(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.replace("/");
+  };
 
   return (
     <div className={isAuthPage ? "auth-page" : "app-page"}>
       <ThemeInitializer />
       <div className="app-shell">
-        {!hideTopNav && <TopNav />}
-        <main className={`app-main ${!isAuthPage && "my-10"}`}>{children}</main>
-        {!isAuthPage && <Footer />}
+        {!hideTopNav && !needsVerification && <TopNav />}
+        <main className={`app-main ${!isAuthPage && "my-10"}`}>
+          {needsVerification ? (
+            <div className="min-h-[60vh] flex items-center justify-center">
+              <div className="profile__surface border rounded-xl p-6 max-w-lg w-full">
+                <h1 className="text-xl font-semibold">
+                  {t(locale, "verifyAccountTitle")}
+                </h1>
+                <p className="profile__muted mt-2">
+                  {t(locale, "verifyAccountMessage")}
+                </p>
+                <div className="mt-4 flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    disabled={verificationSending}
+                    className="profile__btn--primary border rounded-lg px-4 py-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {t(locale, "sendVerificationEmailAgain")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="profile__btn--secondary border rounded-lg px-4 py-2 cursor-pointer"
+                  >
+                    {t(locale, "logout")}
+                  </button>
+                </div>
+                {verificationSent && (
+                  <p className="text-sm profile__muted mt-3">
+                    {t(locale, "verificationEmailSent")}
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : (
+            children
+          )}
+        </main>
+        {!isAuthPage && !needsVerification && <Footer />}
       </div>
     </div>
   );

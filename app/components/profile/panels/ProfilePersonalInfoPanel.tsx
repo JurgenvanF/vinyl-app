@@ -366,7 +366,7 @@ export default function ProfilePersonalInfoPanel({
                     disabled={verificationLoading}
                     className="profile__btn--primary border rounded-lg px-3 py-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {t(locale, "sendVerificationEmail")}
+                    {t(locale, "sendVerificationEmailAgain")}
                   </button>
                   <button
                     type="button"

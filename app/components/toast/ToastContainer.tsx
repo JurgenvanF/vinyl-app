@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Toast from "./Toast";
 import { LucideIcon } from "lucide-react";
 
@@ -14,11 +14,16 @@ type ToastItem = {
   iconBorderColor?: string; // icon border color
 };
 
+type AddToastFn = (toast: Omit<ToastItem, "id">) => void;
+
 export default function ToastContainer() {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const lastIdRef = useRef(0);
 
-  const addToast = (toast: Omit<ToastItem, "id">) => {
-    const id = Date.now();
+  const addToast: AddToastFn = (toast) => {
+    const now = Date.now();
+    const id = now <= lastIdRef.current ? lastIdRef.current + 1 : now;
+    lastIdRef.current = id;
     setToasts((prev) => [...prev, { ...toast, id }]);
   };
 
@@ -27,10 +32,11 @@ export default function ToastContainer() {
   };
 
   useEffect(() => {
-    (window as any).addToast = addToast;
+    const toastWindow = window as Window & { addToast?: AddToastFn };
+    toastWindow.addToast = addToast;
 
     return () => {
-      delete (window as any).addToast;
+      delete toastWindow.addToast;
     };
   }, []);
 

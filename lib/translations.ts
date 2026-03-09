@@ -13,10 +13,12 @@ type Translations = {
     enterEmailForReset: string;
     passwordResetEmailSent: string;
     passwordResetEmailFailed: string;
+    verifyAccountTitle: string;
+    verifyAccountMessage: string;
     accountSecurity: string;
     emailVerified: string;
     emailNotVerified: string;
-    sendVerificationEmail: string;
+    sendVerificationEmailAgain: string;
     reloadVerificationStatus: string;
     verificationEmailSent: string;
     verificationEmailFailed: string;
@@ -301,10 +303,13 @@ export const translations: Translations = {
     passwordResetEmailSent:
       "If an account exists for this email, you'll receive a reset link shortly. Check Spam/Promotions too.",
     passwordResetEmailFailed: "Could not send password reset email.",
+    verifyAccountTitle: "Verify your account",
+    verifyAccountMessage:
+      "Please verify your email via the link we sent you. This page will automatically continue once your email is verified.",
     accountSecurity: "Account security",
     emailVerified: "Email verified.",
     emailNotVerified: "Email not verified yet.",
-    sendVerificationEmail: "Send verification email",
+    sendVerificationEmailAgain: "Send verification email again",
     reloadVerificationStatus: "Reload status",
     verificationEmailSent: "Verification email sent.",
     verificationEmailFailed: "Could not send verification email.",
@@ -603,12 +608,14 @@ export const translations: Translations = {
       "Vul eerst je e-mailadres in zodat we een resetlink kunnen sturen.",
     passwordResetEmailSent:
       "Als er een account bestaat voor dit e-mailadres, ontvang je zo een resetlink. Check ook je spam/promoties.",
-    passwordResetEmailFailed:
-      "Kon geen e-mail voor wachtwoordreset versturen.",
+    passwordResetEmailFailed: "Kon geen e-mail voor wachtwoordreset versturen.",
+    verifyAccountTitle: "Verifieer je account",
+    verifyAccountMessage:
+      "Verifieer je e-mailadres via de link die we je hebben gestuurd. Deze pagina gaat automatisch verder zodra je e-mailadres is geverifieerd.",
     accountSecurity: "Accountbeveiliging",
     emailVerified: "E-mailadres geverifieerd.",
     emailNotVerified: "E-mailadres is nog niet geverifieerd.",
-    sendVerificationEmail: "Verificatie-e-mail sturen",
+    sendVerificationEmailAgain: "Verificatie-e-mail opnieuw sturen",
     reloadVerificationStatus: "Status vernieuwen",
     verificationEmailSent: "Verificatie-e-mail verzonden.",
     verificationEmailFailed: "Kon geen verificatie-e-mail versturen.",

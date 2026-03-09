@@ -90,7 +90,8 @@ export default function ProfileStatsFavoritesPanel({
     const rest = uniqueGenres.filter((g) => !favoritesSet.has(g));
     return [...favorites, ...rest];
   }, [favoriteGenres, uniqueGenres]);
-  const favoriteGenresCount = orderedGenres.length === 0 ? 0 : favoriteGenres.length;
+  const favoriteGenresCount =
+    orderedGenres.length === 0 ? 0 : favoriteGenres.length;
 
   const favoriteAlbum = useMemo(() => {
     if (typeof draft.favoriteAlbumId !== "number") return null;
@@ -168,10 +169,10 @@ export default function ProfileStatsFavoritesPanel({
             <div>
               <div className="flex items-center mt-1">
                 <div className="text-xl font-semibold profile truncate">
-                  {topArtist ? topArtist.name : ""}
+                  {topArtist ? topArtist.name : "-"}
                 </div>
                 <div className="text-sm font-semibold ml-1">
-                  ({topArtist ? topArtist.count : "-"})
+                  {topArtist ? `(${topArtist.count})` : ""}
                 </div>
               </div>
               <div className="text-sm profile__muted">
@@ -312,7 +313,9 @@ export default function ProfileStatsFavoritesPanel({
             </div>
           ) : (
             !editMode && (
-              <p className="profile__muted text-sm">{labels.noFavoriteAlbumSet}</p>
+              <p className="profile__muted text-sm">
+                {labels.noFavoriteAlbumSet}
+              </p>
             )
           )}
         </div>
@@ -326,9 +329,7 @@ export default function ProfileStatsFavoritesPanel({
               {editMode ? "Select up to 5." : ""}
             </p>
           </div>
-          <div className="profile__muted text-xs">
-            {favoriteGenresCount}/5
-          </div>
+          <div className="profile__muted text-xs">{favoriteGenresCount}/5</div>
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
