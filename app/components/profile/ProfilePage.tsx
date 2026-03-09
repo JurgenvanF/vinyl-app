@@ -342,7 +342,9 @@ export default function ProfilePage() {
       const emailLower = trimmedEmail.toLowerCase();
       const usersRef = collection(db, "users");
       const [lowerSnap, exactSnap] = await Promise.all([
-        getDocs(query(usersRef, where("emailLower", "==", emailLower), limit(3))),
+        getDocs(
+          query(usersRef, where("emailLower", "==", emailLower), limit(3)),
+        ),
         getDocs(query(usersRef, where("email", "==", trimmedEmail), limit(3))),
       ]);
 
@@ -456,7 +458,7 @@ export default function ProfilePage() {
                     onClick={onSaveProfile}
                     disabled={saving}
                   >
-                    {saving ? t(locale, "saving") : t(locale, "saveChanges")}
+                    {saving ? t(locale, "saving") : t(locale, "saving")}
                   </button>
                   <button
                     type="button"

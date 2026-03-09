@@ -390,7 +390,6 @@ export default function ProfilePersonalInfoPanel({
                     <input
                       className="profile__input border rounded-lg px-3 py-2"
                       type="password"
-                      autoComplete="current-password"
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
                       disabled={passwordLoading}
@@ -403,7 +402,6 @@ export default function ProfilePersonalInfoPanel({
                     <input
                       className="profile__input border rounded-lg px-3 py-2"
                       type="password"
-                      autoComplete="new-password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       disabled={passwordLoading}
@@ -417,7 +415,6 @@ export default function ProfilePersonalInfoPanel({
                     <input
                       className="profile__input border rounded-lg px-3 py-2"
                       type="password"
-                      autoComplete="new-password"
                       value={confirmNewPassword}
                       onChange={(e) => setConfirmNewPassword(e.target.value)}
                       disabled={passwordLoading}
