@@ -128,9 +128,6 @@ export default function ClientLayout({
       await u.reload();
       if (cancelled) return;
       setIsEmailVerified(auth.currentUser?.emailVerified ?? true);
-      if (u.emailVerified) {
-        router.replace(pathname && pathname !== "/" ? pathname : "/collection");
-      }
     };
 
     poll();
@@ -164,11 +161,11 @@ export default function ClientLayout({
     <div className={isAuthPage ? "auth-page" : "app-page"}>
       <ThemeInitializer />
       <div className="app-shell">
-        {!hideTopNav && !needsVerification && <TopNav />}
+        {!hideTopNav && <TopNav />}
         <main className={`app-main ${!isAuthPage && "my-10"}`}>
-          {needsVerification ? (
-            <div className="min-h-[60vh] flex items-center justify-center">
-              <div className="profile__surface border rounded-xl p-6 max-w-lg w-full">
+          {needsVerification && (
+            <div className="flex items-center justify-center mb-6">
+              <div className="profile__surface border rounded-xl p-6 max-w-3xl w-full">
                 <h1 className="text-xl font-semibold">
                   {t(locale, "verifyAccountTitle")}
                 </h1>
@@ -180,14 +177,14 @@ export default function ClientLayout({
                     type="button"
                     onClick={handleResendVerification}
                     disabled={verificationSending}
-                    className="profile__btn--primary border rounded-lg px-4 py-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="profile__btn--primary border rounded-lg px-4 py-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed w-full md:w-auto"
                   >
                     {t(locale, "sendVerificationEmailAgain")}
                   </button>
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="profile__btn--secondary border rounded-lg px-4 py-2 cursor-pointer"
+                    className="profile__btn--secondary border rounded-lg px-4 py-2 cursor-pointer w-full md:w-auto"
                   >
                     {t(locale, "logout")}
                   </button>
@@ -199,11 +196,10 @@ export default function ClientLayout({
                 )}
               </div>
             </div>
-          ) : (
-            children
           )}
+          {children}
         </main>
-        {!isAuthPage && !needsVerification && <Footer />}
+        {!isAuthPage && <Footer />}
       </div>
     </div>
   );

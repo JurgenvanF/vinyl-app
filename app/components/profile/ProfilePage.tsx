@@ -5,8 +5,11 @@ import { useRouter } from "next/navigation";
 import {
   EmailAuthProvider,
   User,
-  deleteUser,
   reauthenticateWithCredential,
+  sendEmailVerification,
+  signOut,
+  updateEmail,
+  verifyBeforeUpdateEmail,
 } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 import {
@@ -189,6 +192,9 @@ export default function ProfilePage() {
 
         if (raw) {
           const updates: Record<string, unknown> = {};
+          const authEmail = (user.email ?? "").trim();
+          const rawEmail =
+            typeof raw.email === "string" ? (raw.email as string).trim() : "";
 
           // Backfill search helpers for forgiving friend search
           const search = toSearchFields(next);
@@ -202,6 +208,16 @@ export default function ProfilePage() {
             updates.fullNameLower = search.fullNameLower;
           if (raw.iconColor !== next.iconColor)
             updates.iconColor = next.iconColor;
+
+          // Keep profile doc in sync with Firebase Auth email (e.g. when using
+          // verifyBeforeUpdateEmail, the Auth email updates later).
+          if (
+            authEmail &&
+            (!rawEmail || authEmail.toLowerCase() !== rawEmail.toLowerCase())
+          ) {
+            updates.email = authEmail;
+            updates.emailLower = authEmail.toLowerCase();
+          }
 
           // Backfill privacy defaults
           const rawPrivacy =
@@ -220,6 +236,60 @@ export default function ProfilePage() {
 
           if (Object.keys(updates).length > 0) {
             void setDoc(ref, updates, { merge: true });
+          }
+
+          if (
+            authEmail &&
+            rawEmail &&
+            authEmail.toLowerCase() !== rawEmail.toLowerCase()
+          ) {
+            const mirrorPayload = {
+              firstName: next.firstName,
+              lastName: next.lastName,
+              email: authEmail,
+              iconColor: next.iconColor,
+            };
+
+            void (async () => {
+              try {
+                const [friendsSnap, outgoingSnap, incomingSnap] =
+                  await Promise.all([
+                    getDocs(collection(db, "users", user.uid, "Friends")),
+                    getDocs(
+                      collection(db, "users", user.uid, "FriendRequestsOutgoing"),
+                    ),
+                    getDocs(
+                      collection(db, "users", user.uid, "FriendRequestsIncoming"),
+                    ),
+                  ]);
+
+                await Promise.all([
+                  ...friendsSnap.docs.map((friendDoc) =>
+                    setDoc(
+                      doc(db, "users", friendDoc.id, "Friends", user.uid),
+                      mirrorPayload,
+                      { merge: true },
+                    ),
+                  ),
+                  ...outgoingSnap.docs.map((requestDoc) =>
+                    setDoc(
+                      doc(db, "users", requestDoc.id, "FriendRequestsIncoming", user.uid),
+                      mirrorPayload,
+                      { merge: true },
+                    ),
+                  ),
+                  ...incomingSnap.docs.map((requestDoc) =>
+                    setDoc(
+                      doc(db, "users", requestDoc.id, "FriendRequestsOutgoing", user.uid),
+                      mirrorPayload,
+                      { merge: true },
+                    ),
+                  ),
+                ]);
+              } catch (error) {
+                devError(error);
+              }
+            })();
           }
         }
       },
@@ -345,6 +415,14 @@ export default function ProfilePage() {
       return;
     }
 
+    const isEmailChange =
+      (user.email ?? "").trim().toLowerCase() !== trimmedEmail.toLowerCase();
+    if (!user.emailVerified && !isEmailChange) {
+      // Allow changing email to fix it, but block other profile edits while unverified.
+      setEmailError(t(locale, "verifyEmailToContinue"));
+      return;
+    }
+
     const ref = doc(db, "users", user.uid);
 
     const safeFavoriteGenres = Array.isArray(draft.favoriteGenres)
@@ -353,30 +431,64 @@ export default function ProfilePage() {
 
     setSaving(true);
     try {
-      const emailLower = trimmedEmail.toLowerCase();
-      const usersRef = collection(db, "users");
-      const [lowerSnap, exactSnap] = await Promise.all([
-        getDocs(
-          query(usersRef, where("emailLower", "==", emailLower), limit(3)),
-        ),
-        getDocs(query(usersRef, where("email", "==", trimmedEmail), limit(3))),
-      ]);
-
-      const otherUserHasEmail =
-        lowerSnap.docs.some((docSnap) => docSnap.id !== user.uid) ||
-        exactSnap.docs.some((docSnap) => docSnap.id !== user.uid);
-
-      if (otherUserHasEmail) {
-        setEmailError(t(locale, "emailAlreadyInUse"));
+      const authUser = auth.currentUser;
+      if (!authUser) {
+        setEmailError(t(locale, "saveFailed"));
         return;
       }
 
-      const searchFields = toSearchFields({ ...draft, email: trimmedEmail });
+      if (isEmailChange) {
+        const emailLower = trimmedEmail.toLowerCase();
+        const usersRef = collection(db, "users");
+        const [lowerSnap, exactSnap] = await Promise.all([
+          getDocs(
+            query(usersRef, where("emailLower", "==", emailLower), limit(3)),
+          ),
+          getDocs(
+            query(usersRef, where("email", "==", trimmedEmail), limit(3)),
+          ),
+        ]);
+
+        const otherUserHasEmail =
+          lowerSnap.docs.some((docSnap) => docSnap.id !== user.uid) ||
+          exactSnap.docs.some((docSnap) => docSnap.id !== user.uid);
+
+        if (otherUserHasEmail) {
+          setEmailError(t(locale, "emailAlreadyInUse"));
+          return;
+        }
+      }
+
+      let savedEmail = trimmedEmail;
+      if (isEmailChange) {
+        try {
+          await updateEmail(authUser, trimmedEmail);
+          auth.languageCode = locale === "nl" ? "nl" : "en";
+          await sendEmailVerification(authUser);
+          await authUser.reload();
+        } catch (error: unknown) {
+          if (
+            error instanceof FirebaseError &&
+            error.code === "auth/operation-not-allowed"
+          ) {
+            // When Firebase Auth is configured to require verification before email change,
+            // use the built-in flow that updates the email after the user clicks the link.
+            auth.languageCode = locale === "nl" ? "nl" : "en";
+            await verifyBeforeUpdateEmail(authUser, trimmedEmail);
+            savedEmail = (authUser.email ?? "").trim() || savedEmail;
+            setEmailError(t(locale, "emailChangeVerifyToApply"));
+          } else {
+            throw error;
+          }
+        }
+      }
+
+      const searchFields = toSearchFields({ ...draft, email: savedEmail });
       const safeIconColor = normalizeProfileIconColor(draft.iconColor);
       const payload: Partial<UserProfileDocument> = {
         firstName: draft.firstName.trim(),
         lastName: draft.lastName.trim(),
-        email: trimmedEmail,
+        email: savedEmail,
         bio: (draft.bio ?? "").trim(),
         startedCollectingYear:
           typeof draft.startedCollectingYear === "number"
@@ -429,7 +541,37 @@ export default function ProfilePage() {
           ),
         ),
       ]);
+
       setEditMode(false);
+      setDraft((prev) => (prev ? { ...prev, ...payload } : prev));
+    } catch (error: unknown) {
+      devError(error);
+      if (
+        error instanceof FirebaseError &&
+        error.code === "auth/email-already-in-use"
+      ) {
+        setEmailError(t(locale, "emailAlreadyInUse"));
+        return;
+      }
+
+      if (
+        error instanceof FirebaseError &&
+        (error.code === "auth/invalid-email" ||
+          error.code === "auth/missing-email")
+      ) {
+        setEmailError(t(locale, "invalidEmail"));
+        return;
+      }
+
+      if (
+        error instanceof FirebaseError &&
+        error.code === "auth/requires-recent-login"
+      ) {
+        setEmailError(t(locale, "verifyEmailRequiresLogin"));
+        return;
+      }
+
+      setEmailError(t(locale, "saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -492,7 +634,18 @@ export default function ProfilePage() {
     try {
       const credential = EmailAuthProvider.credential(email, password);
       await reauthenticateWithCredential(currentAuthUser, credential);
-      await deleteUser(currentAuthUser);
+      const token = await currentAuthUser.getIdToken();
+      const response = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const body = (await response.json().catch(() => null)) as
+        | { ok?: boolean; error?: string }
+        | null;
+
+      if (!response.ok || !body?.ok) {
+        throw new Error(body?.error || "Account delete failed");
+      }
 
       showToast(
         t(locale, "deleteAccountSuccess"),
@@ -504,6 +657,7 @@ export default function ProfilePage() {
       );
 
       setDeleteAccountOpen(false);
+      await signOut(auth);
       router.replace("/");
     } catch (error: unknown) {
       devError(error);
@@ -588,7 +742,6 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 gap-4 items-start">
           <ProfilePersonalInfoPanel
             locale={locale}
-            user={currentUser}
             profile={profile}
             draft={draft}
             editMode={editMode}

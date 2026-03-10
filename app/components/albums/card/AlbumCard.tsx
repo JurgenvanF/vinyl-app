@@ -14,7 +14,7 @@ import {
 import { useLanguage } from "../../../../lib/LanguageContext";
 import { t } from "../../../../lib/translations";
 
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, TriangleAlert } from "lucide-react";
 import { deriveArtists, derivePrimaryArtist } from "../../../../lib/artist";
 import { fetchDiscogsArtists } from "../../../../lib/discogsArtists";
 import {
@@ -200,6 +200,28 @@ export default function AlbumCard({
             if (!pendingAlbum) return;
             const user = auth.currentUser;
             if (!user) return;
+            if (!user.emailVerified) {
+              (
+                window as Window & {
+                  addToast?: (payload: {
+                    message: string;
+                    icon: typeof TriangleAlert;
+                    bgColor: string;
+                    textColor: string;
+                    iconBgColor: string;
+                    iconBorderColor: string;
+                  }) => void;
+                }
+              ).addToast?.({
+                message: t(locale, "verifyAccountRequiredAction"),
+                icon: TriangleAlert,
+                bgColor: "bg-red-100",
+                textColor: "text-red-900",
+                iconBgColor: "bg-red-200",
+                iconBorderColor: "border-red-400",
+              });
+              return;
+            }
 
             if (pendingAlbum.source === "custom") {
               const wishlistRef = doc(

@@ -36,6 +36,10 @@ type Translations = {
     passwordUpdateFailed: string;
     passwordsDoNotMatch: string;
     passwordTooShort: string;
+    verifyEmailToContinue: string;
+    verifyEmailRequiresLogin: string;
+    emailChangeVerifyToApply: string;
+    verifyAccountRequiredAction: string;
     email: string;
     emailAlreadyInUse: string;
     invalidEmail: string;
@@ -313,7 +317,7 @@ export const translations: Translations = {
     passwordResetEmailFailed: "Could not send password reset email.",
     verifyAccountTitle: "Verify your account",
     verifyAccountMessage:
-      "Please verify your email via the link we sent you. This page will automatically continue once your email is verified.",
+      "Please verify your email via the link we sent you. The page will automatically update once your email is verified.",
     accountSecurity: "Account security",
     emailVerified: "Email verified.",
     emailNotVerified: "Email not verified yet.",
@@ -337,6 +341,13 @@ export const translations: Translations = {
     passwordUpdateFailed: "Could not update password.",
     passwordsDoNotMatch: "New passwords do not match.",
     passwordTooShort: "Password must be at least 8 characters.",
+    verifyEmailToContinue: "Please verify your email to continue.",
+    verifyEmailRequiresLogin:
+      "Please log out and log back in, then try again to change your email.",
+    emailChangeVerifyToApply:
+      "We sent a verification link to your new email. Your email will update after you click it.",
+    verifyAccountRequiredAction:
+      "Please verify your email to use this feature.",
     email: "Email",
     emailAlreadyInUse: "This email address is already in use.",
     invalidEmail: "Please enter a valid email address.",
@@ -629,7 +640,7 @@ export const translations: Translations = {
     passwordResetEmailFailed: "Kon geen e-mail voor wachtwoordreset versturen.",
     verifyAccountTitle: "Verifieer je account",
     verifyAccountMessage:
-      "Verifieer je e-mailadres via de link die we je hebben gestuurd. Deze pagina gaat automatisch verder zodra je e-mailadres is geverifieerd.",
+      "Verifieer je e-mailadres via de link die we je hebben gestuurd. De pagina update automatisch zodra je e-mailadres is geverifieerd.",
     accountSecurity: "Accountbeveiliging",
     emailVerified: "E-mailadres geverifieerd.",
     emailNotVerified: "E-mailadres is nog niet geverifieerd.",
@@ -653,6 +664,13 @@ export const translations: Translations = {
     passwordUpdateFailed: "Kon wachtwoord niet wijzigen.",
     passwordsDoNotMatch: "Nieuwe wachtwoorden komen niet overeen.",
     passwordTooShort: "Wachtwoord moet minimaal 8 tekens zijn.",
+    verifyEmailToContinue: "Verifieer je e-mailadres om verder te gaan.",
+    verifyEmailRequiresLogin:
+      "Log uit en log opnieuw in, en probeer daarna je e-mailadres te wijzigen.",
+    emailChangeVerifyToApply:
+      "We hebben een verificatielink naar je nieuwe e-mailadres gestuurd. Je e-mailadres wordt aangepast nadat je erop klikt.",
+    verifyAccountRequiredAction:
+      "Verifieer je e-mailadres om deze functie te gebruiken.",
     email: "E-mail",
     emailAlreadyInUse: "Dit e-mailadres is al in gebruik.",
     invalidEmail: "Vul een geldig e-mailadres in.",

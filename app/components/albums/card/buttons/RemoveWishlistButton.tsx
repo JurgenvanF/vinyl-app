@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
 import { devError } from "../../../../../lib/devLog";
-import { Heart, HeartOff } from "lucide-react";
+import { Heart, HeartOff, TriangleAlert } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
 import { doc, deleteDoc, getDoc } from "firebase/firestore";
 import { decrementAlbumDetailsRefCountAndCleanup } from "../../../../../lib/sharedAlbumDetails";
@@ -34,6 +34,31 @@ export default function RemoveWishlistButton({
   const handleRemove = async () => {
     const user = auth.currentUser;
     if (!user) {
+      return;
+    }
+
+    if (!user.emailVerified) {
+      if (typeof window !== "undefined") {
+        (
+          window as Window & {
+            addToast?: (payload: {
+              message: string;
+              icon: typeof TriangleAlert;
+              bgColor: string;
+              textColor: string;
+              iconBgColor: string;
+              iconBorderColor: string;
+            }) => void;
+          }
+        ).addToast?.({
+          message: t(locale, "verifyAccountRequiredAction"),
+          icon: TriangleAlert,
+          bgColor: "bg-red-100",
+          textColor: "text-red-900",
+          iconBgColor: "bg-red-200",
+          iconBorderColor: "border-red-400",
+        });
+      }
       return;
     }
 

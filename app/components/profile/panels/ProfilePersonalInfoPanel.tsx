@@ -1,11 +1,9 @@
 "use client";
 
-import { type ChangeEvent, type FormEvent, useEffect, useState } from "react";
+import { type ChangeEvent, type FormEvent, useState } from "react";
 import {
   EmailAuthProvider,
-  type User,
   reauthenticateWithCredential,
-  sendEmailVerification,
   updatePassword,
 } from "firebase/auth";
 import { LogIn, TriangleAlert } from "lucide-react";
@@ -24,7 +22,6 @@ type Locale = Parameters<typeof t>[0];
 
 type ProfilePersonalInfoPanelProps = {
   locale: Locale;
-  user: User;
   profile: UserProfileDocument;
   draft: UserProfileDocument;
   editMode: boolean;
@@ -43,7 +40,6 @@ type ProfilePersonalInfoPanelProps = {
 
 export default function ProfilePersonalInfoPanel({
   locale,
-  user,
   profile,
   draft,
   editMode,
@@ -53,8 +49,6 @@ export default function ProfilePersonalInfoPanel({
   labels,
 }: ProfilePersonalInfoPanelProps) {
   const [emailTouched, setEmailTouched] = useState(false);
-  const [verificationLoading, setVerificationLoading] = useState(false);
-  const [verified, setVerified] = useState(user.emailVerified);
 
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -70,10 +64,6 @@ export default function ProfilePersonalInfoPanel({
   const unlockPasswordInputsSoon = () => {
     window.setTimeout(() => setPasswordInputsLocked(false), 0);
   };
-
-  useEffect(() => {
-    setVerified(user.emailVerified);
-  }, [user.emailVerified]);
 
   const showToast = (
     message: string,
@@ -105,49 +95,6 @@ export default function ProfilePersonalInfoPanel({
     });
   };
 
-  const handleSendVerification = async () => {
-    const currentUser = auth.currentUser;
-    if (!currentUser) return;
-
-    setVerificationLoading(true);
-    try {
-      auth.languageCode = locale === "nl" ? "nl" : "en";
-      await sendEmailVerification(currentUser);
-      showToast(
-        t(locale, "verificationEmailSent"),
-        LogIn,
-        "bg-green-100",
-        "text-green-900",
-        "bg-green-200",
-        "border-green-400",
-      );
-    } catch (error: unknown) {
-      devError(error);
-      showToast(
-        t(locale, "verificationEmailFailed"),
-        TriangleAlert,
-        "bg-red-100",
-        "text-red-900",
-        "bg-red-200",
-        "border-red-400",
-      );
-    } finally {
-      setVerificationLoading(false);
-    }
-  };
-
-  const handleReloadVerification = async () => {
-    const currentUser = auth.currentUser;
-    if (!currentUser) return;
-
-    setVerificationLoading(true);
-    try {
-      await currentUser.reload();
-      setVerified(currentUser.emailVerified);
-    } finally {
-      setVerificationLoading(false);
-    }
-  };
 
   const handlePasswordUpdate = async (event: FormEvent) => {
     event.preventDefault();
@@ -260,9 +207,8 @@ export default function ProfilePersonalInfoPanel({
       : null;
 
   const effectiveEmailError = emailError ?? emailFormatError;
-  const showVerification = !verified;
   const showPasswordUpdate = editMode;
-  const showAccountSecurity = showVerification || showPasswordUpdate;
+  const showAccountSecurity = showPasswordUpdate;
 
   return (
     <section className="profile__surface border rounded-xl p-4 sm:p-6">
@@ -365,32 +311,6 @@ export default function ProfilePersonalInfoPanel({
           </h3>
 
           <div className="mt-3 flex flex-col gap-4">
-            {showVerification && (
-              <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
-                <p className="text-sm profile__muted">
-                  {t(locale, "emailNotVerified")}
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 items-center justify-between md:justify-center w-full md:w-100 gap-2">
-                  <button
-                    type="button"
-                    onClick={handleSendVerification}
-                    disabled={verificationLoading}
-                    className="profile__btn--primary border rounded-lg px-3 py-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    {t(locale, "sendVerificationEmailAgain")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleReloadVerification}
-                    disabled={verificationLoading}
-                    className="profile__btn--secondary border rounded-lg px-3 py-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    {t(locale, "reloadVerificationStatus")}
-                  </button>
-                </div>
-              </div>
-            )}
-
             {showPasswordUpdate && (
               <form
                 autoComplete="off"

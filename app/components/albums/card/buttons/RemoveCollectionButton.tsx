@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLanguage } from "../../../../../lib/LanguageContext";
 import { t } from "../../../../../lib/translations";
 import { devError } from "../../../../../lib/devLog";
-import { Trash2 } from "lucide-react";
+import { Trash2, TriangleAlert } from "lucide-react";
 import { auth, db } from "../../../../../lib/firebase";
 import { doc, deleteDoc, getDoc } from "firebase/firestore";
 import MessageModal from "../../../modal/MessageModal";
@@ -43,6 +43,20 @@ export default function RemoveCollectionButton({
   const handleRemove = async () => {
     const user = auth.currentUser;
     if (!user) {
+      return;
+    }
+
+    if (!user.emailVerified) {
+      if (typeof window !== "undefined") {
+        (window as ToastWindow).addToast?.({
+          message: t(locale, "verifyAccountRequiredAction"),
+          icon: TriangleAlert,
+          bgColor: "bg-red-100",
+          textColor: "text-red-900",
+          iconBgColor: "bg-red-200",
+          iconBorderColor: "border-red-400",
+        });
+      }
       return;
     }
 

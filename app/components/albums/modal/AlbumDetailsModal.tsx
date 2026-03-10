@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Star,
   Loader2,
+  TriangleAlert,
   Trash2,
   Heart,
   HeartOff,
@@ -371,6 +372,29 @@ export default function AlbumDetailsModal({
       setActionsLoading(false);
       return;
     }
+    if (!user.emailVerified) {
+      (
+        window as Window & {
+          addToast?: (payload: {
+            message: string;
+            icon: typeof TriangleAlert;
+            bgColor: string;
+            textColor: string;
+            iconBgColor: string;
+            iconBorderColor: string;
+          }) => void;
+        }
+      ).addToast?.({
+        message: t(locale, "verifyAccountRequiredAction"),
+        icon: TriangleAlert,
+        bgColor: "bg-red-100",
+        textColor: "text-red-900",
+        iconBgColor: "bg-red-200",
+        iconBorderColor: "border-red-400",
+      });
+      setActionsLoading(false);
+      return;
+    }
     try {
       if (album.source === "custom") {
         const baseRef = doc(
@@ -438,6 +462,29 @@ export default function AlbumDetailsModal({
       setActionsLoading(false);
       return;
     }
+    if (!user.emailVerified) {
+      (
+        window as Window & {
+          addToast?: (payload: {
+            message: string;
+            icon: typeof TriangleAlert;
+            bgColor: string;
+            textColor: string;
+            iconBgColor: string;
+            iconBorderColor: string;
+          }) => void;
+        }
+      ).addToast?.({
+        message: t(locale, "verifyAccountRequiredAction"),
+        icon: TriangleAlert,
+        bgColor: "bg-red-100",
+        textColor: "text-red-900",
+        iconBgColor: "bg-red-200",
+        iconBorderColor: "border-red-400",
+      });
+      setActionsLoading(false);
+      return;
+    }
     try {
       if (album.source === "custom") {
         const baseRef = doc(
@@ -502,6 +549,29 @@ export default function AlbumDetailsModal({
     setActionsLoading(true);
     const user = auth.currentUser;
     if (!user) {
+      setActionsLoading(false);
+      return;
+    }
+    if (!user.emailVerified) {
+      (
+        window as Window & {
+          addToast?: (payload: {
+            message: string;
+            icon: typeof TriangleAlert;
+            bgColor: string;
+            textColor: string;
+            iconBgColor: string;
+            iconBorderColor: string;
+          }) => void;
+        }
+      ).addToast?.({
+        message: t(locale, "verifyAccountRequiredAction"),
+        icon: TriangleAlert,
+        bgColor: "bg-red-100",
+        textColor: "text-red-900",
+        iconBgColor: "bg-red-200",
+        iconBorderColor: "border-red-400",
+      });
       setActionsLoading(false);
       return;
     }
