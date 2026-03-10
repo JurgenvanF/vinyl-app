@@ -15,7 +15,7 @@ type Labels = {
   favoriteAlbum: string;
   favoriteGenres: string;
   noFavoriteAlbumSet: string;
-  noFavoriteGenresSet: string;
+  noGenresSet: string;
   noneSelected: string;
 };
 
@@ -166,15 +166,20 @@ export default function ProfileStatsFavoritesPanel({
             <div className="profile__surface__icon__artist p-2 rounded-full">
               <MicVocal size={25} />
             </div>
-            <div>
+
+            <div className="flex-1 min-w-0">
               <div className="flex items-center mt-1">
-                <div className="text-xl font-semibold profile truncate">
+                <div
+                  className="text-xl font-semibold profile truncate flex-1 min-w-0"
+                  title={topArtist?.name}
+                >
                   {topArtist ? topArtist.name : "-"}
                 </div>
-                <div className="text-sm font-semibold ml-1">
+                <div className="text-sm font-semibold ml-1 shrink-0">
                   {topArtist ? `(${topArtist.count})` : ""}
                 </div>
               </div>
+
               <div className="text-sm profile__muted">
                 {labels.statsTopArtist}
               </div>
@@ -334,9 +339,7 @@ export default function ProfileStatsFavoritesPanel({
 
         <div className="mt-3 flex flex-wrap gap-2">
           {orderedGenres.length === 0 && (
-            <span className="profile__muted text-sm">
-              {labels.noFavoriteGenresSet}
-            </span>
+            <span className="profile__muted text-sm">{labels.noGenresSet}</span>
           )}
           {orderedGenres.map((genre) => {
             const isFav = favoriteGenres.includes(genre);

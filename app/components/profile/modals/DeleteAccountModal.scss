@@ -1,0 +1,32 @@
+.delete-account-modal-overlay {
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(4px);
+}
+
+.delete-account-modal {
+  background-color: var(--white-black);
+  border: 1px solid var(--muted-white-black);
+}
+
+.delete-account-modal__icon {
+  background: rgba(220, 38, 38, 0.12);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.35);
+}
+
+.delete-account-modal__muted {
+  color: var(--muted-black);
+}
+
+.delete-account-modal__error {
+  color: #dc2626;
+}
+
+.dark {
+  .delete-account-modal__icon {
+    background: rgba(248, 113, 113, 0.18);
+    color: #fca5a5;
+    border-color: rgba(248, 113, 113, 0.35);
+  }
+}
+

@@ -80,30 +80,7 @@ export default function RemoveWishlistButton({
         ).catch(() => undefined);
       }
 
-      await deleteDoc(
-        docRef,
-      );
-
-      if (existingDetailsRef && album.source !== "custom") {
-        await decrementAlbumDetailsRefCountAndCleanup(existingDetailsRef);
-      }
-
-      if (
-        album.source === "custom" &&
-        ((Array.isArray(album.cloudinaryPublicIds) &&
-          album.cloudinaryPublicIds.length > 0) ||
-          storedCustomPublicIds.length > 0)
-      ) {
-        const ids =
-          Array.isArray(album.cloudinaryPublicIds) && album.cloudinaryPublicIds.length > 0
-            ? album.cloudinaryPublicIds
-            : storedCustomPublicIds;
-        await fetch("/api/cloudinary/destroy", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ publicIds: ids }),
-        }).catch(() => undefined);
-      }
+      await deleteDoc(docRef);
 
       if (typeof window !== "undefined") {
         (
@@ -125,6 +102,29 @@ export default function RemoveWishlistButton({
           iconBgColor: "bg-yellow-200",
           iconBorderColor: "border-yellow-400",
         });
+      }
+
+      if (existingDetailsRef && album.source !== "custom") {
+        void decrementAlbumDetailsRefCountAndCleanup(existingDetailsRef).catch((err) =>
+          devError(err),
+        );
+      }
+
+      if (
+        album.source === "custom" &&
+        ((Array.isArray(album.cloudinaryPublicIds) &&
+          album.cloudinaryPublicIds.length > 0) ||
+          storedCustomPublicIds.length > 0)
+      ) {
+        const ids =
+          Array.isArray(album.cloudinaryPublicIds) && album.cloudinaryPublicIds.length > 0
+            ? album.cloudinaryPublicIds
+            : storedCustomPublicIds;
+        void fetch("/api/cloudinary/destroy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ publicIds: ids }),
+        }).catch(() => undefined);
       }
     } catch (err) {
       devError(err);

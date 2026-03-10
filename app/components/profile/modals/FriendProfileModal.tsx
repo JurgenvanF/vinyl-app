@@ -663,9 +663,7 @@ export default function FriendProfileModal({
                     onPointerCancel={endStatsDrag}
                   >
                     <div className="flex flex-nowrap gap-3 min-w-max">
-                      <div
-                        className="mt-5 flex flex-wrap gap-3"
-                      >
+                      <div className="mt-5 flex flex-wrap gap-3">
                         <div className="profile__surface flex items-center gap-4 border rounded-xl p-3 min-w-[180px]">
                           <div className="profile__surface__icon__collection p-2 rounded-full">
                             <Disc size={16} />

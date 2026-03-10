@@ -60,11 +60,16 @@ export default function ProfilePersonalInfoPanel({
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [passwordInputsLocked, setPasswordInputsLocked] = useState(true);
   const [showPassword, setShowPassword] = useState({
     current: false,
     new: false,
     confirm: false,
   });
+
+  const unlockPasswordInputsSoon = () => {
+    window.setTimeout(() => setPasswordInputsLocked(false), 0);
+  };
 
   useEffect(() => {
     setVerified(user.emailVerified);
@@ -401,7 +406,24 @@ export default function ProfilePersonalInfoPanel({
                       <input
                         className="profile__input border rounded-lg px-3 py-2 w-full"
                         type={showPassword.current ? "text" : "password"}
-                        autoComplete="current-password"
+                        autoComplete="new-password"
+                        name="current-password-ignore"
+                        data-lpignore="true"
+                        data-1p-ignore="true"
+                        readOnly={passwordInputsLocked}
+                        onFocus={() => {
+                          // Delay unlocking to avoid triggering password manager suggestions on focus.
+                          unlockPasswordInputsSoon();
+                        }}
+                        onMouseDown={() => {
+                          setPasswordInputsLocked(true);
+                          unlockPasswordInputsSoon();
+                        }}
+                        onPointerDown={() => {
+                          setPasswordInputsLocked(true);
+                          unlockPasswordInputsSoon();
+                        }}
+                        onBlur={() => setPasswordInputsLocked(true)}
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
                         disabled={passwordLoading}
@@ -435,6 +457,22 @@ export default function ProfilePersonalInfoPanel({
                         className="profile__input border rounded-lg px-3 py-2 w-full"
                         type={showPassword.new ? "text" : "password"}
                         autoComplete="new-password"
+                        name="new-password"
+                        data-lpignore="true"
+                        data-1p-ignore="true"
+                        readOnly={passwordInputsLocked}
+                        onFocus={() => {
+                          unlockPasswordInputsSoon();
+                        }}
+                        onMouseDown={() => {
+                          setPasswordInputsLocked(true);
+                          unlockPasswordInputsSoon();
+                        }}
+                        onPointerDown={() => {
+                          setPasswordInputsLocked(true);
+                          unlockPasswordInputsSoon();
+                        }}
+                        onBlur={() => setPasswordInputsLocked(true)}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         disabled={passwordLoading}
@@ -470,6 +508,22 @@ export default function ProfilePersonalInfoPanel({
                         className="profile__input border rounded-lg px-3 py-2 w-full"
                         type={showPassword.confirm ? "text" : "password"}
                         autoComplete="new-password"
+                        name="confirm-new-password"
+                        data-lpignore="true"
+                        data-1p-ignore="true"
+                        readOnly={passwordInputsLocked}
+                        onFocus={() => {
+                          unlockPasswordInputsSoon();
+                        }}
+                        onMouseDown={() => {
+                          setPasswordInputsLocked(true);
+                          unlockPasswordInputsSoon();
+                        }}
+                        onPointerDown={() => {
+                          setPasswordInputsLocked(true);
+                          unlockPasswordInputsSoon();
+                        }}
+                        onBlur={() => setPasswordInputsLocked(true)}
                         value={confirmNewPassword}
                         onChange={(e) => setConfirmNewPassword(e.target.value)}
                         disabled={passwordLoading}

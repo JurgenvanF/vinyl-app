@@ -26,6 +26,12 @@ type Translations = {
     newPassword: string;
     confirmNewPassword: string;
     updatePassword: string;
+    deleteAccount: string;
+    deleteAccountWarning: string;
+    deleteAccountConfirmPassword: (email: string) => string;
+    deleteAccountSuccess: string;
+    deleteAccountError: string;
+    deleteAccountWrongPassword: string;
     passwordUpdated: string;
     passwordUpdateFailed: string;
     passwordsDoNotMatch: string;
@@ -69,6 +75,7 @@ type Translations = {
     favoriteAlbum: string;
     favoriteGenres: string;
     noFavoriteAlbumSet: string;
+    noGenresSet: string;
     noFavoriteGenresSet: string;
     noneSelected: string;
     privacySettings: string;
@@ -85,6 +92,7 @@ type Translations = {
     profileVisibilityHintEveryone: string;
     profileVisibilityHintFriends: string;
     profileVisibilityHintMe: string;
+    save: string;
     saving: string;
     saveFailed: string;
     friendsHint: string;
@@ -317,6 +325,14 @@ export const translations: Translations = {
     newPassword: "New password",
     confirmNewPassword: "Confirm new password",
     updatePassword: "Update password",
+    deleteAccount: "Delete account",
+    deleteAccountWarning:
+      "This permanently deletes your account and you will lose access to your account and, with it, the collection. This action cannot be undone.",
+    deleteAccountConfirmPassword: (email) =>
+      `To confirm, enter the password for ${email}.`,
+    deleteAccountSuccess: "Account deleted successfully.",
+    deleteAccountError: "Could not delete account.",
+    deleteAccountWrongPassword: "Incorrect password.",
     passwordUpdated: "Password updated.",
     passwordUpdateFailed: "Could not update password.",
     passwordsDoNotMatch: "New passwords do not match.",
@@ -360,6 +376,7 @@ export const translations: Translations = {
     favoriteAlbum: "Favorite album",
     favoriteGenres: "Favorite genres",
     noFavoriteAlbumSet: "No favorite album set yet.",
+    noGenresSet: "No genres in your collection.",
     noFavoriteGenresSet: "No favorite genres set yet.",
     noneSelected: "None selected",
     privacySettings: "Visibility settings",
@@ -379,6 +396,7 @@ export const translations: Translations = {
       "Anyone can send a friend request, but only friends can view your profile.",
     profileVisibilityHintMe:
       "Your account won’t appear in search, and nobody can view your profile.",
+    save: "Save",
     saving: "Saving",
     saveFailed: "Could not save your changes. Please try again.",
     friendsHint: "Search by name or email to add friends.",
@@ -623,6 +641,14 @@ export const translations: Translations = {
     newPassword: "Nieuw wachtwoord",
     confirmNewPassword: "Bevestig nieuw wachtwoord",
     updatePassword: "Wachtwoord wijzigen",
+    deleteAccount: "Account verwijderen",
+    deleteAccountWarning:
+      "Dit verwijdert je account permanent en je verliest de toegang tot je account en daarmee ook tot de collectie. Deze actie kan niet ongedaan gemaakt worden.",
+    deleteAccountConfirmPassword: (email) =>
+      `Om te bevestigen, voer het wachtwoord in voor ${email}.`,
+    deleteAccountSuccess: "Account succesvol verwijderd.",
+    deleteAccountError: "Account verwijderen mislukt.",
+    deleteAccountWrongPassword: "Onjuist wachtwoord.",
     passwordUpdated: "Wachtwoord gewijzigd.",
     passwordUpdateFailed: "Kon wachtwoord niet wijzigen.",
     passwordsDoNotMatch: "Nieuwe wachtwoorden komen niet overeen.",
@@ -666,6 +692,7 @@ export const translations: Translations = {
     favoriteAlbum: "Favoriete album",
     favoriteGenres: "Favoriete genres",
     noFavoriteAlbumSet: "Nog geen favoriet album ingesteld.",
+    noGenresSet: "Nog geen genres in je collectie.",
     noFavoriteGenresSet: "Nog geen favoriete genres ingesteld.",
     noneSelected: "Niets geselecteerd",
     privacySettings: "Zichtbaarheidsinstellingen",
@@ -685,6 +712,7 @@ export const translations: Translations = {
       "Iedereen kan een vriendschapsverzoek sturen, maar alleen vrienden kunnen je profiel bekijken.",
     profileVisibilityHintMe:
       "Je account verschijnt niet in zoekresultaten en niemand kan je profiel bekijken.",
+    save: "Opslaan",
     saving: "Opslaan",
     saveFailed: "Kon je wijzigingen niet opslaan. Probeer het opnieuw.",
     friendsHint: "Zoek op naam of e-mail om vrienden toe te voegen.",

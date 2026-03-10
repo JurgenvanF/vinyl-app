@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { t } from "../../../lib/translations";
+import { Loader2 } from "lucide-react";
 import {
   acquireModalScrollLock,
   releaseModalScrollLock,
@@ -22,6 +23,9 @@ type MessageModalProps = {
   color?: TextColorOption;
   onConfirm?: () => void;
   onCancel?: () => void;
+  confirmDisabled?: boolean;
+  cancelDisabled?: boolean;
+  confirmLoading?: boolean;
 };
 
 export default function MessageModal({
@@ -32,6 +36,9 @@ export default function MessageModal({
   color = "white",
   onConfirm,
   onCancel,
+  confirmDisabled = false,
+  cancelDisabled = false,
+  confirmLoading = false,
 }: MessageModalProps) {
   const { locale } = useLanguage();
 
@@ -58,7 +65,10 @@ export default function MessageModal({
   return createPortal(
     <div
       className="message-modal-overlay fixed inset-0 flex items-center justify-center z-50"
-      onClick={onCancel}
+      onClick={() => {
+        if (cancelDisabled) return;
+        onCancel?.();
+      }}
     >
       <div
         className="message-modal p-6 m-4 rounded-xl shadow-lg max-w-sm w-full"
@@ -72,15 +82,21 @@ export default function MessageModal({
               <button
                 className="px-4 py-2 rounded border cursor-pointer message-modal__button message-modal__button--cancel"
                 onClick={onCancel}
+                disabled={cancelDisabled || confirmLoading}
               >
                 {t(locale, "cancel")}
               </button>
             )}
             {onConfirm && (
               <button
-                className={`px-4 py-2 rounded cursor-pointer message-modal__button ${confirmToneClass[background]} ${confirmTextClass[color]}`}
+                className={`px-4 py-2 rounded cursor-pointer message-modal__button flex items-center justify-center gap-2 ${confirmToneClass[background]} ${confirmTextClass[color]}`}
                 onClick={onConfirm}
+                disabled={confirmDisabled || confirmLoading}
+                aria-busy={confirmLoading}
               >
+                {confirmLoading && (
+                  <Loader2 size={16} className="animate-spin" />
+                )}
                 {t(locale, "confirm")}
               </button>
             )}

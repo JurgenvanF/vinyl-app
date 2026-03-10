@@ -2,7 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { User } from "firebase/auth";
+import {
+  EmailAuthProvider,
+  User,
+  deleteUser,
+  reauthenticateWithCredential,
+} from "firebase/auth";
+import { FirebaseError } from "firebase/app";
 import {
   collection,
   doc,
@@ -20,6 +26,7 @@ import {
 import { auth, db } from "../../../lib/firebase";
 import { useLanguage } from "../../../lib/LanguageContext";
 import { t } from "../../../lib/translations";
+import { devError } from "../../../lib/devLog";
 import VinylSpinner from "../spinner/VinylSpinner";
 
 import ProfileTabs, { ProfileTabKey } from "./ProfileTabs";
@@ -27,6 +34,7 @@ import ProfilePersonalInfoPanel from "./panels/ProfilePersonalInfoPanel";
 import ProfileStatsFavoritesPanel from "./panels/ProfileStatsFavoritesPanel";
 import ProfilePrivacyPanel from "./panels/ProfilePrivacyPanel";
 import ProfileFriendsPanel from "./panels/ProfileFriendsPanel";
+import DeleteAccountModal from "./modals/DeleteAccountModal";
 import type {
   CollectionAlbumLite,
   ProfilePrivacySettings,
@@ -34,7 +42,7 @@ import type {
 } from "./profileTypes";
 
 import "./ProfilePage.scss";
-import { X } from "lucide-react";
+import { TriangleAlert, UserX, X } from "lucide-react";
 import { normalizeProfileIconColor } from "./profileDisplay";
 
 const defaultPrivacy: ProfilePrivacySettings = {
@@ -130,6 +138,12 @@ export default function ProfilePage() {
   const [editMode, setEditMode] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
+  const [deleteAccountModalKey, setDeleteAccountModalKey] = useState(0);
+  const [deleteAccountError, setDeleteAccountError] = useState<string | null>(
+    null,
+  );
 
   const [activeTab, setActiveTab] = useState<ProfileTabKey>("profile");
 
@@ -433,6 +447,89 @@ export default function ProfilePage() {
 
   const showEditActions = activeTab === "profile";
 
+  const showToast = (
+    message: string,
+    icon: typeof UserX | typeof TriangleAlert,
+    bgColor: string,
+    textColor: string,
+    iconBgColor: string,
+    iconBorderColor: string,
+  ) => {
+    if (typeof window === "undefined") return;
+    const toastWindow = window as Window & {
+      addToast?: (toast: {
+        message: string;
+        icon: typeof UserX | typeof TriangleAlert;
+        bgColor: string;
+        textColor: string;
+        iconBgColor: string;
+        iconBorderColor: string;
+      }) => void;
+    };
+
+    toastWindow.addToast?.({
+      message,
+      icon,
+      bgColor,
+      textColor,
+      iconBgColor,
+      iconBorderColor,
+    });
+  };
+
+  const handleDeleteAccount = async (password: string) => {
+    if (deleteAccountLoading) return;
+
+    const currentAuthUser = auth.currentUser;
+    const email = currentAuthUser?.email;
+    if (!currentAuthUser || !email) {
+      setDeleteAccountError(t(locale, "deleteAccountError"));
+      return;
+    }
+
+    setDeleteAccountLoading(true);
+    setDeleteAccountError(null);
+    try {
+      const credential = EmailAuthProvider.credential(email, password);
+      await reauthenticateWithCredential(currentAuthUser, credential);
+      await deleteUser(currentAuthUser);
+
+      showToast(
+        t(locale, "deleteAccountSuccess"),
+        UserX,
+        "bg-green-100",
+        "text-green-900",
+        "bg-green-200",
+        "border-green-400",
+      );
+
+      setDeleteAccountOpen(false);
+      router.replace("/");
+    } catch (error: unknown) {
+      devError(error);
+      if (
+        error instanceof FirebaseError &&
+        (error.code === "auth/invalid-credential" ||
+          error.code === "auth/wrong-password")
+      ) {
+        setDeleteAccountError(t(locale, "deleteAccountWrongPassword"));
+        return;
+      }
+
+      setDeleteAccountError(t(locale, "deleteAccountError"));
+      showToast(
+        t(locale, "deleteAccountError"),
+        TriangleAlert,
+        "bg-red-100",
+        "text-red-900",
+        "bg-red-200",
+        "border-red-400",
+      );
+    } finally {
+      setDeleteAccountLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-full flex flex-col gap-4 max-w-[1000px] mx-auto w-full">
       <div className="flex items-start gap-4 flex-wrap">
@@ -458,7 +555,7 @@ export default function ProfilePage() {
                     onClick={onSaveProfile}
                     disabled={saving}
                   >
-                    {saving ? t(locale, "saving") : t(locale, "saving")}
+                    {saving ? t(locale, "saving") : t(locale, "save")}
                   </button>
                   <button
                     type="button"
@@ -527,10 +624,31 @@ export default function ProfilePage() {
               favoriteAlbum: t(locale, "favoriteAlbum"),
               favoriteGenres: t(locale, "favoriteGenres"),
               noFavoriteAlbumSet: t(locale, "noFavoriteAlbumSet"),
-              noFavoriteGenresSet: t(locale, "noFavoriteGenresSet"),
+              noGenresSet: t(locale, "noGenresSet"),
               noneSelected: t(locale, "noneSelected"),
             }}
           />
+
+          <section className="profile__surface border rounded-xl p-4 sm:p-6">
+            <h2 className="text-lg font-semibold">{t(locale, "deleteAccount")}</h2>
+            <p className="profile__muted text-sm mt-1">
+              {t(locale, "deleteAccountWarning")}
+            </p>
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                className="border rounded-lg px-4 py-2 cursor-pointer bg-red-600 text-white border-red-700 hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                onClick={() => {
+                  setDeleteAccountError(null);
+                  setDeleteAccountModalKey((prev) => prev + 1);
+                  setDeleteAccountOpen(true);
+                }}
+                disabled={saving || deleteAccountLoading}
+              >
+                {t(locale, "deleteAccount")}
+              </button>
+            </div>
+          </section>
         </div>
       )}
 
@@ -549,6 +667,21 @@ export default function ProfilePage() {
       {collectionLoading && (
         <p className="profile__muted text-sm">{t(locale, "loading")}</p>
       )}
+
+      <DeleteAccountModal
+        key={deleteAccountModalKey}
+        open={deleteAccountOpen}
+        email={currentUser.email ?? ""}
+        loading={deleteAccountLoading}
+        error={deleteAccountError}
+        onClearError={() => setDeleteAccountError(null)}
+        onCancel={() => {
+          if (deleteAccountLoading) return;
+          setDeleteAccountOpen(false);
+          setDeleteAccountError(null);
+        }}
+        onConfirm={handleDeleteAccount}
+      />
     </div>
   );
 }
