@@ -1,18 +1,7 @@
-import { Geist, Geist_Mono } from "next/font/google";
 import { LanguageProvider } from "../lib/LanguageContext";
 import ClientLayout from "./ClientLayout";
 import ToastContainer from "./components/toast/ToastContainer";
 import "./styles/main.scss";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata = {
   title: "Vinyl Vault",
@@ -40,9 +29,7 @@ export default function RootLayout({
           content="black-translucent"
         />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className="antialiased">
         <LanguageProvider>
           <ClientLayout>{children}</ClientLayout>
           <ToastContainer />

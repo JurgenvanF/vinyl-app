@@ -5,7 +5,7 @@ import { v2 as cloudinary } from "cloudinary";
 export const runtime = "nodejs";
 
 const getAdminApp = () => {
-  const existing = admin.apps.find((a) => a.name === "account-delete");
+  const existing = admin.apps.find((a) => a?.name === "account-delete");
   if (existing) return existing;
 
   const normalizePrivateKey = (value: string) =>
