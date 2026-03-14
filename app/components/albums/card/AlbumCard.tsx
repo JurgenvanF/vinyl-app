@@ -110,7 +110,8 @@ export default function AlbumCard({
     setIsInWishlist(wishlistAction === "disabled");
   }, [wishlistAction]);
 
-  const reserveActionSpace = Boolean(buttons?.collection) && Boolean(buttons?.wishlist);
+  const reserveActionSpace =
+    Boolean(buttons?.collection) && Boolean(buttons?.wishlist);
 
   return (
     <div
@@ -156,7 +157,7 @@ export default function AlbumCard({
         {/* Tags */}
         <div className="flex flex-wrap gap-1 mt-2 items-center text-xs">
           {mainGenre && (
-            <span className="bg-orange-500/20 px-2 py-0.5 rounded-full">
+            <span className="bg-orange-500/20 px-2 py-0.5 rounded-[10px]">
               {mainGenre}
             </span>
           )}
@@ -166,7 +167,7 @@ export default function AlbumCard({
             .map((f, idx) => (
               <span
                 key={`${f}-${idx}`}
-                className="bg-green-500/20 px-2 py-0.5 rounded-full"
+                className="bg-green-500/20 px-2 py-0.5 rounded-[10px]"
               >
                 {f}
               </span>
@@ -233,11 +234,21 @@ export default function AlbumCard({
               );
               const wishlistSnap = await getDoc(wishlistRef);
               const wishlistData = wishlistSnap.data();
-              const detailsSnap = await getDoc(doc(wishlistRef, "details", "details"));
-              const albumSnap = await getDoc(doc(wishlistRef, "album", "album"));
+              const detailsSnap = await getDoc(
+                doc(wishlistRef, "details", "details"),
+              );
+              const albumSnap = await getDoc(
+                doc(wishlistRef, "album", "album"),
+              );
 
               await setDoc(
-                doc(db, "users", user.uid, "Collection", pendingAlbum.id.toString()),
+                doc(
+                  db,
+                  "users",
+                  user.uid,
+                  "Collection",
+                  pendingAlbum.id.toString(),
+                ),
                 { ...(wishlistData ?? {}), addedAt: serverTimestamp() },
               );
               await setDoc(
@@ -436,7 +447,9 @@ export default function AlbumCard({
             />
           )}
           {buttons?.viewDetails && <ViewDetailsButton />}
-          {buttons?.removeCollection && <RemoveCollectionButton album={album} />}
+          {buttons?.removeCollection && (
+            <RemoveCollectionButton album={album} />
+          )}
           {buttons?.removeWishlist && <RemoveWishlistButton album={album} />}
         </div>
 

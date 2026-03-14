@@ -304,8 +304,10 @@ export default function AlbumDetailsModal({
             ]);
             if (!friendAlbumSnap.exists()) return null;
 
-            const rawProfile = (friendProfileSnap.data() ??
-              {}) as Record<string, unknown>;
+            const rawProfile = (friendProfileSnap.data() ?? {}) as Record<
+              string,
+              unknown
+            >;
             const privacyRaw =
               typeof rawProfile.privacy === "object" && rawProfile.privacy
                 ? (rawProfile.privacy as Record<string, unknown>)
@@ -439,9 +441,9 @@ export default function AlbumDetailsModal({
           doc(db, "users", user.uid, "Collection", album.id.toString()),
         );
         if (existingDetailsRef) {
-          void decrementAlbumDetailsRefCountAndCleanup(existingDetailsRef).catch(
-            () => undefined,
-          );
+          void decrementAlbumDetailsRefCountAndCleanup(
+            existingDetailsRef,
+          ).catch(() => undefined);
         }
       }
       setAlbumState("none");
@@ -529,9 +531,9 @@ export default function AlbumDetailsModal({
           doc(db, "users", user.uid, "Wishlist", album.id.toString()),
         );
         if (existingDetailsRef) {
-          void decrementAlbumDetailsRefCountAndCleanup(existingDetailsRef).catch(
-            () => undefined,
-          );
+          void decrementAlbumDetailsRefCountAndCleanup(
+            existingDetailsRef,
+          ).catch(() => undefined);
         }
       }
       setAlbumState("none");
@@ -587,7 +589,9 @@ export default function AlbumDetailsModal({
         );
         const wishlistSnap = await getDoc(wishlistRef);
         const wishlistData = wishlistSnap.data();
-        const detailsSnap = await getDoc(doc(wishlistRef, "details", "details"));
+        const detailsSnap = await getDoc(
+          doc(wishlistRef, "details", "details"),
+        );
         const albumSnap = await getDoc(doc(wishlistRef, "album", "album"));
 
         await setDoc(
@@ -676,7 +680,11 @@ export default function AlbumDetailsModal({
         discogsArtistResult.length > 0
           ? discogsArtistResult
           : deriveArtists(albumArtist, album.artists);
-      const primaryArtist = derivePrimaryArtist(undefined, artists, albumArtist);
+      const primaryArtist = derivePrimaryArtist(
+        undefined,
+        artists,
+        albumArtist,
+      );
       const { detailsRef } = await ensureSharedAlbumDetails({
         id: album.id,
         masterId: album.master_id,
@@ -1041,7 +1049,7 @@ export default function AlbumDetailsModal({
               {artist || album.artist || t(locale, "unknownArtist")}
             </p>
             {sharedCollectionLabel && (
-              <p className="text-xs mt-2 inline-flex rounded-full px-2 py-1 bg-emerald-500/20 text-emerald-400">
+              <p className="text-xs mt-2 inline-flex rounded-[10px] px-2 py-1 bg-emerald-500/20 text-emerald-400">
                 {sharedCollectionLabel}
               </p>
             )}
@@ -1223,7 +1231,7 @@ export default function AlbumDetailsModal({
                   {details?.genre.map((g) => (
                     <span
                       key={g}
-                      className="bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full text-xs"
+                      className="bg-orange-500/20 text-orange-400 px-3 py-1 rounded-[10px] text-xs"
                     >
                       {g}
                     </span>
@@ -1231,7 +1239,7 @@ export default function AlbumDetailsModal({
                   {details?.style.map((s) => (
                     <span
                       key={s}
-                      className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-xs"
+                      className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-[10px] text-xs"
                     >
                       {s}
                     </span>
@@ -1239,7 +1247,7 @@ export default function AlbumDetailsModal({
                   {details?.format.map((f) => (
                     <span
                       key={f}
-                      className="bg-green-500/20 text-green-500 px-3 py-1 rounded-full text-xs"
+                      className="bg-green-500/20 text-green-500 px-3 py-1 rounded-[10px] text-xs"
                     >
                       {f}
                     </span>
@@ -1286,7 +1294,7 @@ export default function AlbumDetailsModal({
                         return (
                           <span
                             key={`${name}-${catno}-${i}`}
-                            className="album-details-modal-chip px-3 py-1 rounded-full text-xs"
+                            className="album-details-modal-chip px-3 py-1 rounded-[10px] text-xs"
                           >
                             {labelText}
                           </span>
@@ -1395,7 +1403,10 @@ export default function AlbumDetailsModal({
 
                     {actionsLoading && (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <Loader2 size={22} className="animate-spin opacity-70" />
+                        <Loader2
+                          size={22}
+                          className="animate-spin opacity-70"
+                        />
                       </div>
                     )}
                   </div>

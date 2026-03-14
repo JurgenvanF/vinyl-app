@@ -769,7 +769,7 @@ export default function FriendProfileModal({
                         {favoriteGenres.map((g) => (
                           <span
                             key={g}
-                            className="profile__tag profile__tag--favorite px-3 py-1 rounded-full text-sm"
+                            className="profile__tag profile__tag--favorite px-3 py-1 rounded-[15px] text-sm"
                           >
                             {g}
                           </span>
