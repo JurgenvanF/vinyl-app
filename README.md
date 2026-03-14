@@ -64,7 +64,6 @@ cd vinyl-app
 Install dependencies:
 
 ```bash
-cd vinyl-app
 npm install
 ```
 
